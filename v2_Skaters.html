@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Daily Ice Decision OS v2 — Skaters</title>
+<link rel="stylesheet" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"/>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f4f5f7;--card:#fff;--inset:#f4f5f7;
+  --border:rgba(0,0,0,.07);
+  --t1:#0f1a2e;--t2:rgba(15,26,46,.72);--t3:rgba(15,26,46,.44);
+  --ok:#34c759;--ok-d:rgba(52,199,89,.11);--ok-t:#0d5c29;
+  --warn:#ff9f0a;--warn-d:rgba(255,159,10,.11);--warn-t:#7a4500;
+  --danger:#ff3b30;--danger-d:rgba(255,59,48,.11);--danger-t:#8b1a1a;
+  --ice:#0096c7;--ice-d:rgba(0,150,199,.09);--ice-t:#003f5e;
+  --purple:#9b59b6;--purple-d:rgba(155,89,182,.09);--purple-t:#5b2c6f;
+  --deep:#0a1628;--r:13px;--sh:0 2px 10px rgba(0,0,0,.06);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--t1);font-family:'Pretendard',-apple-system,sans-serif;font-size:13.5px;line-height:1.5;-webkit-font-smoothing:antialiased;min-height:100vh;}
+
+/* SIDEBAR */
+.sidebar{position:fixed;left:0;top:0;bottom:0;width:232px;background:var(--deep);display:flex;flex-direction:column;z-index:100;border-right:1px solid rgba(255,255,255,.06)}
+.sb-logo{padding:18px 18px 14px;border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;gap:10px}
+.sb-logo-img{width:40px;height:40px;border-radius:50%;background:#fff;padding:2px;flex-shrink:0;box-shadow:0 0 16px rgba(0,150,199,.3)}
+.sb-logo-txt h1{font-family:'Orbitron';font-size:9.5px;font-weight:700;letter-spacing:2px;color:#fff;line-height:1.4}
+.sb-logo-txt p{font-size:9px;color:rgba(255,255,255,.38);margin-top:2px}
+.sb-role{padding:9px 18px;border-bottom:1px solid rgba(255,255,255,.07)}
+.sb-role-badge{display:inline-flex;align-items:center;gap:5px;font-size:9.5px;font-weight:700;padding:3px 9px;border-radius:5px;background:rgba(0,150,199,.18);color:#48cae4;border:1px solid rgba(0,150,199,.25)}
+.sb-team{font-size:9.5px;color:rgba(255,255,255,.35);margin-top:4px}
+.sb-nav{flex:1;padding:6px 0;overflow-y:auto}
+.nav-sec{padding:14px 18px 4px;font-size:8.5px;font-weight:800;letter-spacing:2.5px;color:rgba(255,255,255,.25);text-transform:uppercase}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 18px;font-size:12.5px;font-weight:500;color:rgba(255,255,255,.55);border-left:3px solid transparent;cursor:pointer;transition:all .15s;text-decoration:none}
+.nav-item:hover{background:rgba(255,255,255,.05);color:#fff}
+.nav-item.active{background:rgba(0,150,199,.14);color:#48cae4;border-left-color:#0096c7;font-weight:600}
+.nav-ic{width:18px;height:18px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.nav-ic svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.nav-em{font-size:14px;width:18px;text-align:center;flex-shrink:0}
+.sb-foot{padding:12px 18px;border-top:1px solid rgba(255,255,255,.07);font-size:9px;color:rgba(255,255,255,.25);line-height:1.7}
+
+/* MAIN */
+.main{margin-left:232px;min-height:100vh}
+.topbar{position:sticky;top:0;z-index:50;height:52px;background:rgba(244,245,247,.92);backdrop-filter:blur(20px) saturate(180%);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 28px}
+.tb-left{display:flex;align-items:center;gap:10px}
+.tb-page{font-size:13px;font-weight:700}
+.tb-right{display:flex;align-items:center;gap:10px}
+.tb-date{font-family:'JetBrains Mono';font-size:11px;font-weight:600;color:var(--ice)}
+.tb-chip{font-size:9.5px;font-weight:700;padding:3px 9px;border-radius:16px}
+.tb-chip.danger{background:var(--danger-d);color:var(--danger-t);border:1px solid rgba(255,59,48,.2)}
+.tb-chip.warn{background:var(--warn-d);color:var(--warn-t);border:1px solid rgba(255,159,10,.2)}
+.tb-chip.ok{background:var(--ok-d);color:var(--ok-t);border:1px solid rgba(52,199,89,.2)}
+.content{padding:20px 28px 48px}
+.sec-hd{font-size:9px;font-weight:800;letter-spacing:2px;color:var(--t3);text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.sec-hd::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* BADGES */
+.ds-badge{display:inline-flex;align-items:center;gap:4px;font-size:8.5px;font-weight:700;padding:2px 7px;border-radius:4px;margin-left:6px;vertical-align:middle}
+.ds-badge.live{background:rgba(0,150,199,.12);color:var(--ice-t);border:1px solid rgba(0,150,199,.2)}
+.ds-badge.live::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--ice);display:inline-block;animation:pulse 1.5s infinite}
+.ds-badge.measure{background:rgba(155,89,182,.1);color:var(--purple-t);border:1px solid rgba(155,89,182,.2)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.phv{font-size:8px;font-weight:800;padding:1px 5px;border-radius:3px;margin-left:3px}
+.phv.post{background:rgba(52,199,89,.12);color:#0d5c29}
+.phv.mid{background:rgba(255,159,10,.12);color:#7a4500}
+.phv.pre{background:rgba(255,59,48,.12);color:#8b1a1a}
+
+/* ── 필터 + 요약 ── */
+.filter-bar{display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.filter-btn{padding:5px 12px;border-radius:20px;font-size:11px;font-weight:600;border:1px solid var(--border);background:#fff;color:var(--t2);cursor:pointer;transition:all .15s}
+.filter-btn.active{background:var(--ice);color:#fff;border-color:var(--ice)}
+.filter-sep{width:1px;height:20px;background:var(--border)}
+.squad-summary{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:16px}
+.ss-card{padding:10px 8px;border-radius:10px;text-align:center;border:1px solid var(--border);background:#fff;box-shadow:var(--sh)}
+.ss-num{font-family:'Orbitron';font-size:20px;font-weight:900;line-height:1;margin-bottom:3px}
+.ss-num.ok{color:var(--ok)}.ss-num.warn{color:var(--warn)}.ss-num.danger{color:var(--danger)}.ss-num.ice{color:var(--ice)}.ss-num.muted{color:var(--t3)}
+.ss-label{font-size:9px;font-weight:700;color:var(--t3)}
+.ss-sub{font-size:8px;color:var(--t3);margin-top:1px;opacity:.7}
+
+/* ── 그룹 헤더 ── */
+.group-header{padding:8px 14px;border-radius:8px;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.group-header.danger{background:var(--danger-d);border:1px solid rgba(255,59,48,.18)}
+.group-header.warn{background:var(--warn-d);border:1px solid rgba(255,159,10,.15)}
+.group-header.ok{background:var(--ok-d);border:1px solid rgba(52,199,89,.15)}
+.gh-icon{font-size:14px}
+.gh-title{font-size:12px;font-weight:800}
+.gh-title.danger{color:var(--danger-t)}.gh-title.warn{color:var(--warn-t)}.gh-title.ok{color:var(--ok-t)}
+.gh-count{font-size:10px;font-weight:600;color:var(--t3);margin-left:auto}
+
+/* ── 선수 카드 그리드 ── */
+.player-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+.player-grid.wide{grid-template-columns:repeat(5,1fr)}
+
+/* ── 선수 카드 ── */
+.pc{background:#fff;border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--sh);overflow:hidden;cursor:pointer;transition:box-shadow .15s}
+.pc:hover{box-shadow:var(--shadow-hover,0 4px 16px rgba(0,0,0,.10))}
+.pc.flag-critical{border-left:4px solid var(--danger)}
+.pc.flag-high{border-left:4px solid var(--warn)}
+.pc.flag-medium{border-left:4px solid var(--ice)}
+.pc.flag-ok{border-left:4px solid var(--ok)}
+.pc.flag-none{border-left:4px solid rgba(0,0,0,.1)}
+
+.pc-head{padding:10px 12px;border-bottom:1px solid var(--border);background:var(--inset);display:flex;align-items:center;gap:8px}
+.pc-num{font-family:'Orbitron';font-size:15px;font-weight:900;color:var(--ice)}
+.pc-info{flex:1}
+.pc-name{font-size:12px;font-weight:800}
+.pc-pos{font-size:9px;color:var(--t3);margin-top:1px}
+.pc-status{font-size:8.5px;font-weight:700;padding:2px 7px;border-radius:8px;flex-shrink:0}
+.pc-status.ok{background:var(--ok-d);color:var(--ok-t)}
+.pc-status.warn{background:var(--warn-d);color:var(--warn-t)}
+.pc-status.danger{background:var(--danger-d);color:var(--danger-t)}
+.pc-status.none{background:var(--inset);color:var(--t3);border:1px solid var(--border)}
+
+.pc-body{padding:10px 12px}
+
+/* 지표 바 */
+.pc-metrics{display:flex;flex-direction:column;gap:4px;margin-bottom:8px}
+.pc-metric{display:flex;align-items:center;gap:6px}
+.pc-m-key{font-size:9px;font-weight:600;color:var(--t3);width:68px;flex-shrink:0}
+.pc-m-bar{flex:1;height:6px;background:#e8ecf0;border-radius:3px;overflow:hidden;position:relative}
+.pc-m-fill{height:100%;border-radius:3px;transition:width .4s}
+.pc-m-fill.ok{background:var(--ok)}
+.pc-m-fill.warn{background:var(--warn)}
+.pc-m-fill.danger{background:var(--danger)}
+.pc-m-fill.muted{background:rgba(0,0,0,.15)}
+.pc-m-val{font-family:'JetBrains Mono';font-size:9px;font-weight:700;width:44px;text-align:right;flex-shrink:0}
+.pc-m-val.ok{color:var(--ok-t)}.pc-m-val.warn{color:var(--warn-t)}.pc-m-val.danger{color:var(--danger-t)}.pc-m-val.muted{color:var(--t3)}
+
+/* K-Grip + PHV 행 */
+.pc-footer{display:flex;align-items:center;gap:6px;padding-top:7px;border-top:1px solid var(--border)}
+.pc-grip{display:flex;align-items:center;gap:4px;font-size:9px;font-weight:600;flex:1}
+.pc-grip-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.pc-grip-dot.ok{background:var(--ok)}.pc-grip-dot.warn{background:var(--warn)}.pc-grip-dot.danger{background:var(--danger)}.pc-grip-dot.muted{background:rgba(0,0,0,.2)}
+.pc-grip-val{color:var(--t2)}
+.pc-action{font-size:8.5px;font-weight:700;padding:2px 6px;border-radius:4px}
+.pc-action.stop{background:var(--danger-d);color:var(--danger-t)}
+.pc-action.limit{background:var(--warn-d);color:var(--warn-t)}
+.pc-action.ok{background:var(--ok-d);color:var(--ok-t)}
+.pc-action.none{background:var(--inset);color:var(--t3);border:1px solid var(--border)}
+
+/* PHV 보정 알림 */
+.phv-note{font-size:8.5px;color:var(--warn-t);background:rgba(255,159,10,.08);border:1px solid rgba(255,159,10,.2);border-radius:5px;padding:3px 7px;margin-top:5px;line-height:1.5}
+
+/* 미측정 카드 */
+.pc-unmeasured{opacity:.6}
+.pc-unmeasured .pc-body{display:flex;align-items:center;justify-content:center;min-height:80px;flex-direction:column;gap:4px}
+.pc-unmeasured-icon{font-size:22px}
+.pc-unmeasured-text{font-size:10px;color:var(--t3);font-weight:600}
+
+/* ── 상세 패널 (선택 시) ── */
+.detail-panel{background:#fff;border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--sh);overflow:hidden;margin-bottom:16px;display:none}
+.detail-panel.open{display:block}
+.dp-head{padding:13px 20px;background:var(--inset);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.dp-head-left{display:flex;align-items:center;gap:12px}
+.dp-num{font-family:'Orbitron';font-size:22px;font-weight:900;color:var(--ice)}
+.dp-close{font-size:11px;font-weight:700;color:var(--t3);cursor:pointer;padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:#fff}
+.dp-close:hover{color:var(--t1)}
+
+/* 상세 탭 */
+.dp-tabs{display:flex;border-bottom:1px solid var(--border);background:var(--inset)}
+.dp-tab{flex:1;padding:9px 12px;font-size:10.5px;font-weight:600;color:var(--t3);text-align:center;cursor:pointer;border-bottom:2px solid transparent;transition:all .15s}
+.dp-tab.active{color:var(--ice);border-bottom-color:var(--ice);background:#fff}
+.dp-panel{display:none;padding:16px 20px}
+.dp-panel.active{display:block}
+
+/* 상세 지표 */
+.dp-metric-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+.dp-mc{padding:10px 12px;border-radius:9px;border:1px solid var(--border);background:var(--inset)}
+.dp-mc-label{font-size:9px;font-weight:800;letter-spacing:1px;color:var(--t3);text-transform:uppercase;margin-bottom:4px}
+.dp-mc-val{font-family:'Orbitron';font-size:20px;font-weight:900;line-height:1;margin-bottom:2px}
+.dp-mc-val.ok{color:var(--ok)}.dp-mc-val.warn{color:var(--warn)}.dp-mc-val.danger{color:var(--danger)}.dp-mc-val.muted{color:var(--t3)}
+.dp-mc-bench{font-size:8.5px;color:var(--t3)}
+.dp-mc-interp{font-size:9.5px;font-weight:600;color:var(--t2);margin-top:3px;line-height:1.4}
+
+/* AT 처방 */
+.rx-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.rx-col-label{font-size:9px;font-weight:800;letter-spacing:1px;color:var(--t3);text-transform:uppercase;margin-bottom:7px}
+.rx-item{display:flex;align-items:flex-start;gap:6px;padding:4px 0;font-size:10px;font-weight:600;color:var(--t2);line-height:1.5;border-bottom:1px solid rgba(0,0,0,.04)}
+.rx-item:last-child{border-bottom:none}
+.rx-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.rx-dot.stop{background:var(--danger)}.rx-dot.limit{background:var(--warn)}.rx-dot.ok{background:var(--ok)}
+
+/* K-Grip 트렌드 */
+.grip-trend{display:flex;align-items:flex-end;gap:3px;height:44px;margin-bottom:6px}
+.gt-bar{flex:1;border-radius:3px 3px 0 0}
+.gt-labels{display:flex;justify-content:space-between;font-size:8.5px;color:var(--t3)}
+
+/* 한국 U18 비교 바 */
+.norm-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.norm-label{font-size:9.5px;font-weight:600;color:var(--t2);width:90px;flex-shrink:0}
+.norm-track{flex:1;height:12px;background:#e8ecf0;border-radius:3px;overflow:hidden;position:relative}
+.norm-player{position:absolute;left:0;top:0;height:50%;border-radius:3px 3px 0 0}
+.norm-avg{position:absolute;left:0;top:50%;height:50%;background:rgba(0,0,0,.12);border-radius:0 0 3px 3px}
+.norm-ref{position:absolute;top:0;height:100%;width:1.5px;background:rgba(0,150,199,.5)}
+.norm-vals{font-size:9px;font-weight:700;width:80px;text-align:right;flex-shrink:0}
+.norm-note{font-size:8.5px;color:var(--t3);background:rgba(155,89,182,.06);border:1px solid rgba(155,89,182,.15);border-radius:5px;padding:4px 8px;margin-top:6px;line-height:1.5}
+
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-thumb{background:rgba(0,0,0,.15);border-radius:4px}
+
+/* ── TOP RISK 배너 ── */
+.top-risk-banner{background:linear-gradient(135deg,#1a0428,#0a1628);border-radius:var(--r);border:1px solid rgba(255,59,48,.25);overflow:hidden;margin-bottom:14px;box-shadow:0 4px 16px rgba(255,59,48,.1)}
+.trb-head{padding:9px 18px;border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;justify-content:space-between}
+.trb-title{font-size:10px;font-weight:800;letter-spacing:2px;color:rgba(255,59,48,.8);text-transform:uppercase}
+.trb-body{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0}
+.trb-col{padding:11px 16px;border-right:1px solid rgba(255,255,255,.07)}
+.trb-col:last-child{border-right:none}
+.trb-rank{font-family:'Orbitron';font-size:11px;font-weight:900;color:rgba(255,59,48,.8);margin-bottom:4px}
+.trb-player{font-size:13px;font-weight:800;color:#fff;margin-bottom:2px}
+.trb-issue{font-size:9.5px;color:rgba(255,255,255,.55);line-height:1.5}
+.trb-dec{font-size:9px;font-weight:700;padding:2px 8px;border-radius:4px;background:rgba(255,59,48,.2);color:#ff9090;margin-top:5px;display:inline-block}
+
+/* ── TEAM ALERT ── */
+.team-alert{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.ta-item{padding:9px 12px;border-radius:9px;display:flex;align-items:flex-start;gap:9px}
+.ta-item.danger{background:rgba(255,59,48,.05);border:1px solid rgba(255,59,48,.18)}
+.ta-item.warn{background:rgba(255,159,10,.05);border:1px solid rgba(255,159,10,.15)}
+.ta-icon{font-size:16px;flex-shrink:0;margin-top:1px}
+.ta-title{font-size:11px;font-weight:800;margin-bottom:3px}
+.ta-title.danger{color:var(--danger-t)}.ta-title.warn{color:var(--warn-t)}
+.ta-desc{font-size:9.5px;color:var(--t2);line-height:1.5}
+.ta-link{font-size:9px;font-weight:700;color:var(--ice);margin-top:4px}
+
+/* ── 라인 필터 ── */
+.line-filter{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
+.lf-btn{padding:4px 11px;border-radius:16px;font-size:10.5px;font-weight:600;border:1px solid var(--border);background:#fff;color:var(--t2);cursor:pointer;transition:all .15s}
+.lf-btn.active{background:var(--ice);color:#fff;border-color:var(--ice)}
+
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <a href="index.html" style="text-decoration:none"><div class="sb-logo" style="cursor:pointer" title="홈으로">
+    <img class="sb-logo-img" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0NTBwdCIgaGVpZ2h0PSI0NTBwdCIgdmlld0JveD0iMCAwIDQ0OS45OTk5OCA0NDkuOTk5OTkiPjxkZWZzPjxjbGlwUGF0aCBpZD0iYSI+PHBhdGggZD0iTTAgMTcwMC43OWgxMjA3LjU2VjBIMFoiLz48L2NsaXBQYXRoPjxjbGlwUGF0aCBpZD0iYiI+PHBhdGggZD0iTTAgMTcwMC43OWgxMjA3LjU2VjBIMFoiLz48L2NsaXBQYXRoPjxjbGlwUGF0aCBpZD0iYyI+PHBhdGggZD0iTTEyMDcuNTU5IDE3MDAuNzlIMFYuMDAzaDEyMDcuNTU5eiIvPjwvY2xpcFBhdGg+PGltYWdlIGlkPSJkIiB3aWR0aD0iNDI2IiBoZWlnaHQ9IjI4NSIvPjxpbWFnZSBpZD0iZSIgd2lkdGg9IjQyNiIgaGVpZ2h0PSIyODUiLz48aW1hZ2UgaWQ9ImYiIHdpZHRoPSIxMDExIiBoZWlnaHQ9IjE0NDAiLz48L2RlZnM+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTAgMjI1QzAgMTAwLjczMyAxMDAuNzA2IDAgMjI0Ljk3MiAwIDM0OS4yMTIgMCA0NTAgMTAwLjczMyA0NTAgMjI1YzAgMTI0LjI5NC0xMDAuNzg5IDIyNS0yMjUuMDI4IDIyNUMxMDAuNzA2IDQ1MCAwIDM0OS4yOTQgMCAyMjUiIHN0eWxlPSJzdHJva2Utd2lkdGg6MTMuODEwNCIvPjxwYXRoIGZpbGw9IiMzYTNhNmEiIGQ9Ik0yMjQuOTc0IDM4Mi41OGMtODcuMDc1IDAtMTU3LjU2NC03MC41MDItMTU3LjU2NC0xNTcuNTc3IDAtODcuMDYxIDcwLjQ4OS0xNTcuNTY0IDE1Ny41NjQtMTU3LjU2NCA4Ny4wMiAwIDE1Ny41NzcgNzAuNTAzIDE1Ny41NzcgMTU3LjU2NCAwIDg3LjA3NS03MC41NTggMTU3LjU3Ny0xNTcuNTc3IDE1Ny41NzdtMC0zNjguNjE1Yy0xMTYuNjE2IDAtMjExLjAzOCA5NC40NjMtMjExLjAzOCAyMTEuMDM4IDAgMTE2LjU2IDk0LjQyMiAyMTEuMDM3IDIxMS4wMzggMjExLjAzNyAxMTYuNTMyIDAgMjExLjAxLTk0LjQ3NyAyMTEuMDEtMjExLjAzNyAwLTExNi41NzUtOTQuNDc4LTIxMS4wMzgtMjExLjAxLTIxMS4wMzgiIHN0eWxlPSJzdHJva2Utd2lkdGg6MTMuODEwNCIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Im0xMTEuMzYgNzUuMzIzLTIuNTU0IDE0Ljg0NyAxMy42ODYgNy4yNS0xNS43NTggMS44NzktMi42NjUgMTQuOTU3LTYuNjAyLTEzLjc1Ni0xNC41NTYgMS42NTcgMTAuNzg2LTEwLjE5Mi02LjExOC0xMy4xNDcgMTIuOTQgNi43NTN6TTE0Ni43NSA3OS42MjdsLTYuODY0IDMuMjczLTE2LjItMzMuOTc0IDYuOTA2LTMuMjQ1IDYuNTQ2IDEzLjgyNCA2LjAwNy0xOS44NiA4LjkwOC00LjIyNS02LjgyMiAyMC4zNTcgMjMuNzY4IDEzLjIwMi04LjkyMiA0LjI5NS0xNy4yMDgtMTAuMTIzLTEuNTg4IDUuMDR6TTE4My4wMyA1Ni42NzJjMi4wMTYgMS4zOTUgNC4zMDkgMS43NTUgNi44NzggMS4zMjYgMi41NTUtLjU4MiA0LjQ3NC0xLjg5MSA1Ljc3Mi0zLjkzNiAxLjc4Mi0yLjY3OSAyLjE2OS02LjMxMSAxLjIwMi0xMC44ODItLjk0LTQuNjI3LTIuNzItNy44MzEtNS41MS05LjU1Ny0xLjkzNC0xLjM2Ny00LjI4Mi0xLjc4Mi02LjgyMy0xLjI4NC0yLjQ0NC41NTItNC40MzMgMS44NjQtNS44MTQgMy45MjItMS42NzEgMi42NjUtMi4wNTggNi4yOTgtMS4wNzcgMTAuOTY1Ljk1MyA0LjU1OCAyLjcwNyA3LjczNCA1LjM3MiA5LjQ0Nm0tOS40NzQtMjUuNTA3YzIuNDg2LTIuNzQ4IDUuNzE4LTQuNTMgOS42NC01LjMzMSAzLjg5NC0uODI5IDcuNTgyLS41MSAxMC45NjUgMS4wNSA1LjIzNCAyLjM2MSA4LjU3NyA3LjMwNSAxMC4xMjMgMTQuNzc2IDEuNjAyIDcuNDE3LjQ1NiAxMy4yNzItMy40MSAxNy41MjYtMi40NzMgMi43NzYtNS42NjMgNC41NzEtOS41NzIgNS4zNzItMy45NjMuODQzLTcuNTgxLjQ0NC0xMC45NzktMS4wOS01LjE3OS0yLjMyLTguNTc2LTcuMjM3LTEwLjExLTE0LjY5NS0xLjYxNS03LjQ4NS0uNTI0LTEzLjM1NCAzLjM0My0xNy42MDhNMjMxLjI5OSAzOS4yMzRjMS45ODkgMCAzLjQ2Ni0uMzA2IDQuNDItMS4wMzYuOTgtLjg1NiAxLjQzNi0yLjE0IDEuNTQ2LTQuMDA1IDAtMS4zNC0uMzA0LTIuNDAzLS44NDItMy4yODYtLjg5OC0xLjEyLTIuMzQ4LTEuNzEzLTQuMzIzLTEuNzRsLTkuNjQtLjMwNi0uMTkzIDEwLjE3OHptLTE2LjEzLTE2Ljk4NyAxOC41MzMuNDg2YzQuMjU0IDAgNy4zMDYgMS40NSA5LjI2NyA0LjI1NCAxLjMxMiAxLjkwNiAxLjk2IDQuMTQzIDEuOTMzIDYuNTg4LS4wODMgMi4xMTMtLjYzNSAzLjk5MS0xLjU2IDUuNTM4LTEuMTA1IDEuNjMtMi41NTUgMi43Mi00LjI4MiAzLjMxNCAxLjYxNi43NiAyLjc2MiAxLjY4NSAzLjMyOSAyLjcwNy44IDEuMzk1IDEuMTg3IDMuNzE1IDEuMDkgNi45ODgtLjEyMyAyLjk0Mi0uMTIzIDQuNzkzIDAgNS40OTcuMjA4IDEuMDM2LjYwOCAxLjcxMyAxLjQ1IDIuMDE2bC0uMDMuODg0LTguNDc5LS4xOGMtLjI0OC0uOTgtLjQ5Ny0xLjk2MS0uNTI1LTMuMDI1YTUwLjk3MyA1MC45NzMgMCAwIDEtLjA4My00LjU1N2MuMDgzLTIuODg2LS4xNTEtNC42OTYtLjcwNC01LjUyNC0uNjYzLTEuMTMzLTIuNDAzLTEuNjk5LTUuMDEzLTEuNzU0bC03Ljk1NS0uMjA0LS40NDIgMTQuNzIxLTcuNDcyLS4xOTJ6TTI4NC45MDggMzguMDZsLTE4LjgxLTQuNTcxLTEuOTIgNy43MzQgMTcuMjkyIDQuMTQzLTEuNTg5IDYuNDA4LTE3LjI2My00LjE3LTIuMjY1IDkuNDczIDE5LjYzOSA0Ljc3OS0xLjYwMiA2LjM2Ni0yNi45MDMtNi40NzcgOC44OTQtMzYuNTcgMjYuMDg4IDYuMzUzek0yOTkuMTUxIDYxLjkwNmw4LjUyMSA0LjI2NyAyLjM3Ni0xNS40ODJoLS4xNTJ6TTI4OC41NzIgNzIuNjlsLTcuMTY3LTMuNTQ5IDI4LjM5NC0yNy45OCA3Ljk4MiAzLjg4LTQuODA2IDM5LjU4MS03LjMyLTMuNjE4IDEuMjMtOC4wNjUtMTIuNTI2LTYuMDc3ek0zNjUuMzAzIDk5Ljk3OGwtMTUuMDY3LTEuNDA5LTYuMTE4IDE0LjIzOS0zLjEwNy0xNS41NjQtMTUuMTIzLTEuNDkyIDEzLjE0OC03LjY2NS0yLjY5My0xNC4zOSAxMC44ODIgOS45NTcgMTIuNzM0LTcuMDg0LTUuNzg3IDEzLjM1NHoiIHN0eWxlPSJzdHJva2Utd2lkdGg6MTMuODEwNCIvPjxwYXRoIGZpbGw9IiNiYTMwMzUiIGQ9Ik0xNjIuMzI3IDI4My4zNTdjLTIuMzYyIDMuNzg0LTMuNTc3IDYuODIzLTYuODkyIDYuNjg1LTIuMzc1LS4xMzgtMjkuMDAyLTIuMzQ4LTMzLjQ2Mi0yLjcyMS02LjU0Ny0uNTEtMTAuODE0IDguNTIxLTEzLjkyMSAxMy40MjQtMy4wOTQgNC44Mi01Ljk5NCAxMi4zMDUgNS45NTIgMTIuNjY0IDYuNjQzLjE2OCAyNS44MTIuNDY4IDMwLjc0Mi40NjggNC44NzUgMCA4LjEyLjM4NCAxMi40NDMtNS4yMiA0LjMxLTUuNTk0IDY5LjcwMi0xMTguNjA1IDY5LjcwMi0xMTguNjA1bC00LjQ2MS03Ljc3NXMtNTcuNzE0IDk3LjI2Ny02MC4xMDMgMTAxLjA3OCIgc3R5bGU9InN0cm9rZS13aWR0aDoxMy44MTA0Ii8+PHBhdGggZmlsbD0iI2JhMzAzNSIgZD0iTTIwNy4wNzcgMTQzLjY4OGMtMi4xOTYtMy45MjItNC4yMjYtNi40NjMtMi40NTgtOS4yOTQgMS4yMjktMi4wODYgMTYuMTg1LTI0LjE5NiAxOC42OTktMjcuODk4IDMuNjE4LTUuNDEzLTIuMTEzLTEzLjU3NS00LjkxNy0xOC42NzEtMi42OTMtNS4wOTYtNy43NDctMTEuMjI4LTEzLjkwNy0uOTgtMy40NTIgNS43NTgtMTMuMTIgMjIuMjktMTUuNDk1IDI2LjUwMi0yLjQwMyA0LjI2Ny00LjI4MSA2Ljk4OC0xLjUyIDEzLjUwNiAyLjcyMSA2LjQ3NyA2OS4zMTUgMTE4Ljc4NCA2OS4zMTUgMTE4Ljc4NGw5LjAwNS0uMTM4cy01Ni41OTUtOTcuODg5LTU4LjcyMi0xMDEuODExIiBzdHlsZT0ic3Ryb2tlLXdpZHRoOjEzLjgxMDQiLz48cGF0aCBmaWxsPSIjYmEzMDM1IiBkPSJNMzA1LjM0MSAyNTEuNzA0YzQuMzc4LjE1IDcuNzItLjI4OCA5LjIyNSAyLjU5NiAxLjIwMiAyLjEgMTIuNjM3IDI2LjI2OCAxNC41MTUgMzAuMjE4IDIuODQ1IDUuOTY1IDEyLjg1OCA1LjEyMyAxOC41ODkgNS4zNTggNS43ODcuMTY4IDEzLjY1OS0xLjA3NyA3Ljk2OS0xMS41NDYtMy4yODctNS44NjktMTIuNjEtMjIuNTkzLTE0Ljk4NS0yNi44MDYtMi41MTMtNC4yMjYtMy44MTEtNy4xODEtMTAuOTEtOC4xMzQtNi45NDctLjg5OC0xMzcuNDk3LS41MjgtMTM3LjQ5Ny0uNTI4bC00LjQzMyA3Ljg3MnMxMTMuMDM5LjgyOSAxMTcuNTI3Ljk2NyIgc3R5bGU9InN0cm9rZS13aWR0aDoxMy44MTA0Ii8+PHBhdGggZmlsbD0iIzJjMjUyMyIgZD0iTTE4Mi44OTUgMzYxLjcxNXYtMTkuMDE3aC0zLjc3di0zLjk1aDguNDc5djIyLjk2N3pNMjEwLjE1MSAzNDIuMTczYy0xLjA5MSAwLTIuMDAzLjM3Mi0yLjgwNCAxLjA5MS0uNzYuNzMyLTEuMTA0IDEuNjMtMS4xMDQgMi42OCAwIDEuMDUuMzQ1IDEuOTA1IDEuMTA0IDIuNjkzLjgwMS43MDQgMS43MTMgMS4wNzcgMi44MDQgMS4wNzdhNC4xMzIgNC4xMzIgMCAwIDAgMi43OS0xLjA1Yy43NzMtLjc0NiAxLjE3NC0xLjYzIDEuMTc0LTIuNjc5IDAtMS4wOS0uNDAxLTEuOTYxLTEuMTc0LTIuNjY1LS43NzQtLjc3My0xLjY1OC0xLjE0Ny0yLjc5LTEuMTQ3bTcuMzg5IDcuMTU0LTYuOTYgMTIuMzg4aC00LjY5Nmw0LjY5NS04LjQzOGMtMi41OTYuMTM4LTQuNjk1LS40NjgtNi4yOTctMS45ODgtMS41MDYtMS4zNC0yLjIyNC0zLjEyMi0yLjMzNC01LjMxOC0uMDEyLTIuMTY4Ljc0NS00LjAxOCAyLjMzNC01LjUyNCAxLjY0My0xLjUxOSAzLjU3Ni0yLjI2NSA1Ljg2OS0yLjI2NSAyLjI1MSAwIDQuMjI2Ljc0NiA1Ljg1NiAyLjI2NSAxLjYwMiAxLjQ2NCAyLjM0NyAzLjM1NiAyLjMwNiA1LjUyNCAwIDEuMjQzLS4yMzUgMi40MDMtLjc3MyAzLjM1Nk0yMjguMjIzIDM2MS43MTV2LTQuMjEyYzIuNjgtMi4zMDYgNS43NDUtNS4wNTUgOS4xOTgtOC4xMiAxLjUzMy0xLjM4MiAyLjI2NS0yLjkgMi4yNjUtNC40ODkgMC0uODQzLS4yNDgtMS40NjQtLjc0Ni0xLjk3NS0uNTk0LS41NTItMS40MDgtLjgyOC0yLjUxMy0uODI4LTEuMTE5IDAtMi4xNC4zODQtMi43NDkgMS4xNzMtLjY2Mi43Ni0xLjAyMSAxLjYzLTEuMDIxIDIuNzIxaC00LjQzNGMtLjA0Mi0xLjg2NC42MDgtMy41OSAyLjAwMy01LjE5MyAxLjYxNi0xLjc1NCAzLjY2LTIuNjY1IDYuMi0yLjY2NSAyLjI2NiAwIDQuMjQuNTUyIDUuODE1IDEuNzgxIDEuNTA1IDEuMjE2IDIuMzkgMi43OSAyLjM5IDQuNzc5IDAgMi40NTgtMS4zNjggNC45MDItNC4xNDQgNy4zNjFhMzU3LjQwMyAzNTcuNDAzIDAgMCAwLTYuMjI4IDUuNThoMTAuMzcxdjQuMDg3ek0yNjIuNjE0IDM0MS43ODNjLS45MTEgMC0xLjY4NS4yNDYtMi4yOTIuODU2LS43MDUuNjc3LTEuMDM2IDEuMzgxLTEuMDM2IDIuMjY1IDAgLjg1Ni4zMzEgMS41ODggMS4wMzYgMi4yMjMuNjYzLjU2NCAxLjM5NC44NyAyLjI5Mi44Ny44ODQgMCAxLjY4NS0uMzA1IDIuMzktLjg4NC41OTMtLjYyLjk1Mi0xLjM1My45NTItMi4yMDkgMC0uODg0LS4zNi0xLjU4OC0uOTUzLTIuMjY1LS43MDQtLjYwOC0xLjUwNS0uODU2LTIuMzg5LS44NTZtMCA5LjM3N2MtMS4wNzcgMC0yLjAwMi4zNDgtMi43MzQgMS4xMDUtLjc0Ni43ODctMS4xNiAxLjY0My0xLjE2IDIuNjc5IDAgMS4wMzYuNDE0IDEuOTIgMS4xNiAyLjY2Ni43MzIuNzg3IDEuNjU3IDEuMTA0IDIuNzM0IDEuMTA0IDEuMTA1IDAgMi4wNzItLjMxOCAyLjg3My0xLjEwNC43NDUtLjc0NiAxLjEwNS0xLjYzIDEuMTA1LTIuNjY2cy0uMzYtMS44OTItMS4xMDUtMi42OGMtLjgwMS0uNzU5LTEuNzY4LTEuMTA0LTIuODczLTEuMTA0bTAgMTEuMDc2Yy0yLjI2NSAwLTQuMjEyLS43MDQtNS43NDUtMi4xMTMtMS42NDMtMS40MjMtMi40MDMtMy4xNzYtMi40MDMtNS4zMDMgMC0yLjExNCAxLjIzLTMuOTUgMy42NDYtNS4zNTktMi4wNDQtMS4xMzItMy4wNjYtMi43MDctMy4wNjYtNC42OTYgMC0xLjgyMi43Ni0zLjM5NyAyLjMyLTQuNjEyIDEuNTc1LTEuMzQgMy4zMTUtMS45NzUgNS4yNDgtMS45NzUgMS45NDcgMCAzLjc5OC42MzUgNS4zMTcgMS45NzUgMS40NSAxLjIxNSAyLjMyIDIuNzkgMi4zMiA0LjUzIDAgMi4wNzEtMS4wMjIgMy42NDYtMy4wNTIgNC43NzggMi40NTkgMS40MDkgMy42NiAzLjIwNCAzLjY2IDUuMzU5IDAgMi4xMjctLjc0NiAzLjg4LTIuNDU4IDUuMzAzLTEuNDkyIDEuNDA5LTMuNDUzIDIuMTEzLTUuNzg3IDIuMTEzIiBzdHlsZT0ic3Ryb2tlLXdpZHRoOjEzLjgxMDQiLz48cGF0aCBmaWxsPSIjM2EzYTZhIiBkPSJtMjExLjE3NiAxMzkuMjEuOTY2IDEuNzI3Yy41NTMuOTk0IDQuODkgOC4zNyAxMC45MSAxOS4wNzJoMS45MmMzNS44OTQgMCA2NS4wNDggMjkuMDg1IDY1LjA0OCA2NS4wMiAwIDQuMTMtLjM0NiA4LjE5LTEuMTMzIDEyLjA0MyA5LjM2NCAwIDE3Ljk5NS4xMzggMjQuODU5LjE5Mi41MTEtMy45OTEuODE1LTguMTA3LjgxNS0xMi4yMzYgMC00OS41MS00MC4wNzgtODkuNjAzLTg5LjU4OS04OS42MDMtNS4xMjMgMC0xMC4wOTUuNDE0LTE0Ljk3IDEuMjQ0LS4wODMgMC0uMDgzLjEzOC0uMTUyLjE2OC4zMDQuNzA0Ljg3IDEuNTYgMS4zMjYgMi40MDNNMzA1LjEzOCAyNTcuNTNjLTEuMjAyLS4xMzctMTAuNDI3LS4xNS0yMy42NzEtLjI3NS0xMS4yMTQgMTkuNTctMzIuMzMgMzIuNzg2LTU2LjQ5OSAzMi43ODYtMTUuNjA2IDAtMjkuODMtNS41MjQtNDEuMDQ0LTE0LjU4NC00LjcxIDguMDM4LTkuMDc0IDE1LjMwMi0xMi41ODIgMjEuMzIzIDE0LjkwMiAxMS4yMTQgMzMuNTA0IDE3Ljg4NSA1My42MjYgMTcuODg1IDM4LjAzNCAwIDcwLjQyLTIzLjc1NCA4My41MTItNTcuMTA2aC0xLjMyNnpNMTU3LjQ0NSAyODAuMjQyYy42NjMtLjk4MSA1LjQ1NS05LjE1NyAxMi4zNzQtMjAuNzQzLTYuMzExLTEwLjAyNy05Ljg2LTIxLjgyMS05Ljg2LTM0LjQ5OSAwLTI3LjgxNCAxNy40Ny01MS42MjMgNDIuMTA3LTYwLjg2M2ExNjk3MC41NSAxNjk3MC41NSAwIDAgMC0xMi40NDMtMjEuNTE2Yy0zMS45MTYgMTMuNzEzLTU0LjI3NSA0NS40NS01NC4yNzUgODIuMzc5IDAgMjEuODYyIDcuODU4IDQxLjg0NiAyMC43ODUgNTcuNDM3LjA4My0uMTguMTUyLS4zNzIuMjYyLS40Njh6IiBzdHlsZT0ic3Ryb2tlLXdpZHRoOjEzLjgxMDQiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJtNDcuMzggMTI0LjkwMiAzLjg4LTYuNjMgMzIuMzg2IDE5LjE3LTMuODk1IDYuNjAxek01NC44NjUgMTY5Ljc4NmMxLjgwOS4yNTIgMy4zMjguMTM4IDQuNDA1LS4yODggMi4wMDMtLjcxOSAzLjQ2Ny0yLjMzNCA0LjQyLTQuODYyLjg4NC0yLjI1LjgxNC00LjQwNS0uMTgtNi40NzctMS4zMjYtMi44MDMtNC4yNTMtNS04LjYxNy02LjY3LTMuNDQtMS4zMTItNi41NDctMS43NjgtOS4xMTUtMS4yMy0yLjk4My42MDgtNS4wNTUgMi4zNDktNi4xMTggNS4yNjItLjc3NCAxLjk3NS0uODE1IDMuNzk4LS4xMjUgNS40NDIuNjA4IDEuNzQgMS45NjIgMy4yNDUgMy45MzYgNC41MDJsLTIuNzQ4IDcuMjM3Yy0zLjcwMS0yLjMyLTYuMjI4LTUuMTEtNy42MS04LjM5Ny0xLjQ2My0zLjQ4LTEuMzgtNy4zNDcuMTk0LTExLjM5NCAxLjc5NS00LjcxIDQuNzY0LTcuOTI3IDguOTM1LTkuNTAxIDQuNDQ3LTEuNjcxIDkuNjI2LTEuMzgyIDE1LjQ5Ni44NTYgNS44NTUgMi4yMjMgOS44NDYgNS40MjcgMTEuOTg3IDkuNzIyIDIuMDg1IDQuMDMzIDIuMjEgOC4zNy40NDIgMTIuOTU1LTEuNzU0IDQuNjY4LTQuNTE2IDcuNzYxLTguNDUyIDkuNDQ2LTMuMjA0IDEuMzUzLTYuNDA4IDEuNTA2LTkuNjI2LjYyMXpNNTEuOTM4IDIxMy4yOTRsMi44NDUtMTkuMjEtNy44NTgtMS4xNi0yLjYyNCAxNy41OC02LjQ2My0uOTggMi41NTUtMTcuNTY3LTkuNjQtMS4zOTUtMi45ODMgMTkuOTg0LTYuNTE4LTEuMDA4IDQuMDYtMjcuMzQ1IDM3LjE5MSA1LjQ2OS0zLjkyMiAyNi42ek0zOS4zMTQgMjQ4LjkxM2wtMTYuNTcyIDIuNzktMS4yNy03LjU5NiAzNy4xMjItNi4yNDIgMS4zMTIgNy42MzYtMTQuMTI4IDIuMzIgMi40MyAxNC40MDUgMTQuMDczLTIuMzkgMS4yNyA3LjQ0NS0zNy4xNSA2LjItMS4yMjktNy40ODUgMTYuNi0yLjcyek00Mi4zNjIgMjk0LjkwM2MtLjkxMSAyLjI1MS0uODU2IDQuNjI3LjEzOCA3LjAxNiAxLjAwOCAyLjMzNCAyLjYxIDMuOTYzIDQuODc1IDQuOTMgMi45NyAxLjIwMiA2LjY1Ny44ODQgMTAuOTM4LS45NjcgNC4zMjMtMS44MDkgNy4wOTktNC4yMTIgOC4zNDItNy4yMDkuOTI1LTIuMjM3LjkxMS00LjU1Ny0uMDU0LTYuOTE5LTEuMDc4LTIuNDAzLTIuNjkzLTQuMDQ2LTUuMDE0LTQuOTcxLTIuOTQxLTEuMjAyLTYuNTYtLjg0My0xMC45NjUuOTM5LTQuMzA5IDEuODkxLTcuMDMgNC4yNjctOC4yNTkgNy4xODFtMjMuMjk5LTE0LjIxMWMzLjA5MyAxLjg3OCA1LjQ5NiA0Ljc1IDcuMDU3IDguNDM4IDEuNTYgMy42NzQgMS44OTIgNy4zMiAxLjA5IDEwLjkzOC0xLjMzOSA1LjU5NC01LjUxIDkuODQ3LTEyLjYyMiAxMi44MTYtNi45NiAzLjAxMS0xMi44OTkgMy4wMTEtMTcuODAyIDAtMy4yNDUtMS44OTItNS41NTEtNC42NjgtNy4xNjctOC4zMjgtMS41MzMtMy43MjgtMS44NS03LjQwMi0xLjAzNi0xMS4wMzQgMS4zMTItNS41NTIgNS40ODMtOS44MzMgMTIuNDg1LTEyLjczMyA3LjA1Ny0yLjk3IDEzLjA1LTIuOTcgMTcuOTk1LS4xMzhNODUuODE3IDMzNy4zMDVjMS4xMTgtMS40NzcgMS45NDctMi43NDggMi4xNC0zLjk3Ny40ODQtMi4wMy0uMDk2LTQuMTE2LTEuNjE1LTYuMjg0LTEuNDY0LTEuOTc1LTMuMjYtMy4wNjYtNS41NTItMy4zODQtMy4wNjYtLjM4NC02LjUxOS43ODgtMTAuMzQ0IDMuNjA1LTIuOTI4IDIuMTU0LTQuOTU4IDQuNDg4LTUuOTM5IDYuOTMzLTEuMTc0IDIuODQ1LS44MjggNS41MjQuOTggOC4wMSAxLjM0IDEuNzEzIDIuODA0IDIuNzYyIDQuNTcyIDMuMTA4IDEuNzU0LjM3MiAzLjc4NC4xMzggNS44ODMtLjg0M2w0LjU4NSA2LjIxNGMtMy45OSAxLjgxLTcuNjY0IDIuNDMxLTExLjEzIDEuNzY5LTMuNzQzLS42OTEtNi45MzQtMi44MDQtOS40ODktNi4zNTMtMi45ODMtNC4wODktNC4wMTgtOC4zLTMuMDgtMTIuNzIgMS4wMjMtNC41ODUgNC4wNjEtOC43NDIgOS4xNDMtMTIuNDcgNS4xMS0zLjcwMiA5Ljk3MS01LjI5IDE0Ljc1LTQuNzM4IDQuNDYuNDY4IDguMTkgMi43MDcgMTEuMDM0IDYuNzEyIDIuOTgzIDMuOTkxIDQuMDc0IDguMDM4IDMuMzAxIDEyLjIzNi0uNTk0IDMuMzg0LTIuMTk2IDYuMTczLTQuNzIzIDguMzd6TTg1Ljk2NSAzNzQuMzEzbC01Ljc0Ni00Ljk4NSAyNC41NTUtMjguNTQ3IDUuNzA0IDQuOTU4LTkuOTU3IDExLjYyOSAyMC41NzctMi41NDEgNy40MTcgNi40MjItMjEuMzM4IDIuMDU3LTIuNDAzIDI3LjA4My03LjU5NS02LjQ1IDIuMzM0LTE5LjgwNC01LjI5LjQ4NnpNMTU2LjAwMiAzODQuMTg1bC0xNy4xMjUtOS4xMTUtMy43NTcgNi45NzQgMTUuNjc1IDguMzk3LTMuMTIxIDUuNzg2LTE1LjYzNC04LjM1NS00LjU4NSA4LjYwNCAxNy43NzQgOS41MTYtMy4wNjYgNS44NjktMjQuNDQ0LTEzLjEwNiAxNy42NjQtMzMuMTg2IDIzLjc2NyAxMi42NXpNMTcyLjQ5NyA0MjIuMDI4bC03LjQxNi0yLjA5OSA0LjAzMi0xMy42NTgtNi4wNzYtMjYuMTMgOC43IDIuNDg2IDMuMDEgMTcuOTk1IDExLjUzMy0xMy43NjkgOC4zMTMgMi4zMzQtMTguMTc0IDE5LjMyek0yMjcuOTY4IDQxNC42NjVsOS41My0uNDAyLTUuMjIxLTE0LjY5NGgtLjE4em0tNC4xNTcgMTQuNDA0LTguMDM4LjM0OCAxMS43OTQtMzguMTE3IDguODUzLS4zNDIgMTQuNTI4IDM3LjA0LTguMjcyLjMzLTIuNzQ4LTcuNjY2LTEzLjgyNS41ODJ6TTI2Ny4xMzMgNDEyLjgzYy4zMzEgMS40MzcgMS4xMDUgMi41NDIgMi4xODIgMy4yMTggMS42MDIgMS4wNjQgMy45NjQgMS4xNzQgNi44MzYuNDU2IDIuMTI3LS41OTQgMy41OS0xLjMyNiA0LjcxLTIuMjM3IDEuNDA4LTEuMTc0IDEuODkyLTIuNjM4IDEuNDUtNC4zNS0uMzMyLTEuMzY4LTEuMjQzLTIuMTI3LTIuNjgtMi41NTUtLjg3LS4yMzQtMi41NTUtLjQwMi00LjkxNi0uMjA0aC04LjU3NmMtMS41ODktLjEzOC0yLjkyOC0uMzcyLTQuMDYtLjc4OC0xLjM2OC0uNTQtMi40NTktMS4yMjktMy4yODgtMi4zMDYtLjk2Ni0xLjEzMy0xLjcxMi0yLjY2Ni0yLjIyMy00LjU3MS0uNzczLTIuNzc2LS42MzUtNS4zODcuNTM5LTcuNzM0IDEuNjg1LTMuMzk4IDQuOTcxLTUuNzQ1IDEwLjA2OC03LjA0NCA0Ljc5Mi0xLjMxMSA4LjgyNC0uODI4IDEyLjA0MiAxLjI5OSAyLjQwMyAxLjYzIDQuMDQ3IDMuODggNC44NDggNi43MjZsLTYuOTg4IDEuODkxYy0uNDk4LTEuMjk4LTEuMjctMi4zMDYtMi4xODItMi45MTQtMS42MDItMS4xMzItMy43ODQtMS4yMjktNi41Ni0uNTIyLTEuNjU4LjQ1Ni0yLjk3IDEuMTQ2LTMuOTA5IDIuMDQ0LTEuMTE4IDEuMTE5LTEuNTMzIDIuNDU4LTEuMTE4IDMuOTA4LjMwMyAxLjIwMi45NjYgMS45NzUgMS45ODggMi40MDMuNTY3LjIyMiAxLjQ2NC4zODQgMi42OTMuMzg0aC4wODNsOS4yMTItLjEzOGMzLjA4LS4xMzggNS40NjkuMjUyIDcuMTY3IDEuMDc4IDIuMjUxIDEuMTE4IDMuODY3IDMuMjA0IDQuNzI0IDYuMjI4IDEuMjE1IDQuNjU1LjE3OSA4LjQzOC0zLjE2MyAxMS40NjMtMi4xIDEuODkyLTQuNjEzIDMuMjE4LTcuNjIzIDQuMDQ2LTUuNzg3IDEuNDkyLTEwLjMxNyAxLjEwNS0xMy42MTgtMS4xMDQtMi40MTYtMS41ODktNC4wMDUtMy44NjctNC43NjQtNi45NDd6TTMwNi4wODMgMzk5LjUyYy42OSAxLjMyNiAxLjY0MyAyLjIyMyAyLjg3MiAyLjcyIDEuODUuNjUgNC4xMDIuMzYgNi44MDktMS4wNjMgMS44MjMtLjk2NiAzLjIxOC0yLjA0NCA0LjE0My0zLjEwNy45OTQtMS41MDUgMS4yMjktMy4wMS40MjgtNC41NzEtLjYyMi0xLjI1Ny0xLjY4NS0xLjg3OC0zLjEwOC0xLjkzNC0xLjA3NyAwLTIuNjY1LjIzNC00LjkzLjg0M2wtNC4wMTkuOTI1Yy0xLjg3OC40MjYtMy4zODMuNzYtNC4zMzYuOTM5LTEuNTYuMjQ2LTIuOTI4LjMzLTQuMTE2LjEzOC0xLjQ2NC0uMjA0LTIuNjY1LS43MzItMy43NTYtMS40OTItMS4xNi0uOTgtMi4yMzgtMi4yNzgtMy4xNzctNC4wMzItMS4zMjYtMi41NTUtMS42OTgtNS4xMjQtMS4wMjItNy42NzguODU3LTMuNjMzIDMuNjMyLTYuNjQ0IDguMjMxLTkuMDYgNC40NzUtMi4zMDcgOC40OTQtMi43MiAxMi4xMjYtMS4yOTkgMi42OTMgMS4xMDUgNC43NjUgMi45IDYuMTczIDUuNTUybC02LjQzNSAzLjI4N2MtLjc4OC0xLjE2LTEuNzgyLTEuOTYxLTIuNzYzLTIuMzYxLTEuNzgxLS42OS00LjAzMi0uNDAyLTYuNjE1LjkxMS0xLjQwOC44MDEtMi41NjkgMS43MjYtMy4yNiAyLjg0NS0uOTEgMS4zNjctLjk5MyAyLjY4LS4zMTYgNC4wNi41OTQgMS4wNzggMS4zOTQgMS43MjcgMi40NTggMS44NzkuNjQ5LjEzOCAxLjUxOSAwIDIuNzItLjE1aC4xMWw4Ljk3OC0yLjA4NmMzLjAxLS43NzMgNS4zNzItLjkxMSA3LjE5NS0uNDU2IDIuNTU1LjU0IDQuNTQ0IDIuMjUxIDYuMDA3IDUuMDI3IDIuMSA0LjIyNiAxLjkzNCA4LjIwNC0uNjkgMTEuOTA1LTEuNjE2IDIuMjkzLTMuNzU3IDQuMTQzLTYuNjAxIDUuNDY5LTUuMjIgMi44MTctOS44MDYgMy40MjUtMTMuNTM1IDEuOTItMi42MjQtMS4wNS00LjcxLTIuOTQyLTYuMTMyLTUuNzQ2ek0zNDYuMDQ1IDM3OC40OTRjMi40NDQuMTY4IDQuNjQtLjU0IDYuNjI4LTIuMTk2IDEuOTYyLTEuNjcxIDMuMDI1LTMuNzE1IDMuMjc0LTYuMTQ2LjI0OC0zLjIzMi0xLjA5MS02LjU3NC00LjA4OC0xMC4xNjUtMy4xNjMtMy41NzYtNi4yMjktNS41NjUtOS40Ni01LjgyNy0yLjQwNC0uMTY4LTQuNjEzLjUyOC02LjYwMiAyLjE4Mi0xLjk3NSAxLjY0My0zLjAyNCAzLjcyOC0zLjI4NyA2LjE1OS0uMTY1IDMuMTQ5IDEuMTg4IDYuNTYgNC4yNTQgMTAuMjA2IDMuMDUyIDMuNTkgNi4xNDYgNS40OTYgOS4yOCA1Ljc4N20tMjAuNTIyLTE3Ljk5NWMuOTUzLTMuNTY0IDIuOTQyLTYuNjcxIDUuOTUyLTkuMjgxIDMuMDUzLTIuNTU1IDYuNDIyLTQuMDA1IDEwLjE1MS00LjI1NCA1LjcxOC0uNDY4IDExLjA0OCAyLjMzNCAxNS45NjUgOC4xNDggNC45MDMgNS43NzMgNi43MTIgMTEuNDc3IDUuMzQ1IDE3LjA1Ny0uOTUzIDMuNjE4LTIuODYgNi43MTEtNS44ODQgOS4yOC0zLjA2NSAyLjU0MS02LjQ1IDMuOTc3LTEwLjE5MiA0LjI5NS01LjY0OC4zODQtMTAuOTc5LTIuMzQ4LTE1Ljg0LTguMTQ4LTQuOTg2LTUuODQyLTYuNzk1LTExLjUxOC01LjQ5Ny0xNy4wOTdNMzczLjU4NCAzMjQuMzg0Yy0xLjcxMy0uNjYzLTMuMTktLjkzOS00LjMyMy0uODU2LTIuMTU0LjE2OC00LjAwNSAxLjM1My01LjYzNCAzLjQ2Ny0xLjM5NSAxLjg5MS0xLjg5MiAzLjk5LTEuNDkyIDYuMjgzLjQ3IDMuMDM4IDIuNjEgNS45NTIgNi40NzcgOC43MjkgMi45IDIuMjIzIDUuNjkgMy40MjQgOC4zNDIgMy42NTkgMy4wNjYuMjg4IDUuNTI0LS44MjkgNy4zNi0zLjMgMS4yMy0xLjcyNyAxLjgyNC0zLjUyMiAxLjY0NC01LjI2My0uMTUyLTEuODIyLTEuMDIyLTMuNjMxLTIuNTU1LTUuMzU4bDQuNTQ0LTYuMjgzYzIuOTgzIDMuMjczIDQuNjEzIDYuNjcgNS4wNCAxMC4xMzYuNDQzIDMuODEyLS42MzUgNy40NDQtMy4zIDEwLjk4LTIuOTgzIDQuMDMyLTYuNzI2IDYuMjk3LTExLjIxNCA2LjY3LTQuNjk2LjQxNC05LjU3LTEuMjk4LTE0LjcwOC01LjA0MS00Ljk3Mi0zLjcxNS03Ljg4Ni03Ljk0MS04Ljc3LTEyLjYzNy0uOTQtNC40MzIuMTM4LTguNTc1IDMuMTA3LTEyLjU4IDIuOTQyLTMuOTkyIDYuNDc4LTYuMjQzIDEwLjYzNC02LjgyMyAzLjQ1My0uMzcyIDYuNjAyLjMwNiA5LjQ3NCAyLjA1OHpNNDA4LjUyOSAzMTMuNzgzbC0zLjUwOCA2LjgwOS0zMy42MDEtMTcuMDQyIDMuNTIxLTYuODIyek00MDQuNzkzIDI4NS41ODRsMi43NjItOS4xMy0xNS41NzguMTM5LS4wNTQuMTM4em0xMi4yMzYgOC43MTQtMi4zOSA3LjcwNy0zMi4wODEtMjMuNzY4IDIuNjEtOC40OCAzOS44NDMtMS40NjQtMi40MyA3LjkyNy04LjE0OC4xMzgtNC4xNDQgMTMuMzE0ek00MjguMzY3IDIzOC41OTVsLS42NjMgNy42NTEtMzAuODUyLTIuNTk2LS45NTMgMTEuMjY5LTYuNjQzLS41NCAyLjU1NS0zMC4yNzIgNi42MjkuNjM1LS45NjcgMTEuMjd6TTQyNy45NjMgMjA2LjQ4MmwuNTI1IDcuNjM3LTM3LjUzNyAyLjcwNy0uNTM5LTcuNjkzek00MTYuMDgxIDE4My41MDJjMS4yMTYtMi4xMTIgMS41Mi00LjQxOS44OTgtNi45MTktLjYwOC0yLjUxMy0xLjk3NS00LjM2NC00LjA2LTUuNjA3LTIuNzc2LTEuNjMtNi40MzYtMS45Ni0xMC45OTMtLjgxNS00LjU1OCAxLjIzLTcuNzA2IDMuMTQ5LTkuMzA4IDUuODg0LTEuMjU3IDIuMDk5LTEuNTc1IDQuNDQ2LS45NCA2LjkwNS41NCAyLjUyNyAxLjk5IDQuNDIgNC4wNzQgNS42NjIgMi43NjMgMS41NjEgNi40NjQgMS44NSAxMC45NjYuNjkxIDQuNTU3LTEuMTMzIDcuNzItMy4wOCA5LjM2My01LjhtLTI1LjE5IDEwLjQ5NWMtMi44MDMtMi4zNjItNC43NS01LjUzOC01Ljc0NS05LjQxOC0uOTk0LTMuODgxLS43NzMtNy41MTMuNjIyLTEwLjk5MyAyLjE1NC01LjI2MiA2LjkwNS04Ljg5NSAxNC4zNjItMTAuNzQ1IDcuMzM0LTEuODc4IDEzLjI4Ni0uOTI1IDE3LjY1IDIuNzA3IDIuODczIDIuNDAzIDQuNzY1IDUuNTI0IDUuNzMyIDkuNDE4IDEuMDIxIDMuODUzLjc3MyA3LjU0MS0uNjUgMTEuMDA3LTIuMTU0IDUuMjItNi44NSA4LjgxMS0xNC4yNTIgMTAuNjM1LTcuNDMgMS45MDUtMTMuMzI3IDEuMDA4LTE3LjcxOS0yLjYxMU0zNjguOTMxIDE0MS42MzhsLTMuMzQyLTYuMzggMzMuNDQ5LTE3LjQwMSAzLjQ4IDYuNzY3LTE2Ljc4IDI1LjYwNS4wMy4xOCAyMy43ODItMTIuNDAyIDMuMjE4IDYuMzI1LTMzLjM2NiAxNy40MDEtMy43OTgtNy4yNjQgMTYuNjI4LTI0Ljk1NmgtLjAxMnoiIHN0eWxlPSJzdHJva2Utd2lkdGg6MTMuODEwNCIvPjwvc3ZnPg==" alt="대한아이스하키협회">
+    <div class="sb-logo-txt">
+      <h1>DAILY ICE<br>DECISION OS</h1>
+      <p>v2.0 · 한국 아이스하키</p>
+    </div>
+  </div></a>
+  <div class="sb-role">
+    <div class="sb-role-badge">⛸ 감독 / 코칭스태프</div>
+    <div class="sb-team">대한민국 U18 아이스하키</div>
+  </div>
+  <nav class="sb-nav">
+    <div class="nav-sec">메인</div>
+    <a href="v2_Home.html" class="nav-item"><span class="nav-em">📌</span> Home</a>
+    <div class="nav-sec">유닛 운영</div>
+    <a href="v2_Lines.html" class="nav-item">
+      <span class="nav-ic"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+      Lines &amp; D-Pairs
+    </a>
+    <a href="v2_Goalies.html" class="nav-item">
+      <span class="nav-ic"><svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="18" rx="2"/><path d="M8 12h8M12 8v8"/></svg></span>
+      Goalies
+    </a>
+    <div class="nav-sec">훈련 관리</div>
+    <a href="v2_Planner.html" class="nav-item"><span class="nav-em">📅</span> Planner</a>
+    <div class="nav-sec">선수 관리</div>
+    <a href="v2_Risk.html" class="nav-item">
+      <span class="nav-ic"><svg viewBox="0 0 24 24"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
+      Risk &amp; Return
+    </a>
+    <a href="#" class="nav-item active">
+      <span class="nav-ic"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+      Skaters
+    </a>
+    <div class="nav-sec">문서</div>
+    <a href="v2_Reports.html" class="nav-item"><span class="nav-em">📁</span> Reports</a>
+  </nav>
+  <div class="sb-foot">Daily Ice Decision OS v2.0<br>K-Grip API 연동 · Kinvent MFRC<br><span style="opacity:.5">대한아이스하키협회 공식 시스템</span></div>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <div class="tb-left">
+      <div class="tb-page">⛸ Skaters</div>
+    </div>
+    <div class="tb-right">
+      <div class="tb-chip danger">제한 2명</div>
+      <div class="tb-chip warn">조건부 3명</div>
+      <div class="tb-chip ok">Full Go 14명</div>
+      <div class="tb-date" id="todayDate"></div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- TOP RISK 배너 -->
+    <div class="top-risk-banner">
+      <div class="trb-head">
+        <div class="trb-title">🚨 Priority Top 3 — 오늘 즉시 조치 필요</div>
+        <div style="font-size:9px;color:rgba(255,255,255,.3)">1차 측정 04.14 + K-Grip 오늘 기준</div>
+      </div>
+      <div class="trb-body">
+        <div class="trb-col">
+          <div class="trb-rank">PRIORITY 1</div>
+          <div class="trb-player">#13 공시완</div>
+          <div class="trb-issue">Add/Abd 0.72 · Nordic 78%<br>서혜부 내전근 비대칭</div>
+          <div class="trb-dec">⛔ Contact 전면 금지</div>
+        </div>
+        <div class="trb-col">
+          <div class="trb-rank">PRIORITY 2</div>
+          <div class="trb-player">#1 임재훈 (GK)</div>
+          <div class="trb-issue">GLSI 16.3% · Grip -12%<br>측면 이동 비대칭 + 피로</div>
+          <div class="trb-dec">⛔ Sliding 금지 · 선발 불가</div>
+        </div>
+        <div class="trb-col">
+          <div class="trb-rank">PRIORITY 3</div>
+          <div class="trb-player">#16 류한결</div>
+          <div class="trb-issue">RSA 7.1% · Grip -11%<br>반복 스프린트 피로 누적</div>
+          <div class="trb-dec">⚠ 세트 감소 · Shift 제한</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TEAM ALERT -->
+    <div class="team-alert">
+      <div class="ta-item danger">
+        <div class="ta-icon">🚨</div>
+        <div>
+          <div class="ta-title danger">Contact 제한 선수 2명</div>
+          <div class="ta-desc">#13 #16 → Contact drill 제거 필요<br>1LINE 공격 구성 재편 권고</div>
+          <div class="ta-link">→ Planner에 자동 반영됨</div>
+        </div>
+      </div>
+      <div class="ta-item warn">
+        <div class="ta-icon">⚠️</div>
+        <div>
+          <div class="ta-title warn">RSA 제한 선수 2명</div>
+          <div class="ta-desc">#16 #17 → 훈련 강도 감소 필요<br>PK 교체 주기 단축 권고</div>
+          <div class="ta-link">→ Lines에 반영됨</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 필터 + 요약 -->
+    <div class="filter-bar">
+      <div class="filter-btn active" onclick="filterPlayers('all',this)">전체 (19명)</div>
+      <div class="filter-sep"></div>
+      <div class="filter-btn" onclick="filterPlayers('danger',this)">🔴 제한 (2)</div>
+      <div class="filter-btn" onclick="filterPlayers('warn',this)">🟡 조건부 (3)</div>
+      <div class="filter-btn" onclick="filterPlayers('ok',this)">🟢 Full Go (14)</div>
+      <div class="filter-sep"></div>
+      <div class="filter-btn" onclick="filterPlayers('fw',this)">포워드</div>
+      <div class="filter-btn" onclick="filterPlayers('d',this)">수비수</div>
+      <div class="filter-sep"></div>
+      <div class="filter-btn" onclick="filterPlayers('post',this)">Post-PHV</div>
+      <div class="filter-btn" onclick="filterPlayers('mid',this)">Mid-PHV</div>
+      <div class="filter-sep"></div>
+      <div class="filter-btn" onclick="filterPlayers('line1',this)">1LINE</div>
+      <div class="filter-btn" onclick="filterPlayers('line2',this)">2LINE</div>
+      <div class="filter-btn" onclick="filterPlayers('line3',this)">3LINE</div>
+      <div class="filter-btn" onclick="filterPlayers('line4',this)">4LINE</div>
+      <div class="filter-btn" onclick="filterPlayers('mid',this)">Mid-PHV</div>
+    </div>
+
+    <!-- 스쿼드 요약 -->
+    <div class="squad-summary">
+      <div class="ss-card"><div class="ss-num ice">19</div><div class="ss-label">측정 완료</div><div class="ss-sub">스케이터 기준</div></div>
+      <div class="ss-card"><div class="ss-num danger">2</div><div class="ss-label">훈련 제한</div><div class="ss-sub">#13 #16 (스케이터)</div></div>
+      <div class="ss-card"><div class="ss-num warn">3</div><div class="ss-label">조건부</div><div class="ss-sub">#16 #17 #19</div></div>
+      <div class="ss-card"><div class="ss-num ok">14</div><div class="ss-label">Full Go</div><div class="ss-sub">즉시 투입 가능</div></div>
+      <div class="ss-card"><div class="ss-num muted">1</div><div class="ss-label">미측정</div><div class="ss-sub">#24 민동욱</div></div>
+    </div>
+
+    <!-- 상세 패널 (클릭 시 표시) -->
+    <div class="detail-panel" id="detailPanel">
+      <div class="dp-head">
+        <div class="dp-head-left">
+          <div class="dp-num" id="dp-num">#13</div>
+          <div>
+            <div style="font-size:15px;font-weight:800" id="dp-name">공시완</div>
+            <div style="font-size:9.5px;color:var(--t3)" id="dp-pos">C · 1LINE · 경기고</div>
+          </div>
+        </div>
+        <div class="dp-close" onclick="closeDetail()">✕ 닫기</div>
+      </div>
+      <div class="dp-tabs">
+        <div class="dp-tab active" onclick="switchDpTab(this,'dp-off')">오프아이스 지표 <span class="ds-badge measure" style="font-size:7.5px">04.14</span></div>
+        <div class="dp-tab" onclick="switchDpTab(this,'dp-on')">온아이스 <span style="font-size:8.5px;color:var(--t3)">(예정)</span></div>
+        <div class="dp-tab" onclick="switchDpTab(this,'dp-grip')">K-Grip <span class="ds-badge live" style="font-size:7.5px">실시간</span></div>
+        <div class="dp-tab" onclick="switchDpTab(this,'dp-norm')">한국 U18 비교</div>
+        <div class="dp-tab" onclick="switchDpTab(this,'dp-rx')">AT 처방</div>
+      </div>
+
+      <!-- 오프아이스 패널 -->
+      <div id="dp-off" class="dp-panel active">
+        <div class="dp-metric-grid">
+          <div class="dp-mc">
+            <div class="dp-mc-label">Add/Abd Ratio</div>
+            <div class="dp-mc-val danger">0.72</div>
+            <div class="dp-mc-bench">기준 ≥0.90</div>
+            <div class="dp-mc-interp">서혜부 내전근 비대칭 — Contact 시 파열 위험</div>
+          </div>
+          <div class="dp-mc">
+            <div class="dp-mc-label">Nordic LSI</div>
+            <div class="dp-mc-val danger">78%</div>
+            <div class="dp-mc-bench">기준 ≥85%</div>
+            <div class="dp-mc-interp">햄스트링 편심성 약화 — 급정지 위험</div>
+          </div>
+          <div class="dp-mc">
+            <div class="dp-mc-label">5m Split</div>
+            <div class="dp-mc-val ok">-2.1%</div>
+            <div class="dp-mc-bench">기준 -5% 이내</div>
+            <div class="dp-mc-interp">초반 가속 정상 — 스케이팅 속도 이상 없음</div>
+          </div>
+          <div class="dp-mc">
+            <div class="dp-mc-label">RSA Fatigue</div>
+            <div class="dp-mc-val ok">+2.3%</div>
+            <div class="dp-mc-bench">기준 +5% 이내</div>
+            <div class="dp-mc-interp">반복 스프린트 유지력 정상</div>
+          </div>
+        </div>
+        <div style="padding:10px 12px;border-radius:9px;background:var(--danger-d);border:1px solid rgba(255,59,48,.18)">
+          <div style="font-size:10px;font-weight:800;color:var(--danger-t);margin-bottom:4px">핵심 판단</div>
+          <div style="font-size:10px;color:var(--t2);line-height:1.6">Add/Abd 0.72 + Nordic LSI 78% 동시 기준 미달 → Contact 충돌 시 서혜부 및 햄스트링 동시 부상 위험. 스피드·체력은 정상이나 근육 안정성 부족으로 Contact 전면 금지.</div>
+        </div>
+      </div>
+
+      <!-- 온아이스 패널 -->
+      <div id="dp-on" class="dp-panel">
+        <div style="padding:16px;border-radius:9px;background:linear-gradient(135deg,rgba(0,150,199,.05),rgba(0,60,120,.03));border:1px dashed rgba(0,150,199,.3)">
+          <div style="font-size:9px;font-weight:800;letter-spacing:1.5px;color:var(--ice-t);text-transform:uppercase;margin-bottom:10px">온아이스 측정 — 연 2회 동일 방문일 시행 예정</div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <div style="display:flex;align-items:center;gap:8px;font-size:10px;font-weight:600;color:var(--t2)"><div style="width:5px;height:5px;border-radius:50%;background:var(--ice);flex-shrink:0"></div>K-Power 스케이팅 가속 — 측정 대기</div>
+            <div style="display:flex;align-items:center;gap:8px;font-size:10px;font-weight:600;color:var(--t2)"><div style="width:5px;height:5px;border-radius:50%;background:var(--purple);flex-shrink:0"></div>BlazePod 반응 시간 — 측정 대기</div>
+            <div style="display:flex;align-items:center;gap:8px;font-size:10px;font-weight:600;color:var(--t2)"><div style="width:5px;height:5px;border-radius:50%;background:var(--warn);flex-shrink:0"></div>오프아이스 가속 vs 온아이스 가속 비교 — 2차 측정 반영 예정</div>
+          </div>
+          <div style="font-size:8.5px;color:var(--t3);margin-top:10px;padding-top:8px;border-top:1px solid rgba(0,150,199,.15)">※ 2026년 10월 2차 측정(오프아이스+온아이스 동일 방문일) 시 자동 반영</div>
+        </div>
+      </div>
+
+      <!-- K-Grip 패널 -->
+      <div id="dp-grip" class="dp-panel">
+        <div style="font-size:9.5px;font-weight:700;color:var(--t3);margin-bottom:8px">최근 7일 K-Grip CNS 트렌드 <span class="ds-badge live">K-Grip API</span></div>
+        <div class="grip-trend">
+          <div class="gt-bar" style="height:90%;background:var(--ok);opacity:.7"></div>
+          <div class="gt-bar" style="height:85%;background:var(--ok);opacity:.75"></div>
+          <div class="gt-bar" style="height:88%;background:var(--ok);opacity:.8"></div>
+          <div class="gt-bar" style="height:82%;background:var(--ok);opacity:.7"></div>
+          <div class="gt-bar" style="height:88%;background:var(--ok);opacity:.8"></div>
+          <div class="gt-bar" style="height:90%;background:var(--ok);opacity:.85"></div>
+          <div class="gt-bar" style="height:96%;background:var(--ok)"></div>
+        </div>
+        <div class="gt-labels"><span>7일 전</span><span>오늘 -4% · 정상</span></div>
+        <div style="margin-top:10px;padding:9px 11px;border-radius:8px;background:var(--ok-d);border:1px solid rgba(52,199,89,.2)">
+          <div style="font-size:10px;font-weight:700;color:var(--ok-t)">K-Grip 오늘 정상 (-4%)</div>
+          <div style="font-size:9.5px;color:var(--t2);margin-top:3px">컨디션 이상 없음. 단, 측정 기반 Add/Abd 제한은 Grip과 무관하게 유지됨.</div>
+        </div>
+      </div>
+
+      <!-- 한국 U18 비교 패널 -->
+      <div id="dp-norm" class="dp-panel">
+        <div class="norm-note">⚠️ 아래 "한국 U18 평균"은 스포츠과학 문헌 기반 <strong>가상 기준값</strong>입니다. 2027년부터 실측 Normative DB 구축 예정.</div>
+        <div class="norm-row">
+          <div class="norm-label">Add/Abd</div>
+          <div class="norm-track">
+            <div class="norm-player" style="width:72%;background:var(--danger)"></div>
+            <div class="norm-avg" style="width:93%"></div>
+            <div class="norm-ref" style="left:93%"></div>
+          </div>
+          <div class="norm-vals" style="color:var(--danger-t)">0.72 / 0.93</div>
+        </div>
+        <div class="norm-row">
+          <div class="norm-label">Nordic LSI</div>
+          <div class="norm-track">
+            <div class="norm-player" style="width:78%;background:var(--danger)"></div>
+            <div class="norm-avg" style="width:87%"></div>
+            <div class="norm-ref" style="left:87%"></div>
+          </div>
+          <div class="norm-vals" style="color:var(--danger-t)">78% / 87%</div>
+        </div>
+        <div class="norm-row">
+          <div class="norm-label">5m Split</div>
+          <div class="norm-track">
+            <div class="norm-player" style="width:85%;background:var(--ok)"></div>
+            <div class="norm-avg" style="width:78%"></div>
+            <div class="norm-ref" style="left:78%"></div>
+          </div>
+          <div class="norm-vals" style="color:var(--ok-t)">-2.1% / -3.5%</div>
+        </div>
+        <div class="norm-row">
+          <div class="norm-label">RSA</div>
+          <div class="norm-track">
+            <div class="norm-player" style="width:90%;background:var(--ok)"></div>
+            <div class="norm-avg" style="width:82%"></div>
+            <div class="norm-ref" style="left:82%"></div>
+          </div>
+          <div class="norm-vals" style="color:var(--ok-t)">+2.3% / +4.1%</div>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:8px;flex-wrap:wrap">
+          <div style="display:flex;align-items:center;gap:4px;font-size:9px;color:var(--t3)"><div style="width:10px;height:6px;border-radius:2px;background:var(--ice);opacity:.6"></div>이 선수 (위)</div>
+          <div style="display:flex;align-items:center;gap:4px;font-size:9px;color:var(--t3)"><div style="width:10px;height:6px;border-radius:2px;background:rgba(0,0,0,.15)"></div>한국 U18 가상 평균 (아래)</div>
+          <div style="display:flex;align-items:center;gap:4px;font-size:9px;color:var(--t3)"><div style="width:1.5px;height:12px;background:rgba(0,150,199,.5)"></div>기준값 선</div>
+        </div>
+      </div>
+
+      <!-- AT 처방 패널 -->
+      <div id="dp-rx" class="dp-panel">
+        <div class="rx-grid">
+          <div>
+            <div class="rx-col-label" style="color:var(--danger-t)">MANDATORY — 절대 금지</div>
+            <div class="rx-item"><div class="rx-dot stop"></div>Full Contact drill 전면 금지</div>
+            <div class="rx-item"><div class="rx-dot stop"></div>Scrimmage 몸싸움 불가</div>
+            <div class="rx-item"><div class="rx-dot stop"></div>고강도 방향전환 스프린트 제한</div>
+          </div>
+          <div>
+            <div class="rx-col-label" style="color:var(--warn-t)">처방 운동</div>
+            <div class="rx-item"><div class="rx-dot limit"></div>Copenhagen adductor 주 4회 3×10</div>
+            <div class="rx-item"><div class="rx-dot limit"></div>Single-leg Nordic curl 좌측 집중 주 3회</div>
+            <div class="rx-item"><div class="rx-dot limit"></div>Hip 90/90 스트레칭 매일</div>
+          </div>
+          <div>
+            <div class="rx-col-label" style="color:var(--ok-t)">OK — 허용</div>
+            <div class="rx-item"><div class="rx-dot ok"></div>Non-contact 전술 훈련</div>
+            <div class="rx-item"><div class="rx-dot ok"></div>Shooting drill 정상</div>
+            <div class="rx-item"><div class="rx-dot ok"></div>복귀 기준: Add/Abd &gt; 0.80 + Nordic &gt; 85%</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 그룹 1: 훈련 제한 -->
+    <div class="group-header danger">
+      <div class="gh-icon">🚨</div>
+      <div class="gh-title danger">훈련 제한 — 즉시 조치 필요</div>
+      <div class="gh-count">스케이터 1명 (GK #1 포함 시 2명)</div>
+    </div>
+    <div class="player-grid" style="grid-template-columns:repeat(2,1fr);margin-bottom:20px">
+
+      <!-- #13 공시완 -->
+      <div class="pc flag-critical" onclick="openDetail('#13','공시완','C · 1LINE · 경기고')">
+        <div class="pc-head">
+          <div class="pc-num">#13</div>
+          <div class="pc-info">
+            <div class="pc-name">공시완 <span class="phv post">Post</span></div>
+            <div class="pc-pos">C · 1LINE · 경기고</div>
+          </div>
+          <div class="pc-status danger">Contact 금지</div>
+        </div>
+        <div class="pc-body">
+          <div class="pc-metrics">
+            <div class="pc-metric">
+              <div class="pc-m-key">Add/Abd</div>
+              <div class="pc-m-bar"><div class="pc-m-fill danger" style="width:72%"></div></div>
+              <div class="pc-m-val danger">0.72</div>
+            </div>
+            <div class="pc-metric">
+              <div class="pc-m-key">Nordic LSI</div>
+              <div class="pc-m-bar"><div class="pc-m-fill danger" style="width:78%"></div></div>
+              <div class="pc-m-val danger">78%</div>
+            </div>
+            <div class="pc-metric">
+              <div class="pc-m-key">RSA</div>
+              <div class="pc-m-bar"><div class="pc-m-fill ok" style="width:90%"></div></div>
+              <div class="pc-m-val ok">+2.3%</div>
+            </div>
+            <div class="pc-metric">
+              <div class="pc-m-key">5m Split</div>
+              <div class="pc-m-bar"><div class="pc-m-fill ok" style="width:88%"></div></div>
+              <div class="pc-m-val ok">-2.1%</div>
+            </div>
+          </div>
+          <div class="pc-footer">
+            <div class="pc-grip"><div class="pc-grip-dot ok"></div><span class="pc-grip-val">Grip -4% · 정상</span></div>
+            <div class="pc-action stop">⛔ Contact OUT · 상세보기</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- #16 류한결 (스케이터 중 가장 높은 제한) -->
+      <div class="pc flag-high" onclick="openDetail('#16','류한결','LW · 1LINE · Anaheim Jr. Ducks')">
+        <div class="pc-head">
+          <div class="pc-num">#16</div>
+          <div class="pc-info">
+            <div class="pc-name">류한결 <span class="phv post">Post</span></div>
+            <div class="pc-pos">LW · 1LINE · Anaheim Jr. Ducks</div>
+          </div>
+          <div class="pc-status warn">세트 제한</div>
+        </div>
+        <div class="pc-body">
+          <div class="pc-metrics">
+            <div class="pc-metric">
+              <div class="pc-m-key">Add/Abd</div>
+              <div class="pc-m-bar"><div class="pc-m-fill ok" style="width:91%"></div></div>
+              <div class="pc-m-val ok">0.91</div>
+            </div>
+            <div class="pc-metric">
+              <div class="pc-m-key">Nordic LSI</div>
+              <div class="pc-m-bar"><div class="pc-m-fill ok" style="width:88%"></div></div>
+              <div class="pc-m-val ok">88%</div>
+            </div>
+            <div class="pc-metric">
+              <div class="pc-m-key">RSA</div>
+              <div class="pc-m-bar"><div class="pc-m-fill warn" style="width:71%"></div></div>
+              <div class="pc-m-val warn">+7.1%</div>
+            </div>
+            <div class="pc-metric">
+              <div class="pc-m-key">5m Split</div>
+              <div class="pc-m-bar"><div class="pc-m-fill warn" style="width:62%"></div></div>
+              <div class="pc-m-val warn">-6.2%</div>
+            </div>
+          </div>
+          <div class="pc-footer">
+            <div class="pc-grip"><div class="pc-grip-dot danger"></div><span class="pc-grip-val">Grip -11% · 피로!</span></div>
+            <div class="pc-action limit">⚠ Shift 제한 · 상세보기</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 그룹 2: 조건부 참여 -->
+    <div class="group-header warn">
+      <div class="gh-icon">⚠️</div>
+      <div class="gh-title warn">조건부 참여 — 드릴 조정 필요</div>
+      <div class="gh-count">2명 (GK 제외)</div>
+    </div>
+    <div class="player-grid" style="grid-template-columns:repeat(2,1fr);margin-bottom:20px">
+
+      <!-- #17 이형진 -->
+      <div class="pc flag-high">
+        <div class="pc-head">
+          <div class="pc-num">#17</div>
+          <div class="pc-info">
+            <div class="pc-name">이형진 <span class="phv post">Post</span></div>
+            <div class="pc-pos">RD · D Pair 1 · 경기고</div>
+          </div>
+          <div class="pc-status warn">인터벌 조정</div>
+        </div>
+        <div class="pc-body">
+          <div class="pc-metrics">
+            <div class="pc-metric"><div class="pc-m-key">Add/Abd</div><div class="pc-m-bar"><div class="pc-m-fill ok" style="width:93%"></div></div><div class="pc-m-val ok">0.93</div></div>
+            <div class="pc-metric"><div class="pc-m-key">Nordic LSI</div><div class="pc-m-bar"><div class="pc-m-fill ok" style="width:92%"></div></div><div class="pc-m-val ok">92%</div></div>
+            <div class="pc-metric"><div class="pc-m-key">RSA</div><div class="pc-m-bar"><div class="pc-m-fill warn" style="width:72%"></div></div><div class="pc-m-val warn">+7.8%</div></div>
+            <div class="pc-metric"><div class="pc-m-key">5m Split</div><div class="pc-m-bar"><div class="pc-m-fill ok" style="width:84%"></div></div><div class="pc-m-val ok">-2.4%</div></div>
+          </div>
+          <div class="pc-footer">
+            <div class="pc-grip"><div class="pc-grip-dot ok"></div><span class="pc-grip-val">Grip -5% · 정상</span></div>
+            <div class="pc-action limit">인터벌 +30초</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- #19 송서현 -->
+      <div class="pc flag-medium">
+        <div class="pc-head">
+          <div class="pc-num">#19</div>
+          <div class="pc-info">
+            <div class="pc-name">송서현 <span class="phv mid">Mid</span></div>
+            <div class="pc-pos">RW · 2LINE · 경기고</div>
+          </div>
+          <div class="pc-status warn">Hip 루틴</div>
+        </div>
+        <div class="pc-body">
+          <div class="pc-metrics">
+            <div class="pc-metric"><div class="pc-m-key">Add/Abd</div><div class="pc-m-bar"><div class="pc-m-fill ok" style="width:86%"></div></div><div class="pc-m-val ok">0.86</div></div>
+            <div class="pc-metric"><div class="pc-m-key">Nordic LSI</div><div class="pc-m-bar"><div class="pc-m-fill ok" style="width:85%"></div></div><div class="pc-m-val ok">85%</div></div>
+            <div class="pc-metric"><div class="pc-m-key">Hip IR 차</div><div class="pc-m-bar"><div class="pc-m-fill warn" style="width:60%"></div></div><div class="pc-m-val warn">12°</div></div>
+            <div class="pc-metric"><div class="pc-m-key">5m Split</div><div class="pc-m-bar"><div class="pc-m-fill ok" style="width:88%"></div></div><div class="pc-m-val ok">-1.8%</div></div>
+          </div>
+          <div class="pc-footer">
+            <div class="pc-grip"><div class="pc-grip-dot ok"></div><span class="pc-grip-val">Grip -6% · 정상</span></div>
+            <div class="pc-action limit">Hip 루틴 후 OK</div>
+          </div>
+          <div class="phv-note">Mid-PHV 보정 시 Add/Abd·Hip IR 정상 범위 내</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 그룹 3: Full Go -->
+    <div class="group-header ok">
+      <div class="gh-icon">✅</div>
+      <div class="gh-title ok">Full Go — 정상 훈련 투입</div>
+      <div class="gh-count">14명 + 미측정 1명</div>
+    </div>
+    <div class="player-grid wide">
+
+      <!-- Full Go 선수들 -->
+      <div class="pc flag-ok">
+        <div class="pc-head">
+          <div class="pc-num">#9</div>
+          <div class="pc-info"><div class="pc-name">곽우진 <span class="phv post">Post</span></div><div class="pc-pos">RW · 1LINE · Don Mills</div></div>
+          <div class="pc-status ok">Full Go</div>
+        </div>
+        <div class="pc-body">
+          <div class="pc-metrics">
+            <div class="pc-metric"><div class="pc-m-key">Add/Abd</div><div class="pc-m-bar"><div class="pc-m-fill ok" style="width:94%"></div></div><div class="pc-m-val ok">0.94</div></div>
+            <div class="pc-metric"><div class="pc-m-key">Nordic LSI</div><div class="pc-m-bar"><div class="pc-m-fill ok" style="width:91%"></div></div><div class="pc-m-val ok">91%</div></div>
+            <div class="pc-metric"><div class="pc-m-key">RSA</div><div class="pc-m-bar"><div class="pc-m-fill ok" style="width:88%"></div></div><div class="pc-m-val ok">+2.8%</div></div>
+          </div>
+          <div class="pc-footer"><div class="pc-grip"><div class="pc-grip-dot ok"></div><span class="pc-grip-val">Grip -3% · 정상</span></div><div class="pc-action ok">Full Go</div></div>
+        </div>
+      </div>
+
+      <div class="pc flag-ok">
+        <div class="pc-head">
+          <div class="pc-num">#7</div>
+          <div class="pc-info"><div class="pc-name">여준수 <span class="phv post">Post</span></div><div class="pc-pos">C · 2LINE</div></div>
+          <div class="pc-status ok">Full Go</div>
+        </div>
+        <div class="pc-body">
+          <div class="pc-metrics">
+            <div class="pc-metric"><div class="pc-m-key">Add/Abd</div><div class="pc-m-bar"><div class="pc-m-fill ok" style="width:92%"></div></div><div class="pc-m-val ok">0.92</div></div>
+            <div class="pc-metric"><div class="pc-m-key">Nordic LSI</div><div class="pc-m-bar"><div class="pc-m-fill ok" style="width:90%"></div></div><div class="pc-m-val ok">90%</div></div>
+            <div class="pc-metric"><div class="pc-m-key">RSA</div><div class="pc-m-bar"><div class="pc-m-fill ok" style="width:90%"></div></div><div class="pc-m-val ok">+2.6%</div></div>
+          </div>
+          <div class="pc-footer"><div class="pc-grip"><div class="pc-grip-dot ok"></div><span class="pc-grip-val">Grip -5% · 정상</span></div><div class="pc-action ok">Full Go</div></div>
+        </div>
+      </div>
+
+      <div class="pc flag-ok">
+        <div class="pc-head">
+          <div class="pc-num">#18</div>
+          <div class="pc-info"><div class="pc-name">이승재 <span class="phv post">Post</span></div><div class="pc-pos">LW · 2LINE · 광성고</div></div>
+          <div class="pc-status ok">Full Go</div>
+        </div>
+        <div class="pc-body">
+          <div class="pc-metrics">
+            <div class="pc-metric"><div class="pc-m-key">Add/Abd</div><div class="pc-m-bar"><div class="pc-m-fill ok" style="width:93%"></div></div><div class="pc-m-val ok">0.93</div></div>
+            <div class="pc-metric"><div class="pc-m-key">Nordic LSI</div><div class="pc-m-bar"><div class="pc-m-fill ok" style="width:89%"></div></div><div class="pc-m-val ok">89%</div></div>
+            <div class="pc-metric"><div class="pc-m-key">RSA</div><div class="pc-m-bar"><div class="pc-m-fill ok" style="width:92%"></div></div><div class="pc-m-val ok">+2.1%</div></div>
+          </div>
+          <div class="pc-footer"><div class="pc-grip"><div class="pc-grip-dot ok"></div><span class="pc-grip-val">Grip -4% · 정상</span></div><div class="pc-action ok">Full Go</div></div>
+        </div>
+      </div>
+
+      <div class="pc flag-ok">
+        <div class="pc-head">
+          <div class="pc-num">#11</div>
+          <div class="pc-info"><div class="pc-name">곽경민 <span class="phv post">Post</span></div><div class="pc-pos">LW · 3LINE</div></div>
+          <div class="pc-status ok">Full Go</div>
+        </div>
+        <div class="pc-body">
+          <div class="pc-metrics">
+            <div class="pc-metric"><div class="pc-m-key">Add/Abd</div><div class="pc-m-bar"><div class="pc-m-fill ok" style="width:91%"></div></div><div class="pc-m-val ok">0.91</div></div>
+            <div class="pc-metric"><div class="pc-m-key">Nordic LSI</div><div class="pc-m-bar"><div class="pc-m-fill ok" style="width:88%"></div></div><div class="pc-m-val ok">88%</div></div>
+            <div class="pc-metric"><div class="pc-m-key">RSA</div><div class="pc-m-bar"><div class="pc-m-fill ok" style="width:90%"></div></div><div class="pc-m-val ok">+2.5%</div></div>
+          </div>
+          <div class="pc-footer"><div class="pc-grip"><div class="pc-grip-dot ok"></div><span class="pc-grip-val">Grip -4% · 정상</span></div><div class="pc-action ok">Full Go</div></div>
+        </div>
+      </div>
+
+      <div class="pc flag-ok">
+        <div class="pc-head">
+          <div class="pc-num">#23</div>
+          <div class="pc-info"><div class="pc-name">조승현 <span class="phv post">Post</span></div><div class="pc-pos">C · 3LINE</div></div>
+          <div class="pc-status ok">Full Go</div>
+        </div>
+        <div class="pc-body">
+          <div class="pc-metrics">
+            <div class="pc-metric"><div class="pc-m-key">Add/Abd</div><div class="pc-m-bar"><div class="pc-m-fill ok" style="width:92%"></div></div><div class="pc-m-val ok">0.92</div></div>
+            <div class="pc-metric"><div class="pc-m-key">Nordic LSI</div><div class="pc-m-bar"><div class="pc-m-fill ok" style="width:90%"></div></div><div class="pc-m-val ok">90%</div></div>
+            <div class="pc-metric"><div class="pc-m-key">RSA</div><div class="pc-m-bar"><div class="pc-m-fill ok" style="width:87%"></div></div><div class="pc-m-val ok">+2.9%</div></div>
+          </div>
+          <div class="pc-footer"><div class="pc-grip"><div class="pc-grip-dot ok"></div><span class="pc-grip-val">Grip -3% · 정상</span></div><div class="pc-action ok">Full Go</div></div>
+        </div>
+      </div>
+
+      <div class="pc flag-ok">
+        <div class="pc-head">
+          <div class="pc-num">#22</div>
+          <div class="pc-info"><div class="pc-name">이영민 <span class="phv post">Post</span></div><div class="pc-pos">RW · 3LINE</div></div>
+          <div class="pc-status ok">Full Go</div>
+        </div>
+        <div class="pc-body">
+          <div class="pc-metrics">
+            <div class="pc-metric"><div class="pc-m-key">Add/Abd</div><div class="pc-m-bar"><div class="pc-m-fill ok" style="width:90%"></div></div><div class="pc-m-val ok">0.90</div></div>
+            <div class="pc-metric"><div class="pc-m-key">Nordic LSI</div><div class="pc-m-bar"><div class="pc-m-fill ok" style="width:92%"></div></div><div class="pc-m-val ok">92%</div></div>
+            <div class="pc-metric"><div class="pc-m-key">RSA</div><div class="pc-m-bar"><div class="pc-m-fill ok" style="width:91%"></div></div><div class="pc-m-val ok">+2.4%</div></div>
+          </div>
+          <div class="pc-footer"><div class="pc-grip"><div class="pc-grip-dot ok"></div><span class="pc-grip-val">Grip -3% · 정상</span></div><div class="pc-action ok">Full Go</div></div>
+        </div>
+      </div>
+
+      <div class="pc flag-medium">
+        <div class="pc-head">
+          <div class="pc-num">#26</div>
+          <div class="pc-info"><div class="pc-name">한상윤 <span class="phv post">Post</span></div><div class="pc-pos">LW · 4LINE · 경복고</div></div>
+          <div class="pc-status ok">Full Go (추적)</div>
+        </div>
+        <div class="pc-body">
+          <div class="pc-metrics">
+            <div class="pc-metric"><div class="pc-m-key">Add/Abd</div><div class="pc-m-bar"><div class="pc-m-fill ok" style="width:93%"></div></div><div class="pc-m-val ok">0.93</div></div>
+            <div class="pc-metric"><div class="pc-m-key">Nordic LSI</div><div class="pc-m-bar"><div class="pc-m-fill ok" style="width:91%"></div></div><div class="pc-m-val ok">91%</div></div>
+            <div class="pc-metric"><div class="pc-m-key">Hip IR 차</div><div class="pc-m-bar"><div class="pc-m-fill warn" style="width:70%"></div></div><div class="pc-m-val warn">7°</div></div>
+          </div>
+          <div class="pc-footer"><div class="pc-grip"><div class="pc-grip-dot ok"></div><span class="pc-grip-val">Grip -4% · 정상</span></div><div class="pc-action ok">Full Go</div></div>
+        </div>
+      </div>
+
+      <div class="pc flag-ok">
+        <div class="pc-head">
+          <div class="pc-num">#15</div>
+          <div class="pc-info"><div class="pc-name">이동근 <span class="phv mid">Mid</span></div><div class="pc-pos">C · 4LINE · 중동고</div></div>
+          <div class="pc-status ok">Full Go</div>
+        </div>
+        <div class="pc-body">
+          <div class="pc-metrics">
+            <div class="pc-metric"><div class="pc-m-key">Add/Abd</div><div class="pc-m-bar"><div class="pc-m-fill ok" style="width:88%"></div></div><div class="pc-m-val ok">0.88</div></div>
+            <div class="pc-metric"><div class="pc-m-key">Nordic LSI</div><div class="pc-m-bar"><div class="pc-m-fill ok" style="width:86%"></div></div><div class="pc-m-val ok">86%</div></div>
+            <div class="pc-metric"><div class="pc-m-key">RSA</div><div class="pc-m-bar"><div class="pc-m-fill ok" style="width:88%"></div></div><div class="pc-m-val ok">+3.1%</div></div>
+          </div>
+          <div class="pc-footer"><div class="pc-grip"><div class="pc-grip-dot ok"></div><span class="pc-grip-val">Grip -5% · 정상</span></div><div class="pc-action ok">Full Go</div></div>
+          <div class="phv-note">Mid-PHV 보정 시 전 지표 정상 범위</div>
+        </div>
+      </div>
+
+      <!-- 미측정 -->
+      <div class="pc flag-none pc-unmeasured">
+        <div class="pc-head">
+          <div class="pc-num">#24</div>
+          <div class="pc-info"><div class="pc-name">민동욱 <span class="phv pre">Pre</span></div><div class="pc-pos">RW · 4LINE · 경성고</div></div>
+          <div class="pc-status none">미측정</div>
+        </div>
+        <div class="pc-body">
+          <div class="pc-unmeasured-icon">📋</div>
+          <div class="pc-unmeasured-text">04.18 보완 측정 예정</div>
+          <div class="pc-unmeasured-text" style="color:var(--danger-t);font-size:9px;margin-top:2px">Pre-PHV — 성숙도 보정 평가 필수</div>
+        </div>
+      </div>
+
+      <!-- D Pair Full Go -->
+      <div class="pc flag-ok">
+        <div class="pc-head">
+          <div class="pc-num">#6</div>
+          <div class="pc-info"><div class="pc-name">안건우 <span class="phv post">Post</span></div><div class="pc-pos">LD · D Pair 1 · Anaheim</div></div>
+          <div class="pc-status ok">Full Go</div>
+        </div>
+        <div class="pc-body">
+          <div class="pc-metrics">
+            <div class="pc-metric"><div class="pc-m-key">Add/Abd</div><div class="pc-m-bar"><div class="pc-m-fill ok" style="width:95%"></div></div><div class="pc-m-val ok">0.95</div></div>
+            <div class="pc-metric"><div class="pc-m-key">Nordic LSI</div><div class="pc-m-bar"><div class="pc-m-fill ok" style="width:94%"></div></div><div class="pc-m-val ok">94%</div></div>
+            <div class="pc-metric"><div class="pc-m-key">RSA</div><div class="pc-m-bar"><div class="pc-m-fill ok" style="width:91%"></div></div><div class="pc-m-val ok">+2.4%</div></div>
+          </div>
+          <div class="pc-footer"><div class="pc-grip"><div class="pc-grip-dot ok"></div><span class="pc-grip-val">Grip -2% · 최상</span></div><div class="pc-action ok">Full Go</div></div>
+        </div>
+      </div>
+
+      <div class="pc flag-ok">
+        <div class="pc-head">
+          <div class="pc-num">#8</div>
+          <div class="pc-info"><div class="pc-name">이지안 <span class="phv mid">Mid</span></div><div class="pc-pos">RD · D Pair 2 · 경복고</div></div>
+          <div class="pc-status ok">Full Go</div>
+        </div>
+        <div class="pc-body">
+          <div class="pc-metrics">
+            <div class="pc-metric"><div class="pc-m-key">Add/Abd</div><div class="pc-m-bar"><div class="pc-m-fill ok" style="width:91%"></div></div><div class="pc-m-val ok">0.91</div></div>
+            <div class="pc-metric"><div class="pc-m-key">Nordic LSI</div><div class="pc-m-bar"><div class="pc-m-fill ok" style="width:88%"></div></div><div class="pc-m-val ok">88%</div></div>
+            <div class="pc-metric"><div class="pc-m-key">RSA</div><div class="pc-m-bar"><div class="pc-m-fill ok" style="width:87%"></div></div><div class="pc-m-val ok">+3.1%</div></div>
+          </div>
+          <div class="pc-footer"><div class="pc-grip"><div class="pc-grip-dot ok"></div><span class="pc-grip-val">Grip -4% · 정상</span></div><div class="pc-action ok">Full Go</div></div>
+          <div class="phv-note">Mid-PHV 보정 적용</div>
+        </div>
+      </div>
+
+      <div class="pc flag-ok">
+        <div class="pc-head">
+          <div class="pc-num">#21</div>
+          <div class="pc-info"><div class="pc-name">이형진 <span class="phv post">Post</span></div><div class="pc-pos">LD · D Pair 2 · 중동고</div></div>
+          <div class="pc-status ok">Full Go</div>
+        </div>
+        <div class="pc-body">
+          <div class="pc-metrics">
+            <div class="pc-metric"><div class="pc-m-key">Add/Abd</div><div class="pc-m-bar"><div class="pc-m-fill ok" style="width:93%"></div></div><div class="pc-m-val ok">0.93</div></div>
+            <div class="pc-metric"><div class="pc-m-key">Nordic LSI</div><div class="pc-m-bar"><div class="pc-m-fill ok" style="width:91%"></div></div><div class="pc-m-val ok">91%</div></div>
+            <div class="pc-metric"><div class="pc-m-key">RSA</div><div class="pc-m-bar"><div class="pc-m-fill ok" style="width:89%"></div></div><div class="pc-m-val ok">+2.8%</div></div>
+          </div>
+          <div class="pc-footer"><div class="pc-grip"><div class="pc-grip-dot ok"></div><span class="pc-grip-val">Grip -3% · 정상</span></div><div class="pc-action ok">Full Go</div></div>
+        </div>
+      </div>
+
+      <div class="pc flag-ok">
+        <div class="pc-head">
+          <div class="pc-num">#14</div>
+          <div class="pc-info"><div class="pc-name">박무진 <span class="phv post">Post</span></div><div class="pc-pos">RD · D Pair 3 · 광성고</div></div>
+          <div class="pc-status ok">Full Go</div>
+        </div>
+        <div class="pc-body">
+          <div class="pc-metrics">
+            <div class="pc-metric"><div class="pc-m-key">Add/Abd</div><div class="pc-m-bar"><div class="pc-m-fill ok" style="width:92%"></div></div><div class="pc-m-val ok">0.92</div></div>
+            <div class="pc-metric"><div class="pc-m-key">Nordic LSI</div><div class="pc-m-bar"><div class="pc-m-fill ok" style="width:90%"></div></div><div class="pc-m-val ok">90%</div></div>
+            <div class="pc-metric"><div class="pc-m-key">RSA</div><div class="pc-m-bar"><div class="pc-m-fill ok" style="width:88%"></div></div><div class="pc-m-val ok">+3.4%</div></div>
+          </div>
+          <div class="pc-footer"><div class="pc-grip"><div class="pc-grip-dot ok"></div><span class="pc-grip-val">Grip -4% · 정상</span></div><div class="pc-action ok">Full Go</div></div>
+        </div>
+      </div>
+
+      <div class="pc flag-ok">
+        <div class="pc-head">
+          <div class="pc-num">#12</div>
+          <div class="pc-info"><div class="pc-name">김산 <span class="phv post">Post</span></div><div class="pc-pos">LD · D Pair 3 · 경성고</div></div>
+          <div class="pc-status ok">Full Go</div>
+        </div>
+        <div class="pc-body">
+          <div class="pc-metrics">
+            <div class="pc-metric"><div class="pc-m-key">Add/Abd</div><div class="pc-m-bar"><div class="pc-m-fill ok" style="width:94%"></div></div><div class="pc-m-val ok">0.94</div></div>
+            <div class="pc-metric"><div class="pc-m-key">Nordic LSI</div><div class="pc-m-bar"><div class="pc-m-fill ok" style="width:92%"></div></div><div class="pc-m-val ok">92%</div></div>
+            <div class="pc-metric"><div class="pc-m-key">RSA</div><div class="pc-m-bar"><div class="pc-m-fill ok" style="width:91%"></div></div><div class="pc-m-val ok">+2.9%</div></div>
+          </div>
+          <div class="pc-footer"><div class="pc-grip"><div class="pc-grip-dot ok"></div><span class="pc-grip-val">Grip -3% · 정상</span></div><div class="pc-action ok">Full Go</div></div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+<script>
+const d = new Date();
+const days = ['일','월','화','수','목','금','토'];
+document.getElementById('todayDate').textContent =
+  d.getFullYear()+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+
+  String(d.getDate()).padStart(2,'0')+' ('+days[d.getDay()]+')';
+
+function openDetail(num, name, pos) {
+  document.getElementById('dp-num').textContent = num;
+  document.getElementById('dp-name').textContent = name;
+  document.getElementById('dp-pos').textContent = pos;
+  document.getElementById('detailPanel').classList.add('open');
+  document.getElementById('detailPanel').scrollIntoView({behavior:'smooth', block:'start'});
+}
+function closeDetail() {
+  document.getElementById('detailPanel').classList.remove('open');
+}
+function switchDpTab(btn, panelId) {
+  document.querySelectorAll('.dp-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.dp-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(panelId).classList.add('active');
+}
+function filterPlayers(type, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+</script>
+</body>
+</html>

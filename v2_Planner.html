@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Daily Ice Decision OS v2 — Planner</title>
+<link rel="stylesheet" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"/>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f4f5f7;--card:#fff;--inset:#f4f5f7;
+  --border:rgba(0,0,0,.07);--border-mid:rgba(0,0,0,.11);
+  --t1:#0f1a2e;--t2:rgba(15,26,46,.72);--t3:rgba(15,26,46,.44);
+  --ok:#34c759;--ok-d:rgba(52,199,89,.11);--ok-t:#0d5c29;
+  --warn:#ff9f0a;--warn-d:rgba(255,159,10,.11);--warn-t:#7a4500;
+  --danger:#ff3b30;--danger-d:rgba(255,59,48,.11);--danger-t:#8b1a1a;
+  --ice:#0096c7;--ice-d:rgba(0,150,199,.09);--ice-t:#003f5e;
+  --purple:#9b59b6;--purple-d:rgba(155,89,182,.09);--purple-t:#5b2c6f;
+  --deep:#0a1628;--r:13px;--sh:0 2px 10px rgba(0,0,0,.06);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--t1);font-family:'Pretendard',-apple-system,sans-serif;font-size:13.5px;line-height:1.5;-webkit-font-smoothing:antialiased;min-height:100vh;}
+
+/* SIDEBAR */
+.sidebar{position:fixed;left:0;top:0;bottom:0;width:232px;background:var(--deep);display:flex;flex-direction:column;z-index:100;border-right:1px solid rgba(255,255,255,.06)}
+.sb-logo{padding:18px 18px 14px;border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;gap:10px}
+.sb-logo-img{width:40px;height:40px;border-radius:50%;background:#fff;padding:2px;flex-shrink:0;box-shadow:0 0 16px rgba(0,150,199,.3)}
+.sb-logo-txt h1{font-family:'Orbitron';font-size:9.5px;font-weight:700;letter-spacing:2px;color:#fff;line-height:1.4}
+.sb-logo-txt p{font-size:9px;color:rgba(255,255,255,.38);margin-top:2px}
+.sb-role{padding:9px 18px;border-bottom:1px solid rgba(255,255,255,.07)}
+.sb-role-badge{display:inline-flex;align-items:center;gap:5px;font-size:9.5px;font-weight:700;padding:3px 9px;border-radius:5px;background:rgba(0,150,199,.18);color:#48cae4;border:1px solid rgba(0,150,199,.25)}
+.sb-team{font-size:9.5px;color:rgba(255,255,255,.35);margin-top:4px}
+.sb-nav{flex:1;padding:6px 0;overflow-y:auto}
+.nav-sec{padding:14px 18px 4px;font-size:8.5px;font-weight:800;letter-spacing:2.5px;color:rgba(255,255,255,.25);text-transform:uppercase}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 18px;font-size:12.5px;font-weight:500;color:rgba(255,255,255,.55);border-left:3px solid transparent;cursor:pointer;transition:all .15s;text-decoration:none}
+.nav-item:hover{background:rgba(255,255,255,.05);color:#fff}
+.nav-item.active{background:rgba(0,150,199,.14);color:#48cae4;border-left-color:#0096c7;font-weight:600}
+.nav-ic{width:18px;height:18px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.nav-ic svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.nav-em{font-size:14px;width:18px;text-align:center;flex-shrink:0}
+.sb-foot{padding:12px 18px;border-top:1px solid rgba(255,255,255,.07);font-size:9px;color:rgba(255,255,255,.25);line-height:1.7}
+
+/* MAIN */
+.main{margin-left:232px;min-height:100vh}
+.topbar{position:sticky;top:0;z-index:50;height:52px;background:rgba(244,245,247,.92);backdrop-filter:blur(20px) saturate(180%);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 28px}
+.tb-left{display:flex;align-items:center;gap:10px}
+.tb-page{font-size:13px;font-weight:700}
+.tb-right{display:flex;align-items:center;gap:10px}
+.tb-date{font-family:'JetBrains Mono';font-size:11px;font-weight:600;color:var(--ice)}
+.tb-chip{font-size:9.5px;font-weight:700;padding:3px 9px;border-radius:16px}
+.tb-chip.danger{background:var(--danger-d);color:var(--danger-t);border:1px solid rgba(255,59,48,.2)}
+.tb-chip.warn{background:var(--warn-d);color:var(--warn-t);border:1px solid rgba(255,159,10,.2)}
+.tb-chip.ice{background:var(--ice-d);color:var(--ice-t);border:1px solid rgba(0,150,199,.2)}
+.content{padding:20px 28px 48px}
+.sec-hd{font-size:9px;font-weight:800;letter-spacing:2px;color:var(--t3);text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.sec-hd::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* BADGES */
+.ds-badge{display:inline-flex;align-items:center;gap:4px;font-size:8.5px;font-weight:700;padding:2px 7px;border-radius:4px;margin-left:6px;vertical-align:middle}
+.ds-badge.live{background:rgba(0,150,199,.12);color:var(--ice-t);border:1px solid rgba(0,150,199,.2)}
+.ds-badge.live::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--ice);display:inline-block;animation:pulse 1.5s infinite}
+.ds-badge.measure{background:rgba(155,89,182,.1);color:var(--purple-t);border:1px solid rgba(155,89,182,.2)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.phv{font-size:8px;font-weight:800;padding:1px 5px;border-radius:3px;margin-left:3px}
+.phv.post{background:rgba(52,199,89,.12);color:#0d5c29}
+.phv.mid{background:rgba(255,159,10,.12);color:#7a4500}
+
+/* ── TRAINING DECISION BANNER (최상단 핵심) ── */
+.training-banner{
+  background:linear-gradient(135deg,#0a1628,#0d2444);
+  border-radius:var(--r);border:1px solid rgba(0,150,199,.15);
+  overflow:hidden;margin-bottom:18px;
+  box-shadow:0 4px 20px rgba(0,0,0,.15);
+}
+.tb2-head{padding:12px 20px;border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;justify-content:space-between}
+.tb2-title{font-size:10px;font-weight:800;letter-spacing:2px;color:rgba(255,255,255,.45);text-transform:uppercase}
+.tb2-sub{font-size:15px;font-weight:900;color:#fff;margin-top:2px}
+.tb2-note{font-size:9px;color:rgba(255,255,255,.3)}
+.tb2-body{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:0}
+.tb2-col{padding:14px 18px;border-right:1px solid rgba(255,255,255,.07)}
+.tb2-col:last-child{border-right:none}
+.tb2-col-label{font-size:8.5px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px}
+.tb2-col-label.remove{color:rgba(255,59,48,.8)}
+.tb2-col-label.modify{color:rgba(255,159,10,.8)}
+.tb2-col-label.add{color:rgba(52,199,89,.8)}
+.tb2-col-label.go{color:rgba(0,150,199,.8)}
+.tb2-item{display:flex;align-items:flex-start;gap:6px;padding:3px 0;font-size:10.5px;font-weight:600;color:rgba(255,255,255,.75);line-height:1.5;border-bottom:1px solid rgba(255,255,255,.05)}
+.tb2-item:last-child{border-bottom:none}
+.tb2-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;margin-top:5px}
+.tb2-dot.r{background:var(--danger)}.tb2-dot.w{background:var(--warn)}.tb2-dot.g{background:var(--ok)}.tb2-dot.b{background:var(--ice)}
+.tb2-source{font-size:8.5px;color:rgba(255,255,255,.35);margin-top:1px}
+
+/* ── ORIGINAL vs ADJUSTED 주간 플래너 ── */
+.week-card{background:#fff;border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--sh);overflow:hidden;margin-bottom:16px}
+.wc-head{padding:11px 18px;border-bottom:1px solid var(--border);background:var(--inset);display:flex;align-items:center;justify-content:space-between}
+.wc-title{font-size:12px;font-weight:800}
+.wc-legend{display:flex;gap:14px}
+.wc-leg{display:flex;align-items:center;gap:5px;font-size:9.5px;font-weight:600;color:var(--t3)}
+.wc-leg-dot{width:10px;height:10px;border-radius:3px}
+
+.week-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:0}
+.day-col{border-right:1px solid var(--border);min-height:240px}
+.day-col:last-child{border-right:none}
+.day-col.today-col{background:rgba(0,150,199,.02)}
+
+.day-head{padding:8px 10px;border-bottom:1px solid var(--border);text-align:center;background:var(--inset)}
+.day-name{font-size:9.5px;font-weight:800;color:var(--t3)}
+.day-date{font-family:'Orbitron';font-size:14px;font-weight:700;margin-top:2px}
+.day-date.today{color:var(--ice)}
+.day-date.past{color:var(--t3)}
+.day-badge{font-size:8px;font-weight:700;padding:1px 6px;border-radius:4px;margin-top:3px;display:inline-block}
+.day-badge.today-b{background:var(--ice-d);color:var(--ice-t)}
+.day-badge.measure{background:var(--ok-d);color:var(--ok-t)}
+.day-badge.reeval{background:var(--warn-d);color:var(--warn-t)}
+.day-badge.rest{background:rgba(0,0,0,.05);color:var(--t3)}
+
+.day-body{padding:8px 7px}
+
+/* ★ ORIGINAL vs ADJUSTED 핵심 */
+.adj-label{font-size:8px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;margin-bottom:3px}
+.adj-label.original{color:var(--ice-t)}
+.adj-label.adjusted{color:var(--warn-t)}
+
+.session-block{padding:5px 7px;border-radius:6px;font-size:9px;font-weight:600;margin-bottom:4px;line-height:1.4;border-left:3px solid}
+.session-block:last-child{margin-bottom:0}
+.session-block.original{background:var(--ice-d);border-color:var(--ice);color:var(--ice-t)}
+.session-block.adjusted{background:var(--warn-d);border-color:var(--warn);color:var(--warn-t)}
+.session-block.removed{background:var(--danger-d);border-color:var(--danger);color:var(--danger-t);text-decoration:line-through;opacity:.7}
+.session-block.added{background:var(--ok-d);border-color:var(--ok);color:var(--ok-t)}
+.session-block.measure{background:rgba(155,89,182,.08);border-color:var(--purple);color:var(--purple-t)}
+.session-block.done{background:rgba(0,0,0,.04);border-color:rgba(0,0,0,.12);color:var(--t3);text-decoration:line-through}
+.session-block.rest{background:rgba(0,0,0,.03);border-color:rgba(0,0,0,.08);color:var(--t3)}
+
+.player-tag{display:inline-block;font-size:7.5px;font-weight:700;padding:1px 4px;border-radius:3px;margin-top:2px}
+.player-tag.danger{background:rgba(255,59,48,.15);color:var(--danger-t)}
+.player-tag.warn{background:rgba(255,159,10,.12);color:var(--warn-t)}
+.player-tag.ok{background:rgba(52,199,89,.12);color:var(--ok-t)}
+
+/* vs 화살표 */
+.vs-arrow{text-align:center;font-size:9px;color:var(--warn-t);font-weight:800;padding:2px 0}
+
+/* ── 선수→드릴 연결표 ── */
+.impact-card{background:#fff;border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--sh);overflow:hidden;margin-bottom:16px}
+.impact-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0}
+.impact-col{padding:14px 16px;border-right:1px solid var(--border)}
+.impact-col:last-child{border-right:none}
+.impact-col-label{font-size:9px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px}
+.impact-col-label.remove{color:var(--danger-t)}
+.impact-col-label.modify{color:var(--warn-t)}
+.impact-col-label.add{color:var(--ok-t)}
+.impact-item{padding:9px 11px;border-radius:8px;border:1px solid var(--border);margin-bottom:7px}
+.impact-item:last-child{margin-bottom:0}
+.impact-item.danger{background:rgba(255,59,48,.04);border-color:rgba(255,59,48,.15)}
+.impact-item.warn{background:rgba(255,159,10,.04);border-color:rgba(255,159,10,.12)}
+.impact-item.ok{background:rgba(52,199,89,.04);border-color:rgba(52,199,89,.12)}
+.impact-player{font-size:11px;font-weight:800;margin-bottom:3px;display:flex;align-items:center;gap:5px}
+.impact-player.danger{color:var(--danger-t)}
+.impact-player.warn{color:var(--warn-t)}
+.impact-player.ok{color:var(--ok-t)}
+.impact-arrow{font-size:9.5px;font-weight:600;color:var(--t2);line-height:1.6}
+.impact-source{font-size:8.5px;color:var(--t3);margin-top:3px}
+
+/* ── 측정/재평가 큐 + 테이퍼링 ── */
+.bottom-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px}
+.card{background:#fff;border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--sh);overflow:hidden}
+.card-head{padding:11px 16px;border-bottom:1px solid var(--border);background:var(--inset);display:flex;align-items:center;justify-content:space-between}
+.card-title{font-size:12px;font-weight:800}
+.card-body{padding:13px 16px}
+
+/* 타임라인 */
+.tl-wrap{position:relative;padding-left:22px}
+.tl-wrap::before{content:'';position:absolute;left:9px;top:6px;bottom:6px;width:2px;background:var(--border);border-radius:2px}
+.tl-item{position:relative;margin-bottom:9px;z-index:1}
+.tl-dot2{position:absolute;left:-17px;top:3px;width:16px;height:16px;border-radius:50%;border:2px solid;background:#fff;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:800}
+.tl-dot2.done{background:var(--ok);border-color:var(--ok);color:#fff}
+.tl-dot2.cur{background:var(--ice);border-color:var(--ice);color:#fff}
+.tl-dot2.urgent{background:var(--warn);border-color:var(--warn);color:#fff}
+.tl-dot2.up{border-color:var(--border);color:var(--t3)}
+.tl2-label{font-size:10.5px;font-weight:700}
+.tl2-label.done{color:var(--ok-t)}.tl2-label.cur{color:var(--ice-t)}.tl2-label.urgent{color:var(--warn-t)}.tl2-label.up{color:var(--t3)}
+.tl2-date{font-size:9px;color:var(--t3);margin-top:1px}
+.tl2-desc{font-size:9.5px;color:var(--t2);margin-top:2px;line-height:1.5}
+
+/* 재측정 큐 */
+.remeasure-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0}
+.rm-col{padding:10px 12px;border-right:1px solid var(--border)}
+.rm-col:last-child{border-right:none}
+.rm-col-label{font-size:8.5px;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:7px}
+.rm-col-label.urgent{color:var(--danger-t)}
+.rm-col-label.soon{color:var(--warn-t)}
+.rm-col-label.plan{color:var(--ice-t)}
+.rm-item{padding:6px 8px;border-radius:7px;margin-bottom:5px;border:1px solid}
+.rm-item:last-child{margin-bottom:0}
+.rm-item.urgent{background:rgba(255,59,48,.05);border-color:rgba(255,59,48,.18)}
+.rm-item.soon{background:rgba(255,159,10,.05);border-color:rgba(255,159,10,.15)}
+.rm-item.plan{background:var(--ice-d);border-color:rgba(0,150,199,.18)}
+.rm-num{font-family:'Orbitron';font-size:11px;font-weight:700}
+.rm-num.urgent{color:var(--danger-t)}.rm-num.soon{color:var(--warn-t)}.rm-num.plan{color:var(--ice-t)}
+.rm-name{font-size:10.5px;font-weight:700;margin-top:1px}
+.rm-why{font-size:8.5px;color:var(--t3);margin-top:1px}
+.rm-when{font-size:9px;font-weight:700;margin-top:3px}
+.rm-when.urgent{color:var(--danger-t)}.rm-when.soon{color:var(--warn-t)}.rm-when.plan{color:var(--ice-t)}
+
+/* 테이퍼링 */
+.taper-grid{display:grid;grid-template-columns:repeat(10,1fr);gap:5px;margin-bottom:8px}
+.taper-day{text-align:center}
+.taper-day-label{font-size:8px;font-weight:700;color:var(--t3);margin-bottom:3px}
+.taper-bar-wrap{height:52px;background:var(--inset);border-radius:4px;display:flex;align-items:flex-end;overflow:hidden;border:1px solid var(--border)}
+.taper-bar{width:100%;border-radius:3px 3px 0 0;transition:height .4s}
+.taper-bar.high{background:var(--danger)}
+.taper-bar.mid{background:var(--warn)}
+.taper-bar.low{background:var(--ok)}
+.taper-bar.match{background:var(--ice)}
+.taper-bar.today{background:var(--warn);outline:2px solid var(--ice);outline-offset:-1px}
+.taper-date{font-size:7.5px;color:var(--t3);margin-top:3px}
+.taper-date.today{color:var(--ice);font-weight:700}
+.taper-legend{display:flex;gap:12px;flex-wrap:wrap;margin-top:4px}
+.tl3-item{display:flex;align-items:center;gap:4px;font-size:9px;color:var(--t3);font-weight:600}
+.tl3-dot{width:9px;height:9px;border-radius:2px;flex-shrink:0}
+
+/* K-GRIP 연동 안내 */
+.grip-connect{background:#fff;border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--sh);overflow:hidden;margin-bottom:16px}
+.gc-head{padding:11px 16px;border-bottom:1px solid var(--border);background:var(--inset);display:flex;align-items:center;justify-content:space-between}
+.gc-body{display:grid;grid-template-columns:1fr 1fr;gap:0}
+.gc-col{padding:14px 16px;border-right:1px solid var(--border)}
+.gc-col:last-child{border-right:none}
+.gc-col-title{font-size:10.5px;font-weight:800;margin-bottom:8px}
+.gc-item{display:flex;align-items:flex-start;gap:7px;padding:4px 0;font-size:10px;font-weight:600;color:var(--t2);line-height:1.5;border-bottom:1px solid rgba(0,0,0,.04)}
+.gc-item:last-child{border-bottom:none}
+.gc-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.gc-dot.ok{background:var(--ok)}.gc-dot.warn{background:var(--warn)}.gc-dot.ice{background:var(--ice)}
+
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-thumb{background:rgba(0,0,0,.15);border-radius:4px}
+
+/* ── FINAL TRAINING PLAN ── */
+.final-plan{background:linear-gradient(135deg,#0a1628,#0d2444);border-radius:var(--r);border:1px solid rgba(0,150,199,.2);overflow:hidden;margin-bottom:14px}
+.fp-head{padding:11px 18px;border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;justify-content:space-between}
+.fp-head-left{font-size:13px;font-weight:900;color:#fff}
+.fp-intensity{display:flex;align-items:center;gap:8px}
+.fp-intensity-label{font-size:9px;color:rgba(255,255,255,.4);font-weight:700}
+.fp-intensity-val{font-family:'Orbitron';font-size:22px;font-weight:900;color:var(--warn)}
+.fp-intensity-diff{font-size:9.5px;color:rgba(255,59,48,.8);font-weight:700}
+.fp-body{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:0}
+.fp-col{padding:12px 14px;border-right:1px solid rgba(255,255,255,.07)}
+.fp-col:last-child{border-right:none}
+.fp-col-label{font-size:8.5px;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:7px}
+.fp-col-label.remove{color:rgba(255,59,48,.8)}.fp-col-label.modify{color:rgba(255,159,10,.8)}.fp-col-label.add{color:rgba(52,199,89,.8)}.fp-col-label.go{color:rgba(0,150,199,.8)}
+.fp-item{display:flex;align-items:flex-start;gap:6px;padding:4px 0;font-size:10px;font-weight:600;color:rgba(255,255,255,.75);line-height:1.5;border-bottom:1px solid rgba(255,255,255,.05)}
+.fp-item:last-child{border-bottom:none}
+.fp-item.removed{text-decoration:line-through;opacity:.5}
+.fp-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.fp-dot.r{background:var(--danger)}.fp-dot.w{background:var(--warn)}.fp-dot.g{background:var(--ok)}.fp-dot.b{background:var(--ice)}
+
+/* ── 라인별 컨디션 바 ── */
+.line-cond-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}
+.lc-item{padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--inset)}
+.lc-label{font-size:9px;font-weight:800;color:var(--t3);margin-bottom:5px}
+.lc-bar{height:6px;background:#e8ecf0;border-radius:3px;overflow:hidden;margin-bottom:3px}
+.lc-fill{height:100%;border-radius:3px}
+.lc-fill.ok{background:var(--ok)}.lc-fill.warn{background:var(--warn)}.lc-fill.danger{background:var(--danger)}
+.lc-pct{font-size:9px;font-weight:700}
+.lc-pct.ok{color:var(--ok-t)}.lc-pct.warn{color:var(--warn-t)}.lc-pct.danger{color:var(--danger-t)}
+
+/* ── AUTO 배지 ── */
+.auto-badge{display:inline-flex;align-items:center;gap:5px;font-size:9px;font-weight:700;padding:2px 9px;border-radius:4px;background:rgba(0,150,199,.1);color:var(--ice-t);border:1px solid rgba(0,150,199,.2)}
+
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <a href="index.html" style="text-decoration:none"><div class="sb-logo" style="cursor:pointer" title="홈으로">
+    <img class="sb-logo-img" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0NTBwdCIgaGVpZ2h0PSI0NTBwdCIgdmlld0JveD0iMCAwIDQ0OS45OTk5OCA0NDkuOTk5OTkiPjxkZWZzPjxjbGlwUGF0aCBpZD0iYSI+PHBhdGggZD0iTTAgMTcwMC43OWgxMjA3LjU2VjBIMFoiLz48L2NsaXBQYXRoPjxjbGlwUGF0aCBpZD0iYiI+PHBhdGggZD0iTTAgMTcwMC43OWgxMjA3LjU2VjBIMFoiLz48L2NsaXBQYXRoPjxjbGlwUGF0aCBpZD0iYyI+PHBhdGggZD0iTTEyMDcuNTU5IDE3MDAuNzlIMFYuMDAzaDEyMDcuNTU5eiIvPjwvY2xpcFBhdGg+PGltYWdlIGlkPSJkIiB3aWR0aD0iNDI2IiBoZWlnaHQ9IjI4NSIvPjxpbWFnZSBpZD0iZSIgd2lkdGg9IjQyNiIgaGVpZ2h0PSIyODUiLz48aW1hZ2UgaWQ9ImYiIHdpZHRoPSIxMDExIiBoZWlnaHQ9IjE0NDAiLz48L2RlZnM+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTAgMjI1QzAgMTAwLjczMyAxMDAuNzA2IDAgMjI0Ljk3MiAwIDM0OS4yMTIgMCA0NTAgMTAwLjczMyA0NTAgMjI1YzAgMTI0LjI5NC0xMDAuNzg5IDIyNS0yMjUuMDI4IDIyNUMxMDAuNzA2IDQ1MCAwIDM0OS4yOTQgMCAyMjUiIHN0eWxlPSJzdHJva2Utd2lkdGg6MTMuODEwNCIvPjxwYXRoIGZpbGw9IiMzYTNhNmEiIGQ9Ik0yMjQuOTc0IDM4Mi41OGMtODcuMDc1IDAtMTU3LjU2NC03MC41MDItMTU3LjU2NC0xNTcuNTc3IDAtODcuMDYxIDcwLjQ4OS0xNTcuNTY0IDE1Ny41NjQtMTU3LjU2NCA4Ny4wMiAwIDE1Ny41NzcgNzAuNTAzIDE1Ny41NzcgMTU3LjU2NCAwIDg3LjA3NS03MC41NTggMTU3LjU3Ny0xNTcuNTc3IDE1Ny41NzdtMC0zNjguNjE1Yy0xMTYuNjE2IDAtMjExLjAzOCA5NC40NjMtMjExLjAzOCAyMTEuMDM4IDAgMTE2LjU2IDk0LjQyMiAyMTEuMDM3IDIxMS4wMzggMjExLjAzNyAxMTYuNTMyIDAgMjExLjAxLTk0LjQ3NyAyMTEuMDEtMjExLjAzNyAwLTExNi41NzUtOTQuNDc4LTIxMS4wMzgtMjExLjAxLTIxMS4wMzgiIHN0eWxlPSJzdHJva2Utd2lkdGg6MTMuODEwNCIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Im0xMTEuMzYgNzUuMzIzLTIuNTU0IDE0Ljg0NyAxMy42ODYgNy4yNS0xNS43NTggMS44NzktMi42NjUgMTQuOTU3LTYuNjAyLTEzLjc1Ni0xNC41NTYgMS42NTcgMTAuNzg2LTEwLjE5Mi02LjExOC0xMy4xNDcgMTIuOTQgNi43NTN6TTE0Ni43NSA3OS42MjdsLTYuODY0IDMuMjczLTE2LjItMzMuOTc0IDYuOTA2LTMuMjQ1IDYuNTQ2IDEzLjgyNCA2LjAwNy0xOS44NiA4LjkwOC00LjIyNS02LjgyMiAyMC4zNTcgMjMuNzY4IDEzLjIwMi04LjkyMiA0LjI5NS0xNy4yMDgtMTAuMTIzLTEuNTg4IDUuMDR6TTE4My4wMyA1Ni42NzJjMi4wMTYgMS4zOTUgNC4zMDkgMS43NTUgNi44NzggMS4zMjYgMi41NTUtLjU4MiA0LjQ3NC0xLjg5MSA1Ljc3Mi0zLjkzNiAxLjc4Mi0yLjY3OSAyLjE2OS02LjMxMSAxLjIwMi0xMC44ODItLjk0LTQuNjI3LTIuNzItNy44MzEtNS41MS05LjU1Ny0xLjkzNC0xLjM2Ny00LjI4Mi0xLjc4Mi02LjgyMy0xLjI4NC0yLjQ0NC41NTItNC40MzMgMS44NjQtNS44MTQgMy45MjItMS42NzEgMi42NjUtMi4wNTggNi4yOTgtMS4wNzcgMTAuOTY1Ljk1MyA0LjU1OCAyLjcwNyA3LjczNCA1LjM3MiA5LjQ0Nm0tOS40NzQtMjUuNTA3YzIuNDg2LTIuNzQ4IDUuNzE4LTQuNTMgOS42NC01LjMzMSAzLjg5NC0uODI5IDcuNTgyLS41MSAxMC45NjUgMS4wNSA1LjIzNCAyLjM2MSA4LjU3NyA3LjMwNSAxMC4xMjMgMTQuNzc2IDEuNjAyIDcuNDE3LjQ1NiAxMy4yNzItMy40MSAxNy41MjYtMi40NzMgMi43NzYtNS42NjMgNC41NzEtOS41NzIgNS4zNzItMy45NjMuODQzLTcuNTgxLjQ0NC0xMC45NzktMS4wOS01LjE3OS0yLjMyLTguNTc2LTcuMjM3LTEwLjExLTE0LjY5NS0xLjYxNS03LjQ4NS0uNTI0LTEzLjM1NCAzLjM0My0xNy42MDhNMjMxLjI5OSAzOS4yMzRjMS45ODkgMCAzLjQ2Ni0uMzA2IDQuNDItMS4wMzYuOTgtLjg1NiAxLjQzNi0yLjE0IDEuNTQ2LTQuMDA1IDAtMS4zNC0uMzA0LTIuNDAzLS44NDItMy4yODYtLjg5OC0xLjEyLTIuMzQ4LTEuNzEzLTQuMzIzLTEuNzRsLTkuNjQtLjMwNi0uMTkzIDEwLjE3OHptLTE2LjEzLTE2Ljk4NyAxOC41MzMuNDg2YzQuMjU0IDAgNy4zMDYgMS40NSA5LjI2NyA0LjI1NCAxLjMxMiAxLjkwNiAxLjk2IDQuMTQzIDEuOTMzIDYuNTg4LS4wODMgMi4xMTMtLjYzNSAzLjk5MS0xLjU2IDUuNTM4LTEuMTA1IDEuNjMtMi41NTUgMi43Mi00LjI4MiAzLjMxNCAxLjYxNi43NiAyLjc2MiAxLjY4NSAzLjMyOSAyLjcwNy44IDEuMzk1IDEuMTg3IDMuNzE1IDEuMDkgNi45ODgtLjEyMyAyLjk0Mi0uMTIzIDQuNzkzIDAgNS40OTcuMjA4IDEuMDM2LjYwOCAxLjcxMyAxLjQ1IDIuMDE2bC0uMDMuODg0LTguNDc5LS4xOGMtLjI0OC0uOTgtLjQ5Ny0xLjk2MS0uNTI1LTMuMDI1YTUwLjk3MyA1MC45NzMgMCAwIDEtLjA4My00LjU1N2MuMDgzLTIuODg2LS4xNTEtNC42OTYtLjcwNC01LjUyNC0uNjYzLTEuMTMzLTIuNDAzLTEuNjk5LTUuMDEzLTEuNzU0bC03Ljk1NS0uMjA0LS40NDIgMTQuNzIxLTcuNDcyLS4xOTJ6TTI4NC45MDggMzguMDZsLTE4LjgxLTQuNTcxLTEuOTIgNy43MzQgMTcuMjkyIDQuMTQzLTEuNTg5IDYuNDA4LTE3LjI2My00LjE3LTIuMjY1IDkuNDczIDE5LjYzOSA0Ljc3OS0xLjYwMiA2LjM2Ni0yNi45MDMtNi40NzcgOC44OTQtMzYuNTcgMjYuMDg4IDYuMzUzek0yOTkuMTUxIDYxLjkwNmw4LjUyMSA0LjI2NyAyLjM3Ni0xNS40ODJoLS4xNTJ6TTI4OC41NzIgNzIuNjlsLTcuMTY3LTMuNTQ5IDI4LjM5NC0yNy45OCA3Ljk4MiAzLjg4LTQuODA2IDM5LjU4MS03LjMyLTMuNjE4IDEuMjMtOC4wNjUtMTIuNTI2LTYuMDc3ek0zNjUuMzAzIDk5Ljk3OGwtMTUuMDY3LTEuNDA5LTYuMTE4IDE0LjIzOS0zLjEwNy0xNS41NjQtMTUuMTIzLTEuNDkyIDEzLjE0OC03LjY2NS0yLjY5My0xNC4zOSAxMC44ODIgOS45NTcgMTIuNzM0LTcuMDg0LTUuNzg3IDEzLjM1NHoiIHN0eWxlPSJzdHJva2Utd2lkdGg6MTMuODEwNCIvPjxwYXRoIGZpbGw9IiNiYTMwMzUiIGQ9Ik0xNjIuMzI3IDI4My4zNTdjLTIuMzYyIDMuNzg0LTMuNTc3IDYuODIzLTYuODkyIDYuNjg1LTIuMzc1LS4xMzgtMjkuMDAyLTIuMzQ4LTMzLjQ2Mi0yLjcyMS02LjU0Ny0uNTEtMTAuODE0IDguNTIxLTEzLjkyMSAxMy40MjQtMy4wOTQgNC44Mi01Ljk5NCAxMi4zMDUgNS45NTIgMTIuNjY0IDYuNjQzLjE2OCAyNS44MTIuNDY4IDMwLjc0Mi40NjggNC44NzUgMCA4LjEyLjM4NCAxMi40NDMtNS4yMiA0LjMxLTUuNTk0IDY5LjcwMi0xMTguNjA1IDY5LjcwMi0xMTguNjA1bC00LjQ2MS03Ljc3NXMtNTcuNzE0IDk3LjI2Ny02MC4xMDMgMTAxLjA3OCIgc3R5bGU9InN0cm9rZS13aWR0aDoxMy44MTA0Ii8+PHBhdGggZmlsbD0iI2JhMzAzNSIgZD0iTTIwNy4wNzcgMTQzLjY4OGMtMi4xOTYtMy45MjItNC4yMjYtNi40NjMtMi40NTgtOS4yOTQgMS4yMjktMi4wODYgMTYuMTg1LTI0LjE5NiAxOC42OTktMjcuODk4IDMuNjE4LTUuNDEzLTIuMTEzLTEzLjU3NS00LjkxNy0xOC42NzEtMi42OTMtNS4wOTYtNy43NDctMTEuMjI4LTEzLjkwNy0uOTgtMy40NTIgNS43NTgtMTMuMTIgMjIuMjktMTUuNDk1IDI2LjUwMi0yLjQwMyA0LjI2Ny00LjI4MSA2Ljk4OC0xLjUyIDEzLjUwNiAyLjcyMSA2LjQ3NyA2OS4zMTUgMTE4Ljc4NCA2OS4zMTUgMTE4Ljc4NGw5LjAwNS0uMTM4cy01Ni41OTUtOTcuODg5LTU4LjcyMi0xMDEuODExIiBzdHlsZT0ic3Ryb2tlLXdpZHRoOjEzLjgxMDQiLz48cGF0aCBmaWxsPSIjYmEzMDM1IiBkPSJNMzA1LjM0MSAyNTEuNzA0YzQuMzc4LjE1IDcuNzItLjI4OCA5LjIyNSAyLjU5NiAxLjIwMiAyLjEgMTIuNjM3IDI2LjI2OCAxNC41MTUgMzAuMjE4IDIuODQ1IDUuOTY1IDEyLjg1OCA1LjEyMyAxOC41ODkgNS4zNTggNS43ODcuMTY4IDEzLjY1OS0xLjA3NyA3Ljk2OS0xMS41NDYtMy4yODctNS44NjktMTIuNjEtMjIuNTkzLTE0Ljk4NS0yNi44MDYtMi41MTMtNC4yMjYtMy44MTEtNy4xODEtMTAuOTEtOC4xMzQtNi45NDctLjg5OC0xMzcuNDk3LS41MjgtMTM3LjQ5Ny0uNTI4bC00LjQzMyA3Ljg3MnMxMTMuMDM5LjgyOSAxMTcuNTI3Ljk2NyIgc3R5bGU9InN0cm9rZS13aWR0aDoxMy44MTA0Ii8+PHBhdGggZmlsbD0iIzJjMjUyMyIgZD0iTTE4Mi44OTUgMzYxLjcxNXYtMTkuMDE3aC0zLjc3di0zLjk1aDguNDc5djIyLjk2N3pNMjEwLjE1MSAzNDIuMTczYy0xLjA5MSAwLTIuMDAzLjM3Mi0yLjgwNCAxLjA5MS0uNzYuNzMyLTEuMTA0IDEuNjMtMS4xMDQgMi42OCAwIDEuMDUuMzQ1IDEuOTA1IDEuMTA0IDIuNjkzLjgwMS43MDQgMS43MTMgMS4wNzcgMi44MDQgMS4wNzdhNC4xMzIgNC4xMzIgMCAwIDAgMi43OS0xLjA1Yy43NzMtLjc0NiAxLjE3NC0xLjYzIDEuMTc0LTIuNjc5IDAtMS4wOS0uNDAxLTEuOTYxLTEuMTc0LTIuNjY1LS43NzQtLjc3My0xLjY1OC0xLjE0Ny0yLjc5LTEuMTQ3bTcuMzg5IDcuMTU0LTYuOTYgMTIuMzg4aC00LjY5Nmw0LjY5NS04LjQzOGMtMi41OTYuMTM4LTQuNjk1LS40NjgtNi4yOTctMS45ODgtMS41MDYtMS4zNC0yLjIyNC0zLjEyMi0yLjMzNC01LjMxOC0uMDEyLTIuMTY4Ljc0NS00LjAxOCAyLjMzNC01LjUyNCAxLjY0My0xLjUxOSAzLjU3Ni0yLjI2NSA1Ljg2OS0yLjI2NSAyLjI1MSAwIDQuMjI2Ljc0NiA1Ljg1NiAyLjI2NSAxLjYwMiAxLjQ2NCAyLjM0NyAzLjM1NiAyLjMwNiA1LjUyNCAwIDEuMjQzLS4yMzUgMi40MDMtLjc3MyAzLjM1Nk0yMjguMjIzIDM2MS43MTV2LTQuMjEyYzIuNjgtMi4zMDYgNS43NDUtNS4wNTUgOS4xOTgtOC4xMiAxLjUzMy0xLjM4MiAyLjI2NS0yLjkgMi4yNjUtNC40ODkgMC0uODQzLS4yNDgtMS40NjQtLjc0Ni0xLjk3NS0uNTk0LS41NTItMS40MDgtLjgyOC0yLjUxMy0uODI4LTEuMTE5IDAtMi4xNC4zODQtMi43NDkgMS4xNzMtLjY2Mi43Ni0xLjAyMSAxLjYzLTEuMDIxIDIuNzIxaC00LjQzNGMtLjA0Mi0xLjg2NC42MDgtMy41OSAyLjAwMy01LjE5MyAxLjYxNi0xLjc1NCAzLjY2LTIuNjY1IDYuMi0yLjY2NSAyLjI2NiAwIDQuMjQuNTUyIDUuODE1IDEuNzgxIDEuNTA1IDEuMjE2IDIuMzkgMi43OSAyLjM5IDQuNzc5IDAgMi40NTgtMS4zNjggNC45MDItNC4xNDQgNy4zNjFhMzU3LjQwMyAzNTcuNDAzIDAgMCAwLTYuMjI4IDUuNThoMTAuMzcxdjQuMDg3ek0yNjIuNjE0IDM0MS43ODNjLS45MTEgMC0xLjY4NS4yNDYtMi4yOTIuODU2LS43MDUuNjc3LTEuMDM2IDEuMzgxLTEuMDM2IDIuMjY1IDAgLjg1Ni4zMzEgMS41ODggMS4wMzYgMi4yMjMuNjYzLjU2NCAxLjM5NC44NyAyLjI5Mi44Ny44ODQgMCAxLjY4NS0uMzA1IDIuMzktLjg4NC41OTMtLjYyLjk1Mi0xLjM1My45NTItMi4yMDkgMC0uODg0LS4zNi0xLjU4OC0uOTUzLTIuMjY1LS43MDQtLjYwOC0xLjUwNS0uODU2LTIuMzg5LS44NTZtMCA5LjM3N2MtMS4wNzcgMC0yLjAwMi4zNDgtMi43MzQgMS4xMDUtLjc0Ni43ODctMS4xNiAxLjY0My0xLjE2IDIuNjc5IDAgMS4wMzYuNDE0IDEuOTIgMS4xNiAyLjY2Ni43MzIuNzg3IDEuNjU3IDEuMTA0IDIuNzM0IDEuMTA0IDEuMTA1IDAgMi4wNzItLjMxOCAyLjg3My0xLjEwNC43NDUtLjc0NiAxLjEwNS0xLjYzIDEuMTA1LTIuNjY2cy0uMzYtMS44OTItMS4xMDUtMi42OGMtLjgwMS0uNzU5LTEuNzY4LTEuMTA0LTIuODczLTEuMTA0bTAgMTEuMDc2Yy0yLjI2NSAwLTQuMjEyLS43MDQtNS43NDUtMi4xMTMtMS42NDMtMS40MjMtMi40MDMtMy4xNzYtMi40MDMtNS4zMDMgMC0yLjExNCAxLjIzLTMuOTUgMy42NDYtNS4zNTktMi4wNDQtMS4xMzItMy4wNjYtMi43MDctMy4wNjYtNC42OTYgMC0xLjgyMi43Ni0zLjM5NyAyLjMyLTQuNjEyIDEuNTc1LTEuMzQgMy4zMTUtMS45NzUgNS4yNDgtMS45NzUgMS45NDcgMCAzLjc5OC42MzUgNS4zMTcgMS45NzUgMS40NSAxLjIxNSAyLjMyIDIuNzkgMi4zMiA0LjUzIDAgMi4wNzEtMS4wMjIgMy42NDYtMy4wNTIgNC43NzggMi40NTkgMS40MDkgMy42NiAzLjIwNCAzLjY2IDUuMzU5IDAgMi4xMjctLjc0NiAzLjg4LTIuNDU4IDUuMzAzLTEuNDkyIDEuNDA5LTMuNDUzIDIuMTEzLTUuNzg3IDIuMTEzIiBzdHlsZT0ic3Ryb2tlLXdpZHRoOjEzLjgxMDQiLz48cGF0aCBmaWxsPSIjM2EzYTZhIiBkPSJtMjExLjE3NiAxMzkuMjEuOTY2IDEuNzI3Yy41NTMuOTk0IDQuODkgOC4zNyAxMC45MSAxOS4wNzJoMS45MmMzNS44OTQgMCA2NS4wNDggMjkuMDg1IDY1LjA0OCA2NS4wMiAwIDQuMTMtLjM0NiA4LjE5LTEuMTMzIDEyLjA0MyA5LjM2NCAwIDE3Ljk5NS4xMzggMjQuODU5LjE5Mi41MTEtMy45OTEuODE1LTguMTA3LjgxNS0xMi4yMzYgMC00OS41MS00MC4wNzgtODkuNjAzLTg5LjU4OS04OS42MDMtNS4xMjMgMC0xMC4wOTUuNDE0LTE0Ljk3IDEuMjQ0LS4wODMgMC0uMDgzLjEzOC0uMTUyLjE2OC4zMDQuNzA0Ljg3IDEuNTYgMS4zMjYgMi40MDNNMzA1LjEzOCAyNTcuNTNjLTEuMjAyLS4xMzctMTAuNDI3LS4xNS0yMy42NzEtLjI3NS0xMS4yMTQgMTkuNTctMzIuMzMgMzIuNzg2LTU2LjQ5OSAzMi43ODYtMTUuNjA2IDAtMjkuODMtNS41MjQtNDEuMDQ0LTE0LjU4NC00LjcxIDguMDM4LTkuMDc0IDE1LjMwMi0xMi41ODIgMjEuMzIzIDE0LjkwMiAxMS4yMTQgMzMuNTA0IDE3Ljg4NSA1My42MjYgMTcuODg1IDM4LjAzNCAwIDcwLjQyLTIzLjc1NCA4My41MTItNTcuMTA2aC0xLjMyNnpNMTU3LjQ0NSAyODAuMjQyYy42NjMtLjk4MSA1LjQ1NS05LjE1NyAxMi4zNzQtMjAuNzQzLTYuMzExLTEwLjAyNy05Ljg2LTIxLjgyMS05Ljg2LTM0LjQ5OSAwLTI3LjgxNCAxNy40Ny01MS42MjMgNDIuMTA3LTYwLjg2M2ExNjk3MC41NSAxNjk3MC41NSAwIDAgMC0xMi40NDMtMjEuNTE2Yy0zMS45MTYgMTMuNzEzLTU0LjI3NSA0NS40NS01NC4yNzUgODIuMzc5IDAgMjEuODYyIDcuODU4IDQxLjg0NiAyMC43ODUgNTcuNDM3LjA4My0uMTguMTUyLS4zNzIuMjYyLS40Njh6IiBzdHlsZT0ic3Ryb2tlLXdpZHRoOjEzLjgxMDQiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJtNDcuMzggMTI0LjkwMiAzLjg4LTYuNjMgMzIuMzg2IDE5LjE3LTMuODk1IDYuNjAxek01NC44NjUgMTY5Ljc4NmMxLjgwOS4yNTIgMy4zMjguMTM4IDQuNDA1LS4yODggMi4wMDMtLjcxOSAzLjQ2Ny0yLjMzNCA0LjQyLTQuODYyLjg4NC0yLjI1LjgxNC00LjQwNS0uMTgtNi40NzctMS4zMjYtMi44MDMtNC4yNTMtNS04LjYxNy02LjY3LTMuNDQtMS4zMTItNi41NDctMS43NjgtOS4xMTUtMS4yMy0yLjk4My42MDgtNS4wNTUgMi4zNDktNi4xMTggNS4yNjItLjc3NCAxLjk3NS0uODE1IDMuNzk4LS4xMjUgNS40NDIuNjA4IDEuNzQgMS45NjIgMy4yNDUgMy45MzYgNC41MDJsLTIuNzQ4IDcuMjM3Yy0zLjcwMS0yLjMyLTYuMjI4LTUuMTEtNy42MS04LjM5Ny0xLjQ2My0zLjQ4LTEuMzgtNy4zNDcuMTk0LTExLjM5NCAxLjc5NS00LjcxIDQuNzY0LTcuOTI3IDguOTM1LTkuNTAxIDQuNDQ3LTEuNjcxIDkuNjI2LTEuMzgyIDE1LjQ5Ni44NTYgNS44NTUgMi4yMjMgOS44NDYgNS40MjcgMTEuOTg3IDkuNzIyIDIuMDg1IDQuMDMzIDIuMjEgOC4zNy40NDIgMTIuOTU1LTEuNzU0IDQuNjY4LTQuNTE2IDcuNzYxLTguNDUyIDkuNDQ2LTMuMjA0IDEuMzUzLTYuNDA4IDEuNTA2LTkuNjI2LjYyMXpNNTEuOTM4IDIxMy4yOTRsMi44NDUtMTkuMjEtNy44NTgtMS4xNi0yLjYyNCAxNy41OC02LjQ2My0uOTggMi41NTUtMTcuNTY3LTkuNjQtMS4zOTUtMi45ODMgMTkuOTg0LTYuNTE4LTEuMDA4IDQuMDYtMjcuMzQ1IDM3LjE5MSA1LjQ2OS0zLjkyMiAyNi42ek0zOS4zMTQgMjQ4LjkxM2wtMTYuNTcyIDIuNzktMS4yNy03LjU5NiAzNy4xMjItNi4yNDIgMS4zMTIgNy42MzYtMTQuMTI4IDIuMzIgMi40MyAxNC40MDUgMTQuMDczLTIuMzkgMS4yNyA3LjQ0NS0zNy4xNSA2LjItMS4yMjktNy40ODUgMTYuNi0yLjcyek00Mi4zNjIgMjk0LjkwM2MtLjkxMSAyLjI1MS0uODU2IDQuNjI3LjEzOCA3LjAxNiAxLjAwOCAyLjMzNCAyLjYxIDMuOTYzIDQuODc1IDQuOTMgMi45NyAxLjIwMiA2LjY1Ny44ODQgMTAuOTM4LS45NjcgNC4zMjMtMS44MDkgNy4wOTktNC4yMTIgOC4zNDItNy4yMDkuOTI1LTIuMjM3LjkxMS00LjU1Ny0uMDU0LTYuOTE5LTEuMDc4LTIuNDAzLTIuNjkzLTQuMDQ2LTUuMDE0LTQuOTcxLTIuOTQxLTEuMjAyLTYuNTYtLjg0My0xMC45NjUuOTM5LTQuMzA5IDEuODkxLTcuMDMgNC4yNjctOC4yNTkgNy4xODFtMjMuMjk5LTE0LjIxMWMzLjA5MyAxLjg3OCA1LjQ5NiA0Ljc1IDcuMDU3IDguNDM4IDEuNTYgMy42NzQgMS44OTIgNy4zMiAxLjA5IDEwLjkzOC0xLjMzOSA1LjU5NC01LjUxIDkuODQ3LTEyLjYyMiAxMi44MTYtNi45NiAzLjAxMS0xMi44OTkgMy4wMTEtMTcuODAyIDAtMy4yNDUtMS44OTItNS41NTEtNC42NjgtNy4xNjctOC4zMjgtMS41MzMtMy43MjgtMS44NS03LjQwMi0xLjAzNi0xMS4wMzQgMS4zMTItNS41NTIgNS40ODMtOS44MzMgMTIuNDg1LTEyLjczMyA3LjA1Ny0yLjk3IDEzLjA1LTIuOTcgMTcuOTk1LS4xMzhNODUuODE3IDMzNy4zMDVjMS4xMTgtMS40NzcgMS45NDctMi43NDggMi4xNC0zLjk3Ny40ODQtMi4wMy0uMDk2LTQuMTE2LTEuNjE1LTYuMjg0LTEuNDY0LTEuOTc1LTMuMjYtMy4wNjYtNS41NTItMy4zODQtMy4wNjYtLjM4NC02LjUxOS43ODgtMTAuMzQ0IDMuNjA1LTIuOTI4IDIuMTU0LTQuOTU4IDQuNDg4LTUuOTM5IDYuOTMzLTEuMTc0IDIuODQ1LS44MjggNS41MjQuOTggOC4wMSAxLjM0IDEuNzEzIDIuODA0IDIuNzYyIDQuNTcyIDMuMTA4IDEuNzU0LjM3MiAzLjc4NC4xMzggNS44ODMtLjg0M2w0LjU4NSA2LjIxNGMtMy45OSAxLjgxLTcuNjY0IDIuNDMxLTExLjEzIDEuNzY5LTMuNzQzLS42OTEtNi45MzQtMi44MDQtOS40ODktNi4zNTMtMi45ODMtNC4wODktNC4wMTgtOC4zLTMuMDgtMTIuNzIgMS4wMjMtNC41ODUgNC4wNjEtOC43NDIgOS4xNDMtMTIuNDcgNS4xMS0zLjcwMiA5Ljk3MS01LjI5IDE0Ljc1LTQuNzM4IDQuNDYuNDY4IDguMTkgMi43MDcgMTEuMDM0IDYuNzEyIDIuOTgzIDMuOTkxIDQuMDc0IDguMDM4IDMuMzAxIDEyLjIzNi0uNTk0IDMuMzg0LTIuMTk2IDYuMTczLTQuNzIzIDguMzd6TTg1Ljk2NSAzNzQuMzEzbC01Ljc0Ni00Ljk4NSAyNC41NTUtMjguNTQ3IDUuNzA0IDQuOTU4LTkuOTU3IDExLjYyOSAyMC41NzctMi41NDEgNy40MTcgNi40MjItMjEuMzM4IDIuMDU3LTIuNDAzIDI3LjA4My03LjU5NS02LjQ1IDIuMzM0LTE5LjgwNC01LjI5LjQ4NnpNMTU2LjAwMiAzODQuMTg1bC0xNy4xMjUtOS4xMTUtMy43NTcgNi45NzQgMTUuNjc1IDguMzk3LTMuMTIxIDUuNzg2LTE1LjYzNC04LjM1NS00LjU4NSA4LjYwNCAxNy43NzQgOS41MTYtMy4wNjYgNS44NjktMjQuNDQ0LTEzLjEwNiAxNy42NjQtMzMuMTg2IDIzLjc2NyAxMi42NXpNMTcyLjQ5NyA0MjIuMDI4bC03LjQxNi0yLjA5OSA0LjAzMi0xMy42NTgtNi4wNzYtMjYuMTMgOC43IDIuNDg2IDMuMDEgMTcuOTk1IDExLjUzMy0xMy43NjkgOC4zMTMgMi4zMzQtMTguMTc0IDE5LjMyek0yMjcuOTY4IDQxNC42NjVsOS41My0uNDAyLTUuMjIxLTE0LjY5NGgtLjE4em0tNC4xNTcgMTQuNDA0LTguMDM4LjM0OCAxMS43OTQtMzguMTE3IDguODUzLS4zNDIgMTQuNTI4IDM3LjA0LTguMjcyLjMzLTIuNzQ4LTcuNjY2LTEzLjgyNS41ODJ6TTI2Ny4xMzMgNDEyLjgzYy4zMzEgMS40MzcgMS4xMDUgMi41NDIgMi4xODIgMy4yMTggMS42MDIgMS4wNjQgMy45NjQgMS4xNzQgNi44MzYuNDU2IDIuMTI3LS41OTQgMy41OS0xLjMyNiA0LjcxLTIuMjM3IDEuNDA4LTEuMTc0IDEuODkyLTIuNjM4IDEuNDUtNC4zNS0uMzMyLTEuMzY4LTEuMjQzLTIuMTI3LTIuNjgtMi41NTUtLjg3LS4yMzQtMi41NTUtLjQwMi00LjkxNi0uMjA0aC04LjU3NmMtMS41ODktLjEzOC0yLjkyOC0uMzcyLTQuMDYtLjc4OC0xLjM2OC0uNTQtMi40NTktMS4yMjktMy4yODgtMi4zMDYtLjk2Ni0xLjEzMy0xLjcxMi0yLjY2Ni0yLjIyMy00LjU3MS0uNzczLTIuNzc2LS42MzUtNS4zODcuNTM5LTcuNzM0IDEuNjg1LTMuMzk4IDQuOTcxLTUuNzQ1IDEwLjA2OC03LjA0NCA0Ljc5Mi0xLjMxMSA4LjgyNC0uODI4IDEyLjA0MiAxLjI5OSAyLjQwMyAxLjYzIDQuMDQ3IDMuODggNC44NDggNi43MjZsLTYuOTg4IDEuODkxYy0uNDk4LTEuMjk4LTEuMjctMi4zMDYtMi4xODItMi45MTQtMS42MDItMS4xMzItMy43ODQtMS4yMjktNi41Ni0uNTIyLTEuNjU4LjQ1Ni0yLjk3IDEuMTQ2LTMuOTA5IDIuMDQ0LTEuMTE4IDEuMTE5LTEuNTMzIDIuNDU4LTEuMTE4IDMuOTA4LjMwMyAxLjIwMi45NjYgMS45NzUgMS45ODggMi40MDMuNTY3LjIyMiAxLjQ2NC4zODQgMi42OTMuMzg0aC4wODNsOS4yMTItLjEzOGMzLjA4LS4xMzggNS40NjkuMjUyIDcuMTY3IDEuMDc4IDIuMjUxIDEuMTE4IDMuODY3IDMuMjA0IDQuNzI0IDYuMjI4IDEuMjE1IDQuNjU1LjE3OSA4LjQzOC0zLjE2MyAxMS40NjMtMi4xIDEuODkyLTQuNjEzIDMuMjE4LTcuNjIzIDQuMDQ2LTUuNzg3IDEuNDkyLTEwLjMxNyAxLjEwNS0xMy42MTgtMS4xMDQtMi40MTYtMS41ODktNC4wMDUtMy44NjctNC43NjQtNi45NDd6TTMwNi4wODMgMzk5LjUyYy42OSAxLjMyNiAxLjY0MyAyLjIyMyAyLjg3MiAyLjcyIDEuODUuNjUgNC4xMDIuMzYgNi44MDktMS4wNjMgMS44MjMtLjk2NiAzLjIxOC0yLjA0NCA0LjE0My0zLjEwNy45OTQtMS41MDUgMS4yMjktMy4wMS40MjgtNC41NzEtLjYyMi0xLjI1Ny0xLjY4NS0xLjg3OC0zLjEwOC0xLjkzNC0xLjA3NyAwLTIuNjY1LjIzNC00LjkzLjg0M2wtNC4wMTkuOTI1Yy0xLjg3OC40MjYtMy4zODMuNzYtNC4zMzYuOTM5LTEuNTYuMjQ2LTIuOTI4LjMzLTQuMTE2LjEzOC0xLjQ2NC0uMjA0LTIuNjY1LS43MzItMy43NTYtMS40OTItMS4xNi0uOTgtMi4yMzgtMi4yNzgtMy4xNzctNC4wMzItMS4zMjYtMi41NTUtMS42OTgtNS4xMjQtMS4wMjItNy42NzguODU3LTMuNjMzIDMuNjMyLTYuNjQ0IDguMjMxLTkuMDYgNC40NzUtMi4zMDcgOC40OTQtMi43MiAxMi4xMjYtMS4yOTkgMi42OTMgMS4xMDUgNC43NjUgMi45IDYuMTczIDUuNTUybC02LjQzNSAzLjI4N2MtLjc4OC0xLjE2LTEuNzgyLTEuOTYxLTIuNzYzLTIuMzYxLTEuNzgxLS42OS00LjAzMi0uNDAyLTYuNjE1LjkxMS0xLjQwOC44MDEtMi41NjkgMS43MjYtMy4yNiAyLjg0NS0uOTEgMS4zNjctLjk5MyAyLjY4LS4zMTYgNC4wNi41OTQgMS4wNzggMS4zOTQgMS43MjcgMi40NTggMS44NzkuNjQ5LjEzOCAxLjUxOSAwIDIuNzItLjE1aC4xMWw4Ljk3OC0yLjA4NmMzLjAxLS43NzMgNS4zNzItLjkxMSA3LjE5NS0uNDU2IDIuNTU1LjU0IDQuNTQ0IDIuMjUxIDYuMDA3IDUuMDI3IDIuMSA0LjIyNiAxLjkzNCA4LjIwNC0uNjkgMTEuOTA1LTEuNjE2IDIuMjkzLTMuNzU3IDQuMTQzLTYuNjAxIDUuNDY5LTUuMjIgMi44MTctOS44MDYgMy40MjUtMTMuNTM1IDEuOTItMi42MjQtMS4wNS00LjcxLTIuOTQyLTYuMTMyLTUuNzQ2ek0zNDYuMDQ1IDM3OC40OTRjMi40NDQuMTY4IDQuNjQtLjU0IDYuNjI4LTIuMTk2IDEuOTYyLTEuNjcxIDMuMDI1LTMuNzE1IDMuMjc0LTYuMTQ2LjI0OC0zLjIzMi0xLjA5MS02LjU3NC00LjA4OC0xMC4xNjUtMy4xNjMtMy41NzYtNi4yMjktNS41NjUtOS40Ni01LjgyNy0yLjQwNC0uMTY4LTQuNjEzLjUyOC02LjYwMiAyLjE4Mi0xLjk3NSAxLjY0My0zLjAyNCAzLjcyOC0zLjI4NyA2LjE1OS0uMTY1IDMuMTQ5IDEuMTg4IDYuNTYgNC4yNTQgMTAuMjA2IDMuMDUyIDMuNTkgNi4xNDYgNS40OTYgOS4yOCA1Ljc4N20tMjAuNTIyLTE3Ljk5NWMuOTUzLTMuNTY0IDIuOTQyLTYuNjcxIDUuOTUyLTkuMjgxIDMuMDUzLTIuNTU1IDYuNDIyLTQuMDA1IDEwLjE1MS00LjI1NCA1LjcxOC0uNDY4IDExLjA0OCAyLjMzNCAxNS45NjUgOC4xNDggNC45MDMgNS43NzMgNi43MTIgMTEuNDc3IDUuMzQ1IDE3LjA1Ny0uOTUzIDMuNjE4LTIuODYgNi43MTEtNS44ODQgOS4yOC0zLjA2NSAyLjU0MS02LjQ1IDMuOTc3LTEwLjE5MiA0LjI5NS01LjY0OC4zODQtMTAuOTc5LTIuMzQ4LTE1Ljg0LTguMTQ4LTQuOTg2LTUuODQyLTYuNzk1LTExLjUxOC01LjQ5Ny0xNy4wOTdNMzczLjU4NCAzMjQuMzg0Yy0xLjcxMy0uNjYzLTMuMTktLjkzOS00LjMyMy0uODU2LTIuMTU0LjE2OC00LjAwNSAxLjM1My01LjYzNCAzLjQ2Ny0xLjM5NSAxLjg5MS0xLjg5MiAzLjk5LTEuNDkyIDYuMjgzLjQ3IDMuMDM4IDIuNjEgNS45NTIgNi40NzcgOC43MjkgMi45IDIuMjIzIDUuNjkgMy40MjQgOC4zNDIgMy42NTkgMy4wNjYuMjg4IDUuNTI0LS44MjkgNy4zNi0zLjMgMS4yMy0xLjcyNyAxLjgyNC0zLjUyMiAxLjY0NC01LjI2My0uMTUyLTEuODIyLTEuMDIyLTMuNjMxLTIuNTU1LTUuMzU4bDQuNTQ0LTYuMjgzYzIuOTgzIDMuMjczIDQuNjEzIDYuNjcgNS4wNCAxMC4xMzYuNDQzIDMuODEyLS42MzUgNy40NDQtMy4zIDEwLjk4LTIuOTgzIDQuMDMyLTYuNzI2IDYuMjk3LTExLjIxNCA2LjY3LTQuNjk2LjQxNC05LjU3LTEuMjk4LTE0LjcwOC01LjA0MS00Ljk3Mi0zLjcxNS03Ljg4Ni03Ljk0MS04Ljc3LTEyLjYzNy0uOTQtNC40MzIuMTM4LTguNTc1IDMuMTA3LTEyLjU4IDIuOTQyLTMuOTkyIDYuNDc4LTYuMjQzIDEwLjYzNC02LjgyMyAzLjQ1My0uMzcyIDYuNjAyLjMwNiA5LjQ3NCAyLjA1OHpNNDA4LjUyOSAzMTMuNzgzbC0zLjUwOCA2LjgwOS0zMy42MDEtMTcuMDQyIDMuNTIxLTYuODIyek00MDQuNzkzIDI4NS41ODRsMi43NjItOS4xMy0xNS41NzguMTM5LS4wNTQuMTM4em0xMi4yMzYgOC43MTQtMi4zOSA3LjcwNy0zMi4wODEtMjMuNzY4IDIuNjEtOC40OCAzOS44NDMtMS40NjQtMi40MyA3LjkyNy04LjE0OC4xMzgtNC4xNDQgMTMuMzE0ek00MjguMzY3IDIzOC41OTVsLS42NjMgNy42NTEtMzAuODUyLTIuNTk2LS45NTMgMTEuMjY5LTYuNjQzLS41NCAyLjU1NS0zMC4yNzIgNi42MjkuNjM1LS45NjcgMTEuMjd6TTQyNy45NjMgMjA2LjQ4MmwuNTI1IDcuNjM3LTM3LjUzNyAyLjcwNy0uNTM5LTcuNjkzek00MTYuMDgxIDE4My41MDJjMS4yMTYtMi4xMTIgMS41Mi00LjQxOS44OTgtNi45MTktLjYwOC0yLjUxMy0xLjk3NS00LjM2NC00LjA2LTUuNjA3LTIuNzc2LTEuNjMtNi40MzYtMS45Ni0xMC45OTMtLjgxNS00LjU1OCAxLjIzLTcuNzA2IDMuMTQ5LTkuMzA4IDUuODg0LTEuMjU3IDIuMDk5LTEuNTc1IDQuNDQ2LS45NCA2LjkwNS41NCAyLjUyNyAxLjk5IDQuNDIgNC4wNzQgNS42NjIgMi43NjMgMS41NjEgNi40NjQgMS44NSAxMC45NjYuNjkxIDQuNTU3LTEuMTMzIDcuNzItMy4wOCA5LjM2My01LjhtLTI1LjE5IDEwLjQ5NWMtMi44MDMtMi4zNjItNC43NS01LjUzOC01Ljc0NS05LjQxOC0uOTk0LTMuODgxLS43NzMtNy41MTMuNjIyLTEwLjk5MyAyLjE1NC01LjI2MiA2LjkwNS04Ljg5NSAxNC4zNjItMTAuNzQ1IDcuMzM0LTEuODc4IDEzLjI4Ni0uOTI1IDE3LjY1IDIuNzA3IDIuODczIDIuNDAzIDQuNzY1IDUuNTI0IDUuNzMyIDkuNDE4IDEuMDIxIDMuODUzLjc3MyA3LjU0MS0uNjUgMTEuMDA3LTIuMTU0IDUuMjItNi44NSA4LjgxMS0xNC4yNTIgMTAuNjM1LTcuNDMgMS45MDUtMTMuMzI3IDEuMDA4LTE3LjcxOS0yLjYxMU0zNjguOTMxIDE0MS42MzhsLTMuMzQyLTYuMzggMzMuNDQ5LTE3LjQwMSAzLjQ4IDYuNzY3LTE2Ljc4IDI1LjYwNS4wMy4xOCAyMy43ODItMTIuNDAyIDMuMjE4IDYuMzI1LTMzLjM2NiAxNy40MDEtMy43OTgtNy4yNjQgMTYuNjI4LTI0Ljk1NmgtLjAxMnoiIHN0eWxlPSJzdHJva2Utd2lkdGg6MTMuODEwNCIvPjwvc3ZnPg==" alt="대한아이스하키협회">
+    <div class="sb-logo-txt">
+      <h1>DAILY ICE<br>DECISION OS</h1>
+      <p>v2.0 · 한국 아이스하키</p>
+    </div>
+  </div></a>
+  <div class="sb-role">
+    <div class="sb-role-badge">⛸ 감독 / 코칭스태프</div>
+    <div class="sb-team">대한민국 U18 아이스하키</div>
+  </div>
+  <nav class="sb-nav">
+    <div class="nav-sec">메인</div>
+    <a href="v2_Home.html" class="nav-item"><span class="nav-em">📌</span> Home</a>
+    <div class="nav-sec">유닛 운영</div>
+    <a href="v2_Lines.html" class="nav-item">
+      <span class="nav-ic"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+      Lines &amp; D-Pairs
+    </a>
+    <a href="v2_Goalies.html" class="nav-item">
+      <span class="nav-ic"><svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="18" rx="2"/><path d="M8 12h8M12 8v8"/></svg></span>
+      Goalies
+    </a>
+    <div class="nav-sec">훈련 관리</div>
+    <a href="#" class="nav-item active"><span class="nav-em">📅</span> Planner</a>
+    <div class="nav-sec">선수 관리</div>
+    <a href="v2_Risk.html" class="nav-item">
+      <span class="nav-ic"><svg viewBox="0 0 24 24"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
+      Risk &amp; Return
+    </a>
+    <a href="v2_Skaters.html" class="nav-item">
+      <span class="nav-ic"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+      Skaters
+    </a>
+    <div class="nav-sec">문서</div>
+    <a href="v2_Reports.html" class="nav-item"><span class="nav-em">📁</span> Reports</a>
+  </nav>
+  <div class="sb-foot">Daily Ice Decision OS v2.0<br>K-Grip API 연동 · Kinvent MFRC<br><span style="opacity:.5">대한아이스하키협회 공식 시스템</span></div>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <div class="tb-left">
+      <div class="tb-page">📅 Planner</div>
+    </div>
+    <div class="tb-right">
+      <div class="tb-chip danger">수정 3건</div>
+      <div class="tb-chip warn">재평가 4명</div>
+      <div class="tb-chip ice">탈린 D-10</div>
+      <div class="tb-date" id="todayDate"></div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- FINAL TRAINING PLAN -->
+    <div class="final-plan">
+      <div class="fp-head">
+        <div>
+          <div style="font-size:9px;font-weight:800;letter-spacing:2px;color:rgba(255,255,255,.4);text-transform:uppercase;margin-bottom:3px">Final Training Plan · 오늘 확정안 <span class="auto-badge">✓ 측정 기반 자동 권고 적용됨</span></div>
+          <div class="fp-head-left">오늘 최종 훈련 구성</div>
+        </div>
+        <div class="fp-intensity">
+          <div>
+            <div class="fp-intensity-label">오늘 훈련 강도</div>
+            <div style="display:flex;align-items:baseline;gap:6px">
+              <div class="fp-intensity-val">72%</div>
+              <div class="fp-intensity-diff">기존 85% 대비 -13%</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="fp-body">
+        <div class="fp-col">
+          <div class="fp-col-label remove">Remove</div>
+          <div class="fp-item removed"><div class="fp-dot r"></div>Full Contact drill<br><span style="font-size:8.5px;color:rgba(255,255,255,.35)">#13 Add/Abd 0.72</span></div>
+          <div class="fp-item removed"><div class="fp-dot r"></div>Goalie Sliding drill<br><span style="font-size:8.5px;color:rgba(255,255,255,.35)">#1 GLSI 16.3%</span></div>
+          <div class="fp-item removed"><div class="fp-dot r"></div>#1 스크리미지 출전<br><span style="font-size:8.5px;color:rgba(255,255,255,.35)">#25 단독 선발</span></div>
+        </div>
+        <div class="fp-col">
+          <div class="fp-col-label modify">Modify</div>
+          <div class="fp-item"><div class="fp-dot w"></div>RSA 세트 6→5회<br><span style="font-size:8.5px;color:rgba(255,255,255,.35)">#16 Grip -11%</span></div>
+          <div class="fp-item"><div class="fp-dot w"></div>수비 전환 인터벌 +30초<br><span style="font-size:8.5px;color:rgba(255,255,255,.35)">#17 RSA 7.8%</span></div>
+          <div class="fp-item"><div class="fp-dot w"></div>1LINE Shift max 3회<br><span style="font-size:8.5px;color:rgba(255,255,255,.35)">#13 공백 보완</span></div>
+        </div>
+        <div class="fp-col">
+          <div class="fp-col-label add">Add</div>
+          <div class="fp-item"><div class="fp-dot g"></div>Hip 루틴 10분 (훈련 전)<br><span style="font-size:8.5px;color:rgba(255,255,255,.35)">#19 Hip IR 12°</span></div>
+          <div class="fp-item"><div class="fp-dot g"></div>Grip CNS 재측정<br><span style="font-size:8.5px;color:rgba(255,255,255,.35)">#16 #1 훈련 전</span></div>
+          <div class="fp-item"><div class="fp-dot g"></div>3LINE 역할 확대<br><span style="font-size:8.5px;color:rgba(255,255,255,.35)">#23 Offensive 강화</span></div>
+        </div>
+        <div class="fp-col">
+          <div class="fp-col-label go">Go — 원안 유지</div>
+          <div class="fp-item"><div class="fp-dot b"></div>Small area game</div>
+          <div class="fp-item"><div class="fp-dot b"></div>Shooting drill 전원</div>
+          <div class="fp-item"><div class="fp-dot b"></div>Scrimmage 14명 Full</div>
+          <div class="fp-item"><div class="fp-dot b"></div>PP/PK #25 단독</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TEAM IMPACT + 라인별 컨디션 -->
+    <div style="background:#fff;border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--sh);overflow:hidden;margin-bottom:14px">
+      <div style="padding:10px 16px;border-bottom:1px solid var(--border);background:var(--inset);font-size:12px;font-weight:800">Team Impact — 오늘 수정이 팀에 미치는 영향</div>
+      <div style="padding:12px 16px">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px">
+          <div style="padding:8px 10px;border-radius:8px;background:rgba(255,59,48,.05);border:1px solid rgba(255,59,48,.15);font-size:9.5px;font-weight:600;color:var(--danger-t);line-height:1.6"><strong>Contact 제거</strong><br>충돌 부상 위험 감소<br>1LINE 공격 템포 다소 저하</div>
+          <div style="padding:8px 10px;border-radius:8px;background:rgba(255,159,10,.05);border:1px solid rgba(255,159,10,.15);font-size:9.5px;font-weight:600;color:var(--warn-t);line-height:1.6"><strong>RSA 강도 감소</strong><br>피로 누적 방지<br>경기 후반 퍼포먼스 보호</div>
+          <div style="padding:8px 10px;border-radius:8px;background:rgba(52,199,89,.05);border:1px solid rgba(52,199,89,.15);font-size:9.5px;font-weight:600;color:var(--ok-t);line-height:1.6"><strong>3LINE 역할 확대</strong><br>전체 공격 밸런스 유지<br>Depth 활용도 상승</div>
+        </div>
+        <div style="font-size:9px;font-weight:800;letter-spacing:1px;color:var(--t3);text-transform:uppercase;margin-bottom:6px">라인별 평균 컨디션</div>
+        <div class="line-cond-grid">
+          <div class="lc-item">
+            <div class="lc-label">1LINE</div>
+            <div class="lc-bar"><div class="lc-fill warn" style="width:58%"></div></div>
+            <div class="lc-pct warn">58% — 조건부</div>
+          </div>
+          <div class="lc-item">
+            <div class="lc-label">2LINE</div>
+            <div class="lc-bar"><div class="lc-fill ok" style="width:88%"></div></div>
+            <div class="lc-pct ok">88% — 정상</div>
+          </div>
+          <div class="lc-item">
+            <div class="lc-label">3LINE</div>
+            <div class="lc-bar"><div class="lc-fill ok" style="width:94%"></div></div>
+            <div class="lc-pct ok">94% — 최상</div>
+          </div>
+          <div class="lc-item">
+            <div class="lc-label">4LINE</div>
+            <div class="lc-bar"><div class="lc-fill ok" style="width:82%"></div></div>
+            <div class="lc-pct ok">82% — 정상</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 훈련 수정 결정 배너 -->
+    <div class="sec-hd">훈련 수정 결정
+      <span style="font-size:9px;font-weight:600;color:var(--t3);letter-spacing:0;text-transform:none">K-Grip 이상 + 측정 기반 통합 권고 · 감독 최종 결정</span>
+    </div>
+    <div class="training-banner">
+      <div class="tb2-head">
+        <div>
+          <div class="tb2-title">Training Adjustment Decision · 훈련 수정 결정</div>
+          <div class="tb2-sub">원래 계획 대비 오늘 수정사항 — 데이터 기반 권고</div>
+        </div>
+        <div class="tb2-note">감독 최종 결정 · 시스템은 권고만 제공</div>
+      </div>
+      <div class="tb2-body">
+        <div class="tb2-col">
+          <div class="tb2-col-label remove">Remove — 원안 제거</div>
+          <div class="tb2-item">
+            <div class="tb2-dot r"></div>
+            <div>Full Contact drill<div class="tb2-source">측정: #13 Add/Abd 0.72</div></div>
+          </div>
+          <div class="tb2-item">
+            <div class="tb2-dot r"></div>
+            <div>Goalie Sliding drill<div class="tb2-source">측정: #1 GLSI 16.3%</div></div>
+          </div>
+          <div class="tb2-item">
+            <div class="tb2-dot r"></div>
+            <div>G1 스크리미지 출전<div class="tb2-source">측정 + Grip 오늘</div></div>
+          </div>
+        </div>
+        <div class="tb2-col">
+          <div class="tb2-col-label modify">Modify — 강도·방식 조정</div>
+          <div class="tb2-item">
+            <div class="tb2-dot w"></div>
+            <div>RSA 세트 6→5회<div class="tb2-source">Grip: #16 -11% 오늘 감지</div></div>
+          </div>
+          <div class="tb2-item">
+            <div class="tb2-dot w"></div>
+            <div>수비전환 인터벌 +30초<div class="tb2-source">측정: #17 RSA 7.8%</div></div>
+          </div>
+          <div class="tb2-item">
+            <div class="tb2-dot w"></div>
+            <div>1LINE Shift max 3회<div class="tb2-source">측정: #13 공백 보완</div></div>
+          </div>
+        </div>
+        <div class="tb2-col">
+          <div class="tb2-col-label add">Add — 추가 루틴</div>
+          <div class="tb2-item">
+            <div class="tb2-dot g"></div>
+            <div>Hip 루틴 10분 (훈련 전)<div class="tb2-source">측정: #19 Hip IR 12°</div></div>
+          </div>
+          <div class="tb2-item">
+            <div class="tb2-dot g"></div>
+            <div>Grip CNS 재측정<div class="tb2-source">Grip: #16 #1 이상 감지</div></div>
+          </div>
+          <div class="tb2-item">
+            <div class="tb2-dot g"></div>
+            <div>3LINE 역할 확대<div class="tb2-source">측정: 1LINE 공백 보완</div></div>
+          </div>
+        </div>
+        <div class="tb2-col">
+          <div class="tb2-col-label go">Go — 원안 유지</div>
+          <div class="tb2-item"><div class="tb2-dot b"></div><div>Small area game 정상</div></div>
+          <div class="tb2-item"><div class="tb2-dot b"></div><div>Shooting drill 전원</div></div>
+          <div class="tb2-item"><div class="tb2-dot b"></div><div>Scrimmage 14명 Full</div></div>
+          <div class="tb2-item"><div class="tb2-dot b"></div><div>PP/PK #25 단독</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ORIGINAL vs ADJUSTED 주간 플래너 -->
+    <div class="sec-hd">주간 플래너 — Original vs Adjusted</div>
+    <div class="week-card">
+      <div class="wc-head">
+        <div class="wc-title">04.14 — 04.20 · 대회 전 최종 준비 주간</div>
+        <div class="wc-legend">
+          <div class="wc-leg"><div class="wc-leg-dot" style="background:var(--ice)"></div>원래 계획</div>
+          <div class="wc-leg"><div class="wc-leg-dot" style="background:var(--warn)"></div>수정됨</div>
+          <div class="wc-leg"><div class="wc-leg-dot" style="background:var(--danger)"></div>제거됨</div>
+          <div class="wc-leg"><div class="wc-leg-dot" style="background:var(--ok)"></div>추가됨</div>
+          <div class="wc-leg"><div class="wc-leg-dot" style="background:var(--purple)"></div>측정/재평가</div>
+        </div>
+      </div>
+      <div class="week-grid">
+
+        <!-- 월 04.14 완료 -->
+        <div class="day-col">
+          <div class="day-head">
+            <div class="day-name">월</div>
+            <div class="day-date past">14</div>
+            <div class="day-badge measure">측정완료</div>
+          </div>
+          <div class="day-body">
+            <div class="session-block done">오프아이스 측정<br>Kinvent 전 선수</div>
+            <div class="session-block done">오전 웨이트<br>기초 체력</div>
+          </div>
+        </div>
+
+        <!-- 화 04.15 오늘 — 수정 반영 -->
+        <div class="day-col today-col">
+          <div class="day-head" style="background:rgba(0,150,199,.08)">
+            <div class="day-name" style="color:var(--ice)">화</div>
+            <div class="day-date today">15</div>
+            <div class="day-badge today-b">오늘</div>
+          </div>
+          <div class="day-body">
+            <div class="adj-label original">원래 계획</div>
+            <div class="session-block original">Full Contact drill<br>온아이스 전술</div>
+            <div class="vs-arrow">↓ 수정</div>
+            <div class="adj-label adjusted">수정안</div>
+            <div class="session-block adjusted">Non-contact 모드<br><div class="player-tag danger">#13</div> Contact 제외</div>
+            <div class="session-block removed">Sliding drill</div>
+            <div class="session-block added">Hip 루틴 10분<br><div class="player-tag warn">#19</div></div>
+            <div class="session-block adjusted">RSA 5세트<br><div class="player-tag warn">#16</div> 6→5회</div>
+          </div>
+        </div>
+
+        <!-- 수 04.16 -->
+        <div class="day-col">
+          <div class="day-head">
+            <div class="day-name">수</div>
+            <div class="day-date">16</div>
+          </div>
+          <div class="day-body">
+            <div class="adj-label original">원래 계획</div>
+            <div class="session-block original">오전 온아이스<br>전술 훈련</div>
+            <div class="session-block original">오후 웨이트<br>유지 세션</div>
+          </div>
+        </div>
+
+        <!-- 목 04.17 재평가 -->
+        <div class="day-col">
+          <div class="day-head">
+            <div class="day-name">목</div>
+            <div class="day-date">17</div>
+            <div class="day-badge reeval">재평가</div>
+          </div>
+          <div class="day-body">
+            <div class="session-block measure">#1 임재훈<br>K-Move + Grip</div>
+            <div class="session-block measure">#16 류한결<br>RSA + Grip</div>
+            <div class="session-block original">오후 온아이스<br>정상 훈련</div>
+          </div>
+        </div>
+
+        <!-- 금 04.18 -->
+        <div class="day-col">
+          <div class="day-head">
+            <div class="day-name">금</div>
+            <div class="day-date">18</div>
+            <div class="day-badge reeval">재평가+보완</div>
+          </div>
+          <div class="day-body">
+            <div class="session-block measure">#13 공시완<br>Add/Abd + Nordic</div>
+            <div class="session-block measure">#24 민동욱<br>베이스라인 측정</div>
+            <div class="session-block measure">#20 이동근 GK<br>보완 측정</div>
+            <div class="session-block original">오전 스크리미지</div>
+          </div>
+        </div>
+
+        <!-- 토 04.19 -->
+        <div class="day-col">
+          <div class="day-head">
+            <div class="day-name">토</div>
+            <div class="day-date">19</div>
+          </div>
+          <div class="day-body">
+            <div class="session-block original">고강도 온아이스<br>실전 스크리미지</div>
+            <div class="session-block original">오후 리커버리<br>저강도 유지</div>
+          </div>
+        </div>
+
+        <!-- 일 04.20 휴식 -->
+        <div class="day-col">
+          <div class="day-head">
+            <div class="day-name">일</div>
+            <div class="day-date">20</div>
+            <div class="day-badge rest">휴식</div>
+          </div>
+          <div class="day-body">
+            <div class="session-block rest">팀 휴식일<br>선택적 회복</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 선수 → 드릴 연결표 -->
+    <div class="sec-hd">선수 상태 → 훈련 변경 연결</div>
+    <div class="impact-card">
+      <div class="card-head">
+        <div class="card-title">왜 이 드릴이 바뀌었는가 — 데이터 근거</div>
+        <div style="font-size:9px;color:var(--t3)">측정 기반 + K-Grip 실시간 통합</div>
+      </div>
+      <div class="impact-grid">
+        <div class="impact-col">
+          <div class="impact-col-label remove">Remove — 제거된 드릴</div>
+          <div class="impact-item danger">
+            <div class="impact-player danger">#13 공시완 <span class="phv post">Post</span></div>
+            <div class="impact-arrow">
+              Add/Abd 0.72 + Nordic 78%<br>
+              → Full Contact drill 제거<br>
+              → 1LINE 구조 재편 필요
+            </div>
+            <div class="impact-source ds-badge measure" style="display:inline-flex;margin-top:4px">1차 측정 04.14</div>
+          </div>
+          <div class="impact-item danger">
+            <div class="impact-player danger">#1 임재훈 <span class="phv post">Post</span></div>
+            <div class="impact-arrow">
+              GLSI 16.3% + Grip -12% 오늘<br>
+              → Sliding drill 전면 중단<br>
+              → Butterfly 반복 금지
+            </div>
+            <div class="impact-source ds-badge live" style="display:inline-flex;margin-top:4px">측정 + K-Grip 오늘</div>
+          </div>
+        </div>
+        <div class="impact-col">
+          <div class="impact-col-label modify">Modify — 수정된 드릴</div>
+          <div class="impact-item warn">
+            <div class="impact-player warn">#16 류한결 <span class="phv post">Post</span></div>
+            <div class="impact-arrow">
+              RSA 7.1% + Grip -11% 오늘<br>
+              → RSA 세트 6→5회<br>
+              → Shift max 3회 제한
+            </div>
+            <div class="impact-source ds-badge live" style="display:inline-flex;margin-top:4px">측정 + K-Grip 오늘</div>
+          </div>
+          <div class="impact-item warn">
+            <div class="impact-player warn">#17 이형진 <span class="phv post">Post</span></div>
+            <div class="impact-arrow">
+              RSA 7.8% (측정 기반)<br>
+              → 수비 전환 인터벌 +30초<br>
+              → 연속 2세트 초과 자제
+            </div>
+            <div class="impact-source ds-badge measure" style="display:inline-flex;margin-top:4px">1차 측정 04.14</div>
+          </div>
+        </div>
+        <div class="impact-col">
+          <div class="impact-col-label add">Add — 추가된 루틴</div>
+          <div class="impact-item ok">
+            <div class="impact-player ok">#19 송서현 <span class="phv mid">Mid</span></div>
+            <div class="impact-arrow">
+              Hip IR ROM 12° (Mid-PHV 보정)<br>
+              → Hip activation 루틴 10분<br>
+              → 훈련 전 필수 시행
+            </div>
+            <div class="impact-source ds-badge measure" style="display:inline-flex;margin-top:4px">1차 측정 04.14</div>
+          </div>
+          <div class="impact-item ok">
+            <div class="impact-player ok">팀 전체 대응</div>
+            <div class="impact-arrow">
+              1LINE 핵심 2명 제한<br>
+              → 3LINE 오펜시브 역할 확대<br>
+              → 전체 워밍업 +5분
+            </div>
+            <div class="impact-source ds-badge measure" style="display:inline-flex;margin-top:4px">측정 기반 결정</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- K-Grip 연동 안내 -->
+    <div class="sec-hd">K-Grip 연동 — 훈련 강도 자동 조정 근거</div>
+    <div class="grip-connect">
+      <div class="gc-head">
+        <div class="card-title">K-Grip API 연동 <span class="ds-badge live">실시간</span></div>
+        <div style="font-size:9px;color:var(--t3)">매일 훈련 전 자동 동기화 · Kinvent API</div>
+      </div>
+      <div class="gc-body">
+        <div class="gc-col">
+          <div class="gc-col-title">오늘 K-Grip 이상 감지 → 훈련 조정 근거</div>
+          <div class="gc-item"><div class="gc-dot warn"></div>#1 임재훈 Grip -12% → Sliding 드릴 강도 조정 추가 근거</div>
+          <div class="gc-item"><div class="gc-dot warn"></div>#16 류한결 Grip -11% → RSA 세트 감소 추가 근거</div>
+          <div class="gc-item"><div class="gc-dot ok"></div>나머지 20명 Grip 정상 → 원안 유지 확인</div>
+          <div class="gc-item"><div class="gc-dot ice"></div>마지막 동기화: 오늘 08:42 · 다음 동기화: 훈련 후</div>
+        </div>
+        <div class="gc-col">
+          <div class="gc-col-title">K-Grip + 측정 연동 원칙</div>
+          <div class="gc-item"><div class="gc-dot ice"></div><strong>측정 기반 제한</strong> — 6개월 유지. 기준값 미달 선수는 Grip 정상이어도 드릴 제한 유지</div>
+          <div class="gc-item"><div class="gc-dot warn"></div><strong>K-Grip 이상 추가</strong> — 측정 정상 선수도 Grip -10% 초과 시 당일 강도 조정</div>
+          <div class="gc-item"><div class="gc-dot ok"></div><strong>두 지표 모두 정상</strong> → Full Go 확정 · 원안 유지</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 측정/재평가 큐 + 테이퍼링 -->
+    <div class="bottom-grid">
+
+      <!-- 측정 타임라인 -->
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">측정 & 재평가 일정</div>
+          <div style="font-size:9px;color:var(--t3)">대회 전 필수 완료</div>
+        </div>
+        <div class="card-body">
+          <div class="tl-wrap">
+            <div class="tl-item">
+              <div class="tl-dot2 done">✓</div>
+              <div>
+                <div class="tl2-label done">오프아이스 1차 측정 완료</div>
+                <div class="tl2-date">2026.04.14 (월)</div>
+                <div class="tl2-desc">19/22명 · Kinvent 전 장비</div>
+              </div>
+            </div>
+            <div class="tl-item">
+              <div class="tl-dot2 cur">▶</div>
+              <div>
+                <div class="tl2-label cur">오늘 — 수정된 훈련 진행</div>
+                <div class="tl2-date">2026.04.15 (화)</div>
+                <div class="tl2-desc">K-Grip 이상 2명 + 측정 제한 2명</div>
+              </div>
+            </div>
+            <div class="tl-item">
+              <div class="tl-dot2 urgent">!</div>
+              <div>
+                <div class="tl2-label urgent">재평가 — #1 #16</div>
+                <div class="tl2-date">2026.04.17 (목)</div>
+                <div class="tl2-desc">K-Move + Grip · 복귀 여부 결정</div>
+              </div>
+            </div>
+            <div class="tl-item">
+              <div class="tl-dot2 urgent">!</div>
+              <div>
+                <div class="tl2-label urgent">재평가 + 보완 측정 — #13 #24 #20</div>
+                <div class="tl2-date">2026.04.18 (금)</div>
+                <div class="tl2-desc">#13 복귀 판단 · 미측정 3명 보완</div>
+              </div>
+            </div>
+            <div class="tl-item">
+              <div class="tl-dot2 up">5</div>
+              <div>
+                <div class="tl2-label up">대회 출발</div>
+                <div class="tl2-date">2026.04.25 (토)</div>
+                <div class="tl2-desc">탈린 · 에스토니아</div>
+              </div>
+            </div>
+          </div>
+          <!-- 재측정 큐 -->
+          <div style="margin-top:12px;border-top:1px solid var(--border);padding-top:12px">
+            <div style="font-size:9px;font-weight:800;letter-spacing:1.5px;color:var(--t3);text-transform:uppercase;margin-bottom:8px">재측정 우선순위</div>
+            <div class="remeasure-grid">
+              <div class="rm-col">
+                <div class="rm-col-label urgent">긴급</div>
+                <div class="rm-item urgent">
+                  <div class="rm-num urgent">#1</div>
+                  <div class="rm-name">임재훈</div>
+                  <div class="rm-why">GLSI 16.3%</div>
+                  <div class="rm-when urgent">04.17 필수</div>
+                </div>
+                <div class="rm-item urgent">
+                  <div class="rm-num urgent">#13</div>
+                  <div class="rm-name">공시완</div>
+                  <div class="rm-why">복귀 판단</div>
+                  <div class="rm-when urgent">04.18 필수</div>
+                </div>
+              </div>
+              <div class="rm-col">
+                <div class="rm-col-label soon">이번 주</div>
+                <div class="rm-item soon">
+                  <div class="rm-num soon">#16</div>
+                  <div class="rm-name">류한결</div>
+                  <div class="rm-why">RSA + Grip</div>
+                  <div class="rm-when soon">04.17</div>
+                </div>
+                <div class="rm-item soon">
+                  <div class="rm-num soon">#19</div>
+                  <div class="rm-name">송서현</div>
+                  <div class="rm-why">Hip ROM</div>
+                  <div class="rm-when soon">이번 주</div>
+                </div>
+              </div>
+              <div class="rm-col">
+                <div class="rm-col-label plan">보완</div>
+                <div class="rm-item plan">
+                  <div class="rm-num plan">#24</div>
+                  <div class="rm-name">민동욱</div>
+                  <div class="rm-why">미측정</div>
+                  <div class="rm-when plan">04.18</div>
+                </div>
+                <div class="rm-item plan">
+                  <div class="rm-num plan">#20</div>
+                  <div class="rm-name">이동근</div>
+                  <div class="rm-why">GK 미측정</div>
+                  <div class="rm-when plan">04.18</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 테이퍼링 -->
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">테이퍼링 계획 — 대회 전 강도 조절</div>
+          <div style="font-size:9px;color:var(--t3)">04.15 ~ 04.25 대회 당일</div>
+        </div>
+        <div class="card-body">
+          <div class="taper-grid">
+            <div class="taper-day">
+              <div class="taper-day-label">화</div>
+              <div class="taper-bar-wrap"><div class="taper-bar today" style="height:65%"></div></div>
+              <div class="taper-date today">04.15</div>
+            </div>
+            <div class="taper-day">
+              <div class="taper-day-label">수</div>
+              <div class="taper-bar-wrap"><div class="taper-bar mid" style="height:70%"></div></div>
+              <div class="taper-date">04.16</div>
+            </div>
+            <div class="taper-day">
+              <div class="taper-day-label">목</div>
+              <div class="taper-bar-wrap"><div class="taper-bar low" style="height:45%"></div></div>
+              <div class="taper-date">04.17</div>
+            </div>
+            <div class="taper-day">
+              <div class="taper-day-label">금</div>
+              <div class="taper-bar-wrap"><div class="taper-bar high" style="height:88%"></div></div>
+              <div class="taper-date">04.18</div>
+            </div>
+            <div class="taper-day">
+              <div class="taper-day-label">토</div>
+              <div class="taper-bar-wrap"><div class="taper-bar high" style="height:92%"></div></div>
+              <div class="taper-date">04.19</div>
+            </div>
+            <div class="taper-day">
+              <div class="taper-day-label">일</div>
+              <div class="taper-bar-wrap"><div class="taper-bar low" style="height:15%"></div></div>
+              <div class="taper-date">04.20</div>
+            </div>
+            <div class="taper-day">
+              <div class="taper-day-label">월</div>
+              <div class="taper-bar-wrap"><div class="taper-bar mid" style="height:68%"></div></div>
+              <div class="taper-date">04.21</div>
+            </div>
+            <div class="taper-day">
+              <div class="taper-day-label">화</div>
+              <div class="taper-bar-wrap"><div class="taper-bar mid" style="height:55%"></div></div>
+              <div class="taper-date">04.22</div>
+            </div>
+            <div class="taper-day">
+              <div class="taper-day-label">수</div>
+              <div class="taper-bar-wrap"><div class="taper-bar low" style="height:28%"></div></div>
+              <div class="taper-date">04.23</div>
+            </div>
+            <div class="taper-day">
+              <div class="taper-day-label">대회</div>
+              <div class="taper-bar-wrap"><div class="taper-bar match" style="height:100%"></div></div>
+              <div class="taper-date">04.25~</div>
+            </div>
+          </div>
+          <div class="taper-legend">
+            <div class="tl3-item"><div class="tl3-dot" style="background:var(--danger)"></div>고강도 (80%+)</div>
+            <div class="tl3-item"><div class="tl3-dot" style="background:var(--warn)"></div>중강도 (50~80%)</div>
+            <div class="tl3-item"><div class="tl3-dot" style="background:var(--ok)"></div>저강도 (~50%)</div>
+            <div class="tl3-item"><div class="tl3-dot" style="background:var(--ice)"></div>대회 경기</div>
+            <div class="tl3-item"><div class="tl3-dot" style="background:var(--warn);outline:2px solid var(--ice);outline-offset:-1px"></div>오늘 (수정 적용)</div>
+          </div>
+          <div style="margin-top:12px;padding:9px 12px;border-radius:8px;background:rgba(255,159,10,.06);border:1px solid rgba(255,159,10,.2)">
+            <div style="font-size:9.5px;font-weight:700;color:var(--warn-t);margin-bottom:3px">⚠ 오늘 훈련 강도 조정</div>
+            <div style="font-size:9.5px;color:var(--t2);line-height:1.6">K-Grip 이상 2명 + 측정 제한 2명 감지로 원래 계획 65% → 실질 55%로 하향 적용. 목요일 재평가 결과에 따라 금요일 강도 유지 여부 결정.</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+<script>
+const d = new Date();
+const days = ['일','월','화','수','목','금','토'];
+document.getElementById('todayDate').textContent =
+  d.getFullYear()+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+
+  String(d.getDate()).padStart(2,'0')+' ('+days[d.getDay()]+')';
+</script>
+</body>
+</html>

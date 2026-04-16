@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Daily Ice Decision OS v2.0 — 대한민국 U18 아이스하키</title>
+<link rel="stylesheet" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"/>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f5f5f7;--card:#fff;
+  --t1:#1d1d1f;--t2:rgba(29,29,31,.72);--t3:rgba(29,29,31,.44);
+  --ok:#34c759;--ok-d:rgba(52,199,89,.1);--ok-t:#1a6b30;
+  --warn:#ff9f0a;--warn-d:rgba(255,159,10,.1);--warn-t:#7a4500;
+  --danger:#ff3b30;--danger-d:rgba(255,59,48,.1);--danger-t:#8b1a1a;
+  --ice:#0096c7;--ice-d:rgba(0,150,199,.08);--ice-t:#003f5e;
+  --purple:#9b59b6;--purple-d:rgba(155,89,182,.08);--purple-t:#5b2c6f;
+  --deep:#0a1628;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--t1);font-family:"Pretendard",-apple-system,"SF Pro Display",sans-serif;-webkit-font-smoothing:antialiased;min-height:100vh}
+a{text-decoration:none;color:inherit}
+
+/* ── NAVBAR ── */
+.navbar{position:sticky;top:0;z-index:100;height:52px;background:rgba(245,245,247,.88);backdrop-filter:blur(24px) saturate(180%);border-bottom:1px solid rgba(0,0,0,.08);display:flex;align-items:center;justify-content:space-between;padding:0 44px}
+.nb-left{display:flex;align-items:center;gap:10px}
+.nb-logo{width:28px;height:28px;border-radius:50%;background:var(--deep);padding:2px;flex-shrink:0}
+.nb-title{font-family:"Orbitron";font-size:10.5px;font-weight:700;letter-spacing:2px;color:var(--t1)}
+.nb-right{display:flex;align-items:center;gap:6px}
+.nb-btn{padding:6px 16px;border-radius:980px;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;border:none;display:inline-flex;align-items:center;gap:5px}
+.nb-btn.ghost{background:transparent;color:var(--t2);border:1px solid rgba(0,0,0,.12)}
+.nb-btn.ghost:hover{background:rgba(0,0,0,.05)}
+.nb-btn.primary{background:var(--ice);color:#fff}
+.nb-btn.primary:hover{background:#0080aa;transform:translateY(-1px)}
+
+/* ── HERO ── */
+.hero{padding:110px 44px 88px;text-align:center;position:relative;overflow:hidden}
+.hero-inner{max-width:860px;margin:0 auto;position:relative;z-index:1}
+.hero-eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:11px;font-weight:700;letter-spacing:3px;color:var(--ice);text-transform:uppercase;margin-bottom:22px;padding:5px 16px;border-radius:980px;background:var(--ice-d);border:1px solid rgba(0,150,199,.15)}
+.hero-eyebrow-dot{width:6px;height:6px;border-radius:50%;background:var(--ice)}
+.hero-title{font-size:clamp(40px,6.5vw,76px);font-weight:900;line-height:1.04;letter-spacing:-2px;color:var(--t1);margin-bottom:20px;word-break:keep-all}
+.hero-title em{font-style:normal;background:linear-gradient(135deg,var(--ice) 0%,#48cae4 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero-sub{font-size:16px;color:var(--t2);line-height:1.65;max-width:620px;margin:0 auto 14px;font-weight:400;word-break:keep-all}
+.hero-sub strong{color:var(--t1);font-weight:600}
+.hero-product{font-size:12px;color:var(--t3);margin-bottom:36px;font-weight:500;letter-spacing:.5px}
+.hero-cta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:52px}
+.cta-primary{padding:15px 30px;border-radius:980px;font-size:14px;font-weight:700;background:var(--ice);color:#fff;border:none;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:7px}
+.cta-primary:hover{background:#0080aa;transform:translateY(-2px);box-shadow:0 10px 28px rgba(0,150,199,.3)}
+.cta-ghost{padding:15px 30px;border-radius:980px;font-size:14px;font-weight:700;background:rgba(0,0,0,.04);color:var(--t1);border:1px solid rgba(0,0,0,.12);cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:7px}
+.cta-ghost:hover{background:rgba(0,0,0,.08)}
+
+/* KPI 칩 */
+.hero-kpi{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.kpi-chip{display:flex;align-items:center;gap:7px;padding:9px 18px;border-radius:980px;background:#fff;border:1px solid rgba(0,0,0,.08);box-shadow:0 1px 6px rgba(0,0,0,.06);font-size:12px;font-weight:600;color:var(--t2);transition:box-shadow .15s}
+.kpi-chip:hover{box-shadow:0 4px 16px rgba(0,0,0,.1)}
+.kpi-chip-val{font-family:"Orbitron";font-size:11.5px;font-weight:700;color:var(--ice)}
+
+/* ── FLOW 배너 (감독의 하루) ── */
+.flow-banner{background:#fff;border-top:1px solid rgba(0,0,0,.07);border-bottom:1px solid rgba(0,0,0,.07);padding:20px 44px}
+.flow-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;gap:0;overflow:hidden}
+.flow-label{font-size:9.5px;font-weight:700;letter-spacing:2px;color:var(--t3);text-transform:uppercase;white-space:nowrap;margin-right:20px;flex-shrink:0}
+.flow-steps{display:flex;align-items:center;gap:0;flex:1;overflow:hidden}
+.flow-step{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.flow-step-num{width:22px;height:22px;border-radius:50%;background:var(--ice-d);border:1px solid rgba(0,150,199,.2);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:var(--ice-t);flex-shrink:0}
+.flow-step-text{font-size:12.5px;font-weight:700;color:var(--t1);white-space:nowrap}
+.flow-step-sub{font-size:10px;color:var(--t3);white-space:nowrap}
+.flow-arrow{font-size:13px;color:rgba(0,0,0,.2);margin:0 14px;flex-shrink:0}
+.flow-time{font-family:"JetBrains Mono";font-size:10px;font-weight:700;color:var(--ice);padding:3px 9px;border-radius:980px;background:var(--ice-d);border:1px solid rgba(0,150,199,.12);white-space:nowrap;margin-left:auto;flex-shrink:0}
+
+/* ── 섹션 공통 ── */
+.section{padding:88px 44px;max-width:1100px;margin:0 auto}
+.section-label{font-size:10px;font-weight:700;letter-spacing:3px;color:var(--ice);text-transform:uppercase;margin-bottom:10px}
+.section-title{font-size:clamp(26px,3.5vw,42px);font-weight:800;color:var(--t1);margin-bottom:12px;line-height:1.12;letter-spacing:-.5px;word-break:keep-all}
+.section-title em{font-style:normal;color:var(--ice)}
+.section-desc{font-size:15px;color:var(--t2);line-height:1.65;max-width:560px;margin-bottom:52px;word-break:keep-all}
+.divider{height:1px;background:rgba(0,0,0,.07)}
+
+/* ── 문제/해결 ── */
+.prob-grid{display:grid;grid-template-columns:1fr 1fr;gap:2px;background:rgba(0,0,0,.07);border-radius:20px;overflow:hidden;margin-bottom:52px}
+.prob-col{padding:30px;background:var(--card)}
+.prob-col-label{font-size:9.5px;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.prob-col-label::before{content:"";width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.prob-col-label.before::before{background:var(--danger)}.prob-col-label.before{color:var(--danger-t)}
+.prob-col-label.after::before{background:var(--ok)}.prob-col-label.after{color:var(--ok-t)}
+.prob-item{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid rgba(0,0,0,.05);font-size:13.5px;color:var(--t2);line-height:1.5}
+.prob-item:last-child{border-bottom:none}
+.prob-impact{font-size:11px;color:var(--danger-t);font-weight:600;margin-top:3px;display:flex;align-items:center;gap:4px}
+
+/* 핵심 메시지 박스 */
+.key-msg{padding:20px 24px;border-radius:14px;background:linear-gradient(145deg,rgba(255,59,48,.04),rgba(255,59,48,.02));border:1px solid rgba(255,59,48,.12);margin-bottom:52px;text-align:center}
+.key-msg-text{font-size:16px;font-weight:700;color:var(--t1);line-height:1.6;word-break:keep-all}
+.key-msg-sub{font-size:12px;color:var(--t3);margin-top:6px}
+
+/* ── 3 Layer ── */
+.layer-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:2px;background:rgba(0,0,0,.07);border-radius:20px;overflow:hidden;margin-bottom:12px}
+.layer-card{padding:30px;background:var(--card)}
+.layer-card.core{background:linear-gradient(145deg,#f0f9ff,#e8f5ff)}
+.layer-num{font-size:9.5px;font-weight:700;letter-spacing:2px;color:var(--t3);text-transform:uppercase;margin-bottom:8px}
+.layer-title{font-size:16px;font-weight:800;color:var(--t1);margin-bottom:6px}
+.layer-title.core{color:var(--ice)}
+.layer-desc{font-size:12px;color:var(--t2);line-height:1.55;margin-bottom:14px;word-break:keep-all}
+.layer-items{list-style:none}
+.layer-item{font-size:12px;color:var(--t2);padding:4px 0;display:flex;align-items:center;gap:7px;border-bottom:1px solid rgba(0,0,0,.05)}
+.layer-item:last-child{border-bottom:none}
+.layer-item::before{content:"";width:4px;height:4px;border-radius:50%;background:var(--ice);flex-shrink:0}
+.core-badge{display:inline-block;font-size:8.5px;font-weight:700;padding:2px 9px;border-radius:10px;background:var(--ice-d);color:var(--ice-t);border:1px solid rgba(0,150,199,.2);margin-bottom:10px}
+.layer-caption{font-size:11px;color:var(--t3);text-align:center;margin-bottom:52px}
+
+/* ── 포지셔닝 테이블 ── */
+.pos-table-wrap{border-radius:20px;overflow:hidden;border:1px solid rgba(0,0,0,.08);margin-bottom:12px;box-shadow:0 2px 16px rgba(0,0,0,.06)}
+.pos-table{width:100%;border-collapse:collapse;font-size:13px}
+.pos-table th{background:#1d1d1f;color:#fff;padding:13px 20px;text-align:left;font-size:9.5px;font-weight:700;letter-spacing:.5px}
+.pos-table td{padding:13px 20px;border-bottom:1px solid rgba(0,0,0,.05);font-weight:500;color:var(--t2)}
+.pos-table tr:last-child td{border-bottom:none}
+.pos-table tr:hover td{background:rgba(0,150,199,.02)}
+.pos-ours td{background:rgba(0,150,199,.04)}
+.pos-ours td:first-child{color:var(--ice);font-weight:700}
+.check{color:var(--ok);font-weight:700}.cross{color:rgba(0,0,0,.18)}
+.pos-caption{font-size:11px;color:var(--t3);text-align:center;margin-bottom:52px}
+
+/* ── 핵심 가치 ── */
+.value-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:52px}
+.value-card{padding:28px;border-radius:20px;background:#fff;border:1px solid rgba(0,0,0,.07);box-shadow:0 1px 6px rgba(0,0,0,.05);transition:all .2s}
+.value-card:hover{box-shadow:0 10px 36px rgba(0,0,0,.1);transform:translateY(-3px)}
+.value-card.hl{background:linear-gradient(145deg,#f0f9ff,#fff);border-color:rgba(0,150,199,.2)}
+.value-icon{font-size:30px;margin-bottom:14px}
+.value-title{font-size:15px;font-weight:800;color:var(--t1);margin-bottom:7px}
+.value-desc{font-size:12px;color:var(--t2);line-height:1.65;word-break:keep-all}
+
+/* ── 화면 네비게이터 ── */
+.nav-section{background:#fff;padding:88px 44px;border-top:1px solid rgba(0,0,0,.07);border-bottom:1px solid rgba(0,0,0,.07)}
+.nav-inner{max-width:1100px;margin:0 auto}
+
+/* 결정 흐름 뱃지 */
+.decision-flow{display:flex;gap:8px;margin-bottom:36px;flex-wrap:wrap}
+.df-step{display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:980px;font-size:11.5px;font-weight:700;border:1px solid}
+.df-step.s1{background:rgba(255,59,48,.06);border-color:rgba(255,59,48,.15);color:var(--danger-t)}
+.df-step.s2{background:rgba(0,150,199,.06);border-color:rgba(0,150,199,.15);color:var(--ice-t)}
+.df-step.s3{background:rgba(255,159,10,.06);border-color:rgba(255,159,10,.15);color:var(--warn-t)}
+.df-step.s4{background:rgba(52,199,89,.06);border-color:rgba(52,199,89,.15);color:var(--ok-t)}
+.df-arrow{font-size:12px;color:rgba(0,0,0,.18);align-self:center}
+
+.user-group{margin-bottom:48px}
+.ug-header{display:flex;align-items:center;gap:10px;margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid rgba(0,0,0,.08)}
+.ug-icon{font-size:20px}
+.ug-title{font-size:17px;font-weight:800;color:var(--t1)}
+.ug-badge{font-size:9px;font-weight:700;padding:3px 10px;border-radius:10px;margin-left:2px}
+.ug-badge.coach{background:var(--ice-d);color:var(--ice-t);border:1px solid rgba(0,150,199,.18)}
+.ug-badge.fed{background:var(--purple-d);color:var(--purple-t);border:1px solid rgba(155,89,182,.18)}
+.ug-flow{font-size:11px;color:var(--t3);margin-left:auto;font-weight:600}
+.screen-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+
+/* 화면 카드 */
+.sc{background:var(--bg);border:1px solid rgba(0,0,0,.08);border-radius:18px;padding:20px;cursor:pointer;transition:all .2s;text-decoration:none;color:var(--t1);display:block;position:relative;overflow:hidden}
+.sc::after{content:"→";position:absolute;right:18px;top:50%;transform:translateY(-50%);font-size:14px;color:rgba(0,0,0,.15);transition:all .2s}
+.sc:hover{background:#fff;border-color:rgba(0,150,199,.3);box-shadow:0 10px 32px rgba(0,150,199,.1);transform:translateY(-3px)}
+.sc:hover::after{right:14px;color:var(--ice)}
+.sc-fed:hover{border-color:rgba(155,89,182,.3);box-shadow:0 10px 32px rgba(155,89,182,.1)}
+.sc-fed:hover::after{color:var(--purple)}
+.sc-top{display:flex;align-items:flex-start;gap:10px;margin-bottom:10px}
+.sc-icon{font-size:22px;flex-shrink:0;margin-top:1px}
+.sc-meta{flex:1}
+.sc-flow{font-size:8.5px;font-weight:700;color:var(--t3);letter-spacing:1px;text-transform:uppercase;margin-bottom:3px}
+.sc-name{font-size:14px;font-weight:800;color:var(--t1)}
+.sc-upd{font-size:8px;font-weight:700;padding:2px 7px;border-radius:10px;flex-shrink:0}
+.sc-upd.daily{background:var(--ice-d);color:var(--ice-t);border:1px solid rgba(0,150,199,.15)}
+.sc-upd.measure{background:var(--purple-d);color:var(--purple-t);border:1px solid rgba(155,89,182,.15)}
+.sc-decision{font-size:12px;font-weight:700;color:var(--t1);margin-bottom:5px;word-break:keep-all}
+.sc-desc{font-size:11px;color:var(--t3);line-height:1.5;margin-bottom:10px;word-break:keep-all}
+.sc-tags{display:flex;flex-wrap:wrap;gap:4px}
+.sc-tag{font-size:8.5px;font-weight:600;padding:2px 8px;border-radius:10px;background:rgba(0,0,0,.05);color:var(--t2)}
+.sc-tag.d{background:rgba(255,59,48,.08);color:#8b1a1a}
+.sc-tag.w{background:rgba(255,159,10,.08);color:#7a4500}
+.sc-tag.ok{background:rgba(52,199,89,.08);color:#1a6b30}
+.sc-tag.ice{background:rgba(0,150,199,.08);color:#003f5e}
+
+/* ── 데모 스토리 ── */
+.demo-section{background:var(--bg);padding:88px 44px}
+.demo-inner{max-width:1100px;margin:0 auto}
+.demo-grid{display:grid;grid-template-columns:1fr 52px 1fr;gap:0;align-items:start}
+.demo-col{padding:28px;border-radius:20px}
+.demo-col.before{background:#fff;border:1px solid rgba(0,0,0,.08)}
+.demo-col.after{background:linear-gradient(145deg,#f0fdf4,#e8f5ff);border:1px solid rgba(52,199,89,.12)}
+.demo-label{font-size:9.5px;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:14px}
+.demo-label.before{color:var(--danger-t)}.demo-label.after{color:var(--ok-t)}
+.demo-dialog{display:flex;flex-direction:column;gap:8px}
+.dialog-q{padding:9px 13px;border-radius:9px;background:rgba(0,0,0,.04);font-size:12px;font-weight:600;color:var(--t1);line-height:1.5}
+.dialog-bad{padding:9px 13px;border-radius:9px;background:rgba(255,59,48,.05);font-size:11.5px;color:var(--danger-t);font-style:italic;line-height:1.5}
+.dialog-good{padding:9px 13px;border-radius:9px;background:rgba(52,199,89,.06);font-size:11px;color:var(--ok-t);font-family:"JetBrains Mono";line-height:1.6}
+.demo-result{margin-top:8px;padding:10px 13px;border-radius:9px;background:rgba(255,59,48,.04);font-size:11.5px;color:var(--danger-t);font-weight:600;border:1px solid rgba(255,59,48,.1)}
+.demo-arrow{display:flex;align-items:center;justify-content:center;font-size:24px;color:rgba(0,0,0,.18);font-weight:300}
+
+/* ── 로드맵 ── */
+.roadmap-section{background:#fff;padding:88px 44px;border-top:1px solid rgba(0,0,0,.07)}
+.roadmap-inner{max-width:1100px;margin:0 auto}
+.rm-tl{display:flex;gap:0;position:relative;margin-bottom:52px}
+.rm-tl::before{content:"";position:absolute;left:10%;right:10%;top:20px;height:2px;background:rgba(0,0,0,.06);z-index:0}
+.rm-step{flex:1;text-align:center;position:relative;z-index:1;padding:0 8px}
+.rm-dot{width:40px;height:40px;border-radius:50%;border:2px solid;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;margin:0 auto 10px;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+.rm-dot.done{border-color:var(--ok);background:var(--ok-d);color:var(--ok-t)}
+.rm-dot.cur{border-color:var(--ice);background:var(--ice-d);color:var(--ice-t)}
+.rm-dot.plan{border-color:var(--warn);background:var(--warn-d);color:var(--warn-t)}
+.rm-dot.future{border-color:rgba(0,0,0,.12);color:var(--t3)}
+.rm-year{font-size:11px;font-weight:800;margin-bottom:4px}
+.rm-year.done{color:var(--ok-t)}.rm-year.cur{color:var(--ice-t)}.rm-year.plan{color:var(--warn-t)}.rm-year.future{color:var(--t3)}
+.rm-title{font-size:12px;font-weight:800;color:var(--t1);margin-bottom:4px}
+.rm-desc{font-size:10px;color:var(--t2);line-height:1.55;word-break:keep-all}
+.rm-milestone{display:inline-block;font-size:8px;font-weight:700;padding:2px 7px;border-radius:4px;margin-top:5px}
+.rm-milestone.done{background:var(--ok-d);color:var(--ok-t)}
+.rm-milestone.cur{background:var(--ice-d);color:var(--ice-t)}
+.rm-milestone.plan{background:var(--warn-d);color:var(--warn-t)}
+.rm-milestone.future{background:rgba(0,0,0,.05);color:var(--t3)}
+
+/* ── 미션 ── */
+.mission{text-align:center;padding:72px 44px;background:linear-gradient(145deg,#f0f9ff,#e8f5ff);border-top:1px solid rgba(0,150,199,.1);border-bottom:1px solid rgba(0,150,199,.1)}
+.mission-inner{max-width:720px;margin:0 auto}
+.mission-quote{font-size:clamp(22px,3.2vw,34px);font-weight:800;color:var(--t1);line-height:1.35;margin-bottom:14px;letter-spacing:-.3px;word-break:keep-all}
+.mission-quote em{font-style:normal;color:var(--ice)}
+.mission-sub{font-size:14px;color:var(--t2);margin-bottom:28px;line-height:1.6}
+.mission-ctas{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+
+/* ── 푸터 ── */
+.footer{background:var(--bg);padding:52px 44px;border-top:1px solid rgba(0,0,0,.08)}
+.footer-inner{max-width:1100px;margin:0 auto}
+.footer-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:32px;gap:40px}
+.footer-brand{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.footer-brand img{width:32px;height:32px;border-radius:50%;background:var(--deep);padding:2px}
+.footer-brand-txt{font-family:"Orbitron";font-size:11px;font-weight:700;letter-spacing:2px;color:var(--t1)}
+.footer-desc{font-size:11.5px;color:var(--t3);line-height:1.7;max-width:360px}
+.footer-partner{text-align:right}
+.footer-partner-label{font-size:9.5px;font-weight:700;letter-spacing:2px;color:var(--t3);text-transform:uppercase;margin-bottom:12px}
+.footer-partner-logo{display:flex;align-items:center;justify-content:flex-end;gap:12px}
+.footer-mfr-logo{width:80px;height:80px;border-radius:12px;background:#000;padding:8px;object-fit:contain}
+.footer-mfr-name{font-size:11px;font-weight:700;color:var(--t2);margin-top:6px;text-align:right}
+.footer-bottom{padding-top:20px;border-top:1px solid rgba(0,0,0,.07);display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--t3)}
+
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.6;transform:scale(1.3)}}
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-thumb{background:rgba(0,0,0,.12);border-radius:4px}
+</style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <div class="nb-left">
+    <img class="nb-logo" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0NTBwdCIgaGVpZ2h0PSI0NTBwdCIgdmlld0JveD0iMCAwIDQ0OS45OTk5OCA0NDkuOTk5OTkiPjxkZWZzPjxjbGlwUGF0aCBpZD0iYSI+PHBhdGggZD0iTTAgMTcwMC43OWgxMjA3LjU2VjBIMFoiLz48L2NsaXBQYXRoPjxjbGlwUGF0aCBpZD0iYiI+PHBhdGggZD0iTTAgMTcwMC43OWgxMjA3LjU2VjBIMFoiLz48L2NsaXBQYXRoPjxjbGlwUGF0aCBpZD0iYyI+PHBhdGggZD0iTTEyMDcuNTU5IDE3MDAuNzlIMFYuMDAzaDEyMDcuNTU5eiIvPjwvY2xpcFBhdGg+PGltYWdlIGlkPSJkIiB3aWR0aD0iNDI2IiBoZWlnaHQ9IjI4NSIvPjxpbWFnZSBpZD0iZSIgd2lkdGg9IjQyNiIgaGVpZ2h0PSIyODUiLz48aW1hZ2UgaWQ9ImYiIHdpZHRoPSIxMDExIiBoZWlnaHQ9IjE0NDAiLz48L2RlZnM+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTAgMjI1QzAgMTAwLjczMyAxMDAuNzA2IDAgMjI0Ljk3MiAwIDM0OS4yMTIgMCA0NTAgMTAwLjczMyA0NTAgMjI1YzAgMTI0LjI5NC0xMDAuNzg5IDIyNS0yMjUuMDI4IDIyNUMxMDAuNzA2IDQ1MCAwIDM0OS4yOTQgMCAyMjUiIHN0eWxlPSJzdHJva2Utd2lkdGg6MTMuODEwNCIvPjxwYXRoIGZpbGw9IiMzYTNhNmEiIGQ9Ik0yMjQuOTc0IDM4Mi41OGMtODcuMDc1IDAtMTU3LjU2NC03MC41MDItMTU3LjU2NC0xNTcuNTc3IDAtODcuMDYxIDcwLjQ4OS0xNTcuNTY0IDE1Ny41NjQtMTU3LjU2NCA4Ny4wMiAwIDE1Ny41NzcgNzAuNTAzIDE1Ny41NzcgMTU3LjU2NCAwIDg3LjA3NS03MC41NTggMTU3LjU3Ny0xNTcuNTc3IDE1Ny41NzdtMC0zNjguNjE1Yy0xMTYuNjE2IDAtMjExLjAzOCA5NC40NjMtMjExLjAzOCAyMTEuMDM4IDAgMTE2LjU2IDk0LjQyMiAyMTEuMDM3IDIxMS4wMzggMjExLjAzNyAxMTYuNTMyIDAgMjExLjAxLTk0LjQ3NyAyMTEuMDEtMjExLjAzNyAwLTExNi41NzUtOTQuNDc4LTIxMS4wMzgtMjExLjAxLTIxMS4wMzgiIHN0eWxlPSJzdHJva2Utd2lkdGg6MTMuODEwNCIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Im0xMTEuMzYgNzUuMzIzLTIuNTU0IDE0Ljg0NyAxMy42ODYgNy4yNS0xNS43NTggMS44NzktMi42NjUgMTQuOTU3LTYuNjAyLTEzLjc1Ni0xNC41NTYgMS42NTcgMTAuNzg2LTEwLjE5Mi02LjExOC0xMy4xNDcgMTIuOTQgNi43NTN6TTE0Ni43NSA3OS42MjdsLTYuODY0IDMuMjczLTE2LjItMzMuOTc0IDYuOTA2LTMuMjQ1IDYuNTQ2IDEzLjgyNCA2LjAwNy0xOS44NiA4LjkwOC00LjIyNS02LjgyMiAyMC4zNTcgMjMuNzY4IDEzLjIwMi04LjkyMiA0LjI5NS0xNy4yMDgtMTAuMTIzLTEuNTg4IDUuMDR6TTE4My4wMyA1Ni42NzJjMi4wMTYgMS4zOTUgNC4zMDkgMS43NTUgNi44NzggMS4zMjYgMi41NTUtLjU4MiA0LjQ3NC0xLjg5MSA1Ljc3Mi0zLjkzNiAxLjc4Mi0yLjY3OSAyLjE2OS02LjMxMSAxLjIwMi0xMC44ODItLjk0LTQuNjI3LTIuNzItNy44MzEtNS41MS05LjU1Ny0xLjkzNC0xLjM2Ny00LjI4Mi0xLjc4Mi02LjgyMy0xLjI4NC0yLjQ0NC41NTItNC40MzMgMS44NjQtNS44MTQgMy45MjItMS42NzEgMi42NjUtMi4wNTggNi4yOTgtMS4wNzcgMTAuOTY1Ljk1MyA0LjU1OCAyLjcwNyA3LjczNCA1LjM3MiA5LjQ0Nm0tOS40NzQtMjUuNTA3YzIuNDg2LTIuNzQ4IDUuNzE4LTQuNTMgOS42NC01LjMzMSAzLjg5NC0uODI5IDcuNTgyLS41MSAxMC45NjUgMS4wNSA1LjIzNCAyLjM2MSA4LjU3NyA3LjMwNSAxMC4xMjMgMTQuNzc2IDEuNjAyIDcuNDE3LjQ1NiAxMy4yNzItMy40MSAxNy41MjYtMi40NzMgMi43NzYtNS42NjMgNC41NzEtOS41NzIgNS4zNzItMy45NjMuODQzLTcuNTgxLjQ0NC0xMC45NzktMS4wOS01LjE3OS0yLjMyLTguNTc2LTcuMjM3LTEwLjExLTE0LjY5NS0xLjYxNS03LjQ4NS0uNTI0LTEzLjM1NCAzLjM0My0xNy42MDhNMjMxLjI5OSAzOS4yMzRjMS45ODkgMCAzLjQ2Ni0uMzA2IDQuNDItMS4wMzYuOTgtLjg1NiAxLjQzNi0yLjE0IDEuNTQ2LTQuMDA1IDAtMS4zNC0uMzA0LTIuNDAzLS44NDItMy4yODYtLjg5OC0xLjEyLTIuMzQ4LTEuNzEzLTQuMzIzLTEuNzRsLTkuNjQtLjMwNi0uMTkzIDEwLjE3OHptLTE2LjEzLTE2Ljk4NyAxOC41MzMuNDg2YzQuMjU0IDAgNy4zMDYgMS40NSA5LjI2NyA0LjI1NCAxLjMxMiAxLjkwNiAxLjk2IDQuMTQzIDEuOTMzIDYuNTg4LS4wODMgMi4xMTMtLjYzNSAzLjk5MS0xLjU2IDUuNTM4LTEuMTA1IDEuNjMtMi41NTUgMi43Mi00LjI4MiAzLjMxNCAxLjYxNi43NiAyLjc2MiAxLjY4NSAzLjMyOSAyLjcwNy44IDEuMzk1IDEuMTg3IDMuNzE1IDEuMDkgNi45ODgtLjEyMyAyLjk0Mi0uMTIzIDQuNzkzIDAgNS40OTcuMjA4IDEuMDM2LjYwOCAxLjcxMyAxLjQ1IDIuMDE2bC0uMDMuODg0LTguNDc5LS4xOGMtLjI0OC0uOTgtLjQ5Ny0xLjk2MS0uNTI1LTMuMDI1YTUwLjk3MyA1MC45NzMgMCAwIDEtLjA4My00LjU1N2MuMDgzLTIuODg2LS4xNTEtNC42OTYtLjcwNC01LjUyNC0uNjYzLTEuMTMzLTIuNDAzLTEuNjk5LTUuMDEzLTEuNzU0bC03Ljk1NS0uMjA0LS40NDIgMTQuNzIxLTcuNDcyLS4xOTJ6TTI4NC45MDggMzguMDZsLTE4LjgxLTQuNTcxLTEuOTIgNy43MzQgMTcuMjkyIDQuMTQzLTEuNTg5IDYuNDA4LTE3LjI2My00LjE3LTIuMjY1IDkuNDczIDE5LjYzOSA0Ljc3OS0xLjYwMiA2LjM2Ni0yNi45MDMtNi40NzcgOC44OTQtMzYuNTcgMjYuMDg4IDYuMzUzek0yOTkuMTUxIDYxLjkwNmw4LjUyMSA0LjI2NyAyLjM3Ni0xNS40ODJoLS4xNTJ6TTI4OC41NzIgNzIuNjlsLTcuMTY3LTMuNTQ5IDI4LjM5NC0yNy45OCA3Ljk4MiAzLjg4LTQuODA2IDM5LjU4MS03LjMyLTMuNjE4IDEuMjMtOC4wNjUtMTIuNTI2LTYuMDc3ek0zNjUuMzAzIDk5Ljk3OGwtMTUuMDY3LTEuNDA5LTYuMTE4IDE0LjIzOS0zLjEwNy0xNS41NjQtMTUuMTIzLTEuNDkyIDEzLjE0OC03LjY2NS0yLjY5My0xNC4zOSAxMC44ODIgOS45NTcgMTIuNzM0LTcuMDg0LTUuNzg3IDEzLjM1NHoiIHN0eWxlPSJzdHJva2Utd2lkdGg6MTMuODEwNCIvPjxwYXRoIGZpbGw9IiNiYTMwMzUiIGQ9Ik0xNjIuMzI3IDI4My4zNTdjLTIuMzYyIDMuNzg0LTMuNTc3IDYuODIzLTYuODkyIDYuNjg1LTIuMzc1LS4xMzgtMjkuMDAyLTIuMzQ4LTMzLjQ2Mi0yLjcyMS02LjU0Ny0uNTEtMTAuODE0IDguNTIxLTEzLjkyMSAxMy40MjQtMy4wOTQgNC44Mi01Ljk5NCAxMi4zMDUgNS45NTIgMTIuNjY0IDYuNjQzLjE2OCAyNS44MTIuNDY4IDMwLjc0Mi40NjggNC44NzUgMCA4LjEyLjM4NCAxMi40NDMtNS4yMiA0LjMxLTUuNTk0IDY5LjcwMi0xMTguNjA1IDY5LjcwMi0xMTguNjA1bC00LjQ2MS03Ljc3NXMtNTcuNzE0IDk3LjI2Ny02MC4xMDMgMTAxLjA3OCIgc3R5bGU9InN0cm9rZS13aWR0aDoxMy44MTA0Ii8+PHBhdGggZmlsbD0iI2JhMzAzNSIgZD0iTTIwNy4wNzcgMTQzLjY4OGMtMi4xOTYtMy45MjItNC4yMjYtNi40NjMtMi40NTgtOS4yOTQgMS4yMjktMi4wODYgMTYuMTg1LTI0LjE5NiAxOC42OTktMjcuODk4IDMuNjE4LTUuNDEzLTIuMTEzLTEzLjU3NS00LjkxNy0xOC42NzEtMi42OTMtNS4wOTYtNy43NDctMTEuMjI4LTEzLjkwNy0uOTgtMy40NTIgNS43NTgtMTMuMTIgMjIuMjktMTUuNDk1IDI2LjUwMi0yLjQwMyA0LjI2Ny00LjI4MSA2Ljk4OC0xLjUyIDEzLjUwNiAyLjcyMSA2LjQ3NyA2OS4zMTUgMTE4Ljc4NCA2OS4zMTUgMTE4Ljc4NGw5LjAwNS0uMTM4cy01Ni41OTUtOTcuODg5LTU4LjcyMi0xMDEuODExIiBzdHlsZT0ic3Ryb2tlLXdpZHRoOjEzLjgxMDQiLz48cGF0aCBmaWxsPSIjYmEzMDM1IiBkPSJNMzA1LjM0MSAyNTEuNzA0YzQuMzc4LjE1IDcuNzItLjI4OCA5LjIyNSAyLjU5NiAxLjIwMiAyLjEgMTIuNjM3IDI2LjI2OCAxNC41MTUgMzAuMjE4IDIuODQ1IDUuOTY1IDEyLjg1OCA1LjEyMyAxOC41ODkgNS4zNTggNS43ODcuMTY4IDEzLjY1OS0xLjA3NyA3Ljk2OS0xMS41NDYtMy4yODctNS44NjktMTIuNjEtMjIuNTkzLTE0Ljk4NS0yNi44MDYtMi41MTMtNC4yMjYtMy44MTEtNy4xODEtMTAuOTEtOC4xMzQtNi45NDctLjg5OC0xMzcuNDk3LS41MjgtMTM3LjQ5Ny0uNTI4bC00LjQzMyA3Ljg3MnMxMTMuMDM5LjgyOSAxMTcuNTI3Ljk2NyIgc3R5bGU9InN0cm9rZS13aWR0aDoxMy44MTA0Ii8+PHBhdGggZmlsbD0iIzJjMjUyMyIgZD0iTTE4Mi44OTUgMzYxLjcxNXYtMTkuMDE3aC0zLjc3di0zLjk1aDguNDc5djIyLjk2N3pNMjEwLjE1MSAzNDIuMTczYy0xLjA5MSAwLTIuMDAzLjM3Mi0yLjgwNCAxLjA5MS0uNzYuNzMyLTEuMTA0IDEuNjMtMS4xMDQgMi42OCAwIDEuMDUuMzQ1IDEuOTA1IDEuMTA0IDIuNjkzLjgwMS43MDQgMS43MTMgMS4wNzcgMi44MDQgMS4wNzdhNC4xMzIgNC4xMzIgMCAwIDAgMi43OS0xLjA1Yy43NzMtLjc0NiAxLjE3NC0xLjYzIDEuMTc0LTIuNjc5IDAtMS4wOS0uNDAxLTEuOTYxLTEuMTc0LTIuNjY1LS43NzQtLjc3My0xLjY1OC0xLjE0Ny0yLjc5LTEuMTQ3bTcuMzg5IDcuMTU0LTYuOTYgMTIuMzg4aC00LjY5Nmw0LjY5NS04LjQzOGMtMi41OTYuMTM4LTQuNjk1LS40NjgtNi4yOTctMS45ODgtMS41MDYtMS4zNC0yLjIyNC0zLjEyMi0yLjMzNC01LjMxOC0uMDEyLTIuMTY4Ljc0NS00LjAxOCAyLjMzNC01LjUyNCAxLjY0My0xLjUxOSAzLjU3Ni0yLjI2NSA1Ljg2OS0yLjI2NSAyLjI1MSAwIDQuMjI2Ljc0NiA1Ljg1NiAyLjI2NSAxLjYwMiAxLjQ2NCAyLjM0NyAzLjM1NiAyLjMwNiA1LjUyNCAwIDEuMjQzLS4yMzUgMi40MDMtLjc3MyAzLjM1Nk0yMjguMjIzIDM2MS43MTV2LTQuMjEyYzIuNjgtMi4zMDYgNS43NDUtNS4wNTUgOS4xOTgtOC4xMiAxLjUzMy0xLjM4MiAyLjI2NS0yLjkgMi4yNjUtNC40ODkgMC0uODQzLS4yNDgtMS40NjQtLjc0Ni0xLjk3NS0uNTk0LS41NTItMS40MDgtLjgyOC0yLjUxMy0uODI4LTEuMTE5IDAtMi4xNC4zODQtMi43NDkgMS4xNzMtLjY2Mi43Ni0xLjAyMSAxLjYzLTEuMDIxIDIuNzIxaC00LjQzNGMtLjA0Mi0xLjg2NC42MDgtMy41OSAyLjAwMy01LjE5MyAxLjYxNi0xLjc1NCAzLjY2LTIuNjY1IDYuMi0yLjY2NSAyLjI2NiAwIDQuMjQuNTUyIDUuODE1IDEuNzgxIDEuNTA1IDEuMjE2IDIuMzkgMi43OSAyLjM5IDQuNzc5IDAgMi40NTgtMS4zNjggNC45MDItNC4xNDQgNy4zNjFhMzU3LjQwMyAzNTcuNDAzIDAgMCAwLTYuMjI4IDUuNThoMTAuMzcxdjQuMDg3ek0yNjIuNjE0IDM0MS43ODNjLS45MTEgMC0xLjY4NS4yNDYtMi4yOTIuODU2LS43MDUuNjc3LTEuMDM2IDEuMzgxLTEuMDM2IDIuMjY1IDAgLjg1Ni4zMzEgMS41ODggMS4wMzYgMi4yMjMuNjYzLjU2NCAxLjM5NC44NyAyLjI5Mi44Ny44ODQgMCAxLjY4NS0uMzA1IDIuMzktLjg4NC41OTMtLjYyLjk1Mi0xLjM1My45NTItMi4yMDkgMC0uODg0LS4zNi0xLjU4OC0uOTUzLTIuMjY1LS43MDQtLjYwOC0xLjUwNS0uODU2LTIuMzg5LS44NTZtMCA5LjM3N2MtMS4wNzcgMC0yLjAwMi4zNDgtMi43MzQgMS4xMDUtLjc0Ni43ODctMS4xNiAxLjY0My0xLjE2IDIuNjc5IDAgMS4wMzYuNDE0IDEuOTIgMS4xNiAyLjY2Ni43MzIuNzg3IDEuNjU3IDEuMTA0IDIuNzM0IDEuMTA0IDEuMTA1IDAgMi4wNzItLjMxOCAyLjg3My0xLjEwNC43NDUtLjc0NiAxLjEwNS0xLjYzIDEuMTA1LTIuNjY2cy0uMzYtMS44OTItMS4xMDUtMi42OGMtLjgwMS0uNzU5LTEuNzY4LTEuMTA0LTIuODczLTEuMTA0bTAgMTEuMDc2Yy0yLjI2NSAwLTQuMjEyLS43MDQtNS43NDUtMi4xMTMtMS42NDMtMS40MjMtMi40MDMtMy4xNzYtMi40MDMtNS4zMDMgMC0yLjExNCAxLjIzLTMuOTUgMy42NDYtNS4zNTktMi4wNDQtMS4xMzItMy4wNjYtMi43MDctMy4wNjYtNC42OTYgMC0xLjgyMi43Ni0zLjM5NyAyLjMyLTQuNjEyIDEuNTc1LTEuMzQgMy4zMTUtMS45NzUgNS4yNDgtMS45NzUgMS45NDcgMCAzLjc5OC42MzUgNS4zMTcgMS45NzUgMS40NSAxLjIxNSAyLjMyIDIuNzkgMi4zMiA0LjUzIDAgMi4wNzEtMS4wMjIgMy42NDYtMy4wNTIgNC43NzggMi40NTkgMS40MDkgMy42NiAzLjIwNCAzLjY2IDUuMzU5IDAgMi4xMjctLjc0NiAzLjg4LTIuNDU4IDUuMzAzLTEuNDkyIDEuNDA5LTMuNDUzIDIuMTEzLTUuNzg3IDIuMTEzIiBzdHlsZT0ic3Ryb2tlLXdpZHRoOjEzLjgxMDQiLz48cGF0aCBmaWxsPSIjM2EzYTZhIiBkPSJtMjExLjE3NiAxMzkuMjEuOTY2IDEuNzI3Yy41NTMuOTk0IDQuODkgOC4zNyAxMC45MSAxOS4wNzJoMS45MmMzNS44OTQgMCA2NS4wNDggMjkuMDg1IDY1LjA0OCA2NS4wMiAwIDQuMTMtLjM0NiA4LjE5LTEuMTMzIDEyLjA0MyA5LjM2NCAwIDE3Ljk5NS4xMzggMjQuODU5LjE5Mi41MTEtMy45OTEuODE1LTguMTA3LjgxNS0xMi4yMzYgMC00OS41MS00MC4wNzgtODkuNjAzLTg5LjU4OS04OS42MDMtNS4xMjMgMC0xMC4wOTUuNDE0LTE0Ljk3IDEuMjQ0LS4wODMgMC0uMDgzLjEzOC0uMTUyLjE2OC4zMDQuNzA0Ljg3IDEuNTYgMS4zMjYgMi40MDNNMzA1LjEzOCAyNTcuNTNjLTEuMjAyLS4xMzctMTAuNDI3LS4xNS0yMy42NzEtLjI3NS0xMS4yMTQgMTkuNTctMzIuMzMgMzIuNzg2LTU2LjQ5OSAzMi43ODYtMTUuNjA2IDAtMjkuODMtNS41MjQtNDEuMDQ0LTE0LjU4NC00LjcxIDguMDM4LTkuMDc0IDE1LjMwMi0xMi41ODIgMjEuMzIzIDE0LjkwMiAxMS4yMTQgMzMuNTA0IDE3Ljg4NSA1My42MjYgMTcuODg1IDM4LjAzNCAwIDcwLjQyLTIzLjc1NCA4My41MTItNTcuMTA2aC0xLjMyNnpNMTU3LjQ0NSAyODAuMjQyYy42NjMtLjk4MSA1LjQ1NS05LjE1NyAxMi4zNzQtMjAuNzQzLTYuMzExLTEwLjAyNy05Ljg2LTIxLjgyMS05Ljg2LTM0LjQ5OSAwLTI3LjgxNCAxNy40Ny01MS42MjMgNDIuMTA3LTYwLjg2M2ExNjk3MC41NSAxNjk3MC41NSAwIDAgMC0xMi40NDMtMjEuNTE2Yy0zMS45MTYgMTMuNzEzLTU0LjI3NSA0NS40NS01NC4yNzUgODIuMzc5IDAgMjEuODYyIDcuODU4IDQxLjg0NiAyMC43ODUgNTcuNDM3LjA4My0uMTguMTUyLS4zNzIuMjYyLS40Njh6IiBzdHlsZT0ic3Ryb2tlLXdpZHRoOjEzLjgxMDQiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJtNDcuMzggMTI0LjkwMiAzLjg4LTYuNjMgMzIuMzg2IDE5LjE3LTMuODk1IDYuNjAxek01NC44NjUgMTY5Ljc4NmMxLjgwOS4yNTIgMy4zMjguMTM4IDQuNDA1LS4yODggMi4wMDMtLjcxOSAzLjQ2Ny0yLjMzNCA0LjQyLTQuODYyLjg4NC0yLjI1LjgxNC00LjQwNS0uMTgtNi40NzctMS4zMjYtMi44MDMtNC4yNTMtNS04LjYxNy02LjY3LTMuNDQtMS4zMTItNi41NDctMS43NjgtOS4xMTUtMS4yMy0yLjk4My42MDgtNS4wNTUgMi4zNDktNi4xMTggNS4yNjItLjc3NCAxLjk3NS0uODE1IDMuNzk4LS4xMjUgNS40NDIuNjA4IDEuNzQgMS45NjIgMy4yNDUgMy45MzYgNC41MDJsLTIuNzQ4IDcuMjM3Yy0zLjcwMS0yLjMyLTYuMjI4LTUuMTEtNy42MS04LjM5Ny0xLjQ2My0zLjQ4LTEuMzgtNy4zNDcuMTk0LTExLjM5NCAxLjc5NS00LjcxIDQuNzY0LTcuOTI3IDguOTM1LTkuNTAxIDQuNDQ3LTEuNjcxIDkuNjI2LTEuMzgyIDE1LjQ5Ni44NTYgNS44NTUgMi4yMjMgOS44NDYgNS40MjcgMTEuOTg3IDkuNzIyIDIuMDg1IDQuMDMzIDIuMjEgOC4zNy40NDIgMTIuOTU1LTEuNzU0IDQuNjY4LTQuNTE2IDcuNzYxLTguNDUyIDkuNDQ2LTMuMjA0IDEuMzUzLTYuNDA4IDEuNTA2LTkuNjI2LjYyMXpNNTEuOTM4IDIxMy4yOTRsMi44NDUtMTkuMjEtNy44NTgtMS4xNi0yLjYyNCAxNy41OC02LjQ2My0uOTggMi41NTUtMTcuNTY3LTkuNjQtMS4zOTUtMi45ODMgMTkuOTg0LTYuNTE4LTEuMDA4IDQuMDYtMjcuMzQ1IDM3LjE5MSA1LjQ2OS0zLjkyMiAyNi42ek0zOS4zMTQgMjQ4LjkxM2wtMTYuNTcyIDIuNzktMS4yNy03LjU5NiAzNy4xMjItNi4yNDIgMS4zMTIgNy42MzYtMTQuMTI4IDIuMzIgMi40MyAxNC40MDUgMTQuMDczLTIuMzkgMS4yNyA3LjQ0NS0zNy4xNSA2LjItMS4yMjktNy40ODUgMTYuNi0yLjcyek00Mi4zNjIgMjk0LjkwM2MtLjkxMSAyLjI1MS0uODU2IDQuNjI3LjEzOCA3LjAxNiAxLjAwOCAyLjMzNCAyLjYxIDMuOTYzIDQuODc1IDQuOTMgMi45NyAxLjIwMiA2LjY1Ny44ODQgMTAuOTM4LS45NjcgNC4zMjMtMS44MDkgNy4wOTktNC4yMTIgOC4zNDItNy4yMDkuOTI1LTIuMjM3LjkxMS00LjU1Ny0uMDU0LTYuOTE5LTEuMDc4LTIuNDAzLTIuNjkzLTQuMDQ2LTUuMDE0LTQuOTcxLTIuOTQxLTEuMjAyLTYuNTYtLjg0My0xMC45NjUuOTM5LTQuMzA5IDEuODkxLTcuMDMgNC4yNjctOC4yNTkgNy4xODFtMjMuMjk5LTE0LjIxMWMzLjA5MyAxLjg3OCA1LjQ5NiA0Ljc1IDcuMDU3IDguNDM4IDEuNTYgMy42NzQgMS44OTIgNy4zMiAxLjA5IDEwLjkzOC0xLjMzOSA1LjU5NC01LjUxIDkuODQ3LTEyLjYyMiAxMi44MTYtNi45NiAzLjAxMS0xMi44OTkgMy4wMTEtMTcuODAyIDAtMy4yNDUtMS44OTItNS41NTEtNC42NjgtNy4xNjctOC4zMjgtMS41MzMtMy43MjgtMS44NS03LjQwMi0xLjAzNi0xMS4wMzQgMS4zMTItNS41NTIgNS40ODMtOS44MzMgMTIuNDg1LTEyLjczMyA3LjA1Ny0yLjk3IDEzLjA1LTIuOTcgMTcuOTk1LS4xMzhNODUuODE3IDMzNy4zMDVjMS4xMTgtMS40NzcgMS45NDctMi43NDggMi4xNC0zLjk3Ny40ODQtMi4wMy0uMDk2LTQuMTE2LTEuNjE1LTYuMjg0LTEuNDY0LTEuOTc1LTMuMjYtMy4wNjYtNS41NTItMy4zODQtMy4wNjYtLjM4NC02LjUxOS43ODgtMTAuMzQ0IDMuNjA1LTIuOTI4IDIuMTU0LTQuOTU4IDQuNDg4LTUuOTM5IDYuOTMzLTEuMTc0IDIuODQ1LS44MjggNS41MjQuOTggOC4wMSAxLjM0IDEuNzEzIDIuODA0IDIuNzYyIDQuNTcyIDMuMTA4IDEuNzU0LjM3MiAzLjc4NC4xMzggNS44ODMtLjg0M2w0LjU4NSA2LjIxNGMtMy45OSAxLjgxLTcuNjY0IDIuNDMxLTExLjEzIDEuNzY5LTMuNzQzLS42OTEtNi45MzQtMi44MDQtOS40ODktNi4zNTMtMi45ODMtNC4wODktNC4wMTgtOC4zLTMuMDgtMTIuNzIgMS4wMjMtNC41ODUgNC4wNjEtOC43NDIgOS4xNDMtMTIuNDcgNS4xMS0zLjcwMiA5Ljk3MS01LjI5IDE0Ljc1LTQuNzM4IDQuNDYuNDY4IDguMTkgMi43MDcgMTEuMDM0IDYuNzEyIDIuOTgzIDMuOTkxIDQuMDc0IDguMDM4IDMuMzAxIDEyLjIzNi0uNTk0IDMuMzg0LTIuMTk2IDYuMTczLTQuNzIzIDguMzd6TTg1Ljk2NSAzNzQuMzEzbC01Ljc0Ni00Ljk4NSAyNC41NTUtMjguNTQ3IDUuNzA0IDQuOTU4LTkuOTU3IDExLjYyOSAyMC41NzctMi41NDEgNy40MTcgNi40MjItMjEuMzM4IDIuMDU3LTIuNDAzIDI3LjA4My03LjU5NS02LjQ1IDIuMzM0LTE5LjgwNC01LjI5LjQ4NnpNMTU2LjAwMiAzODQuMTg1bC0xNy4xMjUtOS4xMTUtMy43NTcgNi45NzQgMTUuNjc1IDguMzk3LTMuMTIxIDUuNzg2LTE1LjYzNC04LjM1NS00LjU4NSA4LjYwNCAxNy43NzQgOS41MTYtMy4wNjYgNS44NjktMjQuNDQ0LTEzLjEwNiAxNy42NjQtMzMuMTg2IDIzLjc2NyAxMi42NXpNMTcyLjQ5NyA0MjIuMDI4bC03LjQxNi0yLjA5OSA0LjAzMi0xMy42NTgtNi4wNzYtMjYuMTMgOC43IDIuNDg2IDMuMDEgMTcuOTk1IDExLjUzMy0xMy43NjkgOC4zMTMgMi4zMzQtMTguMTc0IDE5LjMyek0yMjcuOTY4IDQxNC42NjVsOS41My0uNDAyLTUuMjIxLTE0LjY5NGgtLjE4em0tNC4xNTcgMTQuNDA0LTguMDM4LjM0OCAxMS43OTQtMzguMTE3IDguODUzLS4zNDIgMTQuNTI4IDM3LjA0LTguMjcyLjMzLTIuNzQ4LTcuNjY2LTEzLjgyNS41ODJ6TTI2Ny4xMzMgNDEyLjgzYy4zMzEgMS40MzcgMS4xMDUgMi41NDIgMi4xODIgMy4yMTggMS42MDIgMS4wNjQgMy45NjQgMS4xNzQgNi44MzYuNDU2IDIuMTI3LS41OTQgMy41OS0xLjMyNiA0LjcxLTIuMjM3IDEuNDA4LTEuMTc0IDEuODkyLTIuNjM4IDEuNDUtNC4zNS0uMzMyLTEuMzY4LTEuMjQzLTIuMTI3LTIuNjgtMi41NTUtLjg3LS4yMzQtMi41NTUtLjQwMi00LjkxNi0uMjA0aC04LjU3NmMtMS41ODktLjEzOC0yLjkyOC0uMzcyLTQuMDYtLjc4OC0xLjM2OC0uNTQtMi40NTktMS4yMjktMy4yODgtMi4zMDYtLjk2Ni0xLjEzMy0xLjcxMi0yLjY2Ni0yLjIyMy00LjU3MS0uNzczLTIuNzc2LS42MzUtNS4zODcuNTM5LTcuNzM0IDEuNjg1LTMuMzk4IDQuOTcxLTUuNzQ1IDEwLjA2OC03LjA0NCA0Ljc5Mi0xLjMxMSA4LjgyNC0uODI4IDEyLjA0MiAxLjI5OSAyLjQwMyAxLjYzIDQuMDQ3IDMuODggNC44NDggNi43MjZsLTYuOTg4IDEuODkxYy0uNDk4LTEuMjk4LTEuMjctMi4zMDYtMi4xODItMi45MTQtMS42MDItMS4xMzItMy43ODQtMS4yMjktNi41Ni0uNTIyLTEuNjU4LjQ1Ni0yLjk3IDEuMTQ2LTMuOTA5IDIuMDQ0LTEuMTE4IDEuMTE5LTEuNTMzIDIuNDU4LTEuMTE4IDMuOTA4LjMwMyAxLjIwMi45NjYgMS45NzUgMS45ODggMi40MDMuNTY3LjIyMiAxLjQ2NC4zODQgMi42OTMuMzg0aC4wODNsOS4yMTItLjEzOGMzLjA4LS4xMzggNS40NjkuMjUyIDcuMTY3IDEuMDc4IDIuMjUxIDEuMTE4IDMuODY3IDMuMjA0IDQuNzI0IDYuMjI4IDEuMjE1IDQuNjU1LjE3OSA4LjQzOC0zLjE2MyAxMS40NjMtMi4xIDEuODkyLTQuNjEzIDMuMjE4LTcuNjIzIDQuMDQ2LTUuNzg3IDEuNDkyLTEwLjMxNyAxLjEwNS0xMy42MTgtMS4xMDQtMi40MTYtMS41ODktNC4wMDUtMy44NjctNC43NjQtNi45NDd6TTMwNi4wODMgMzk5LjUyYy42OSAxLjMyNiAxLjY0MyAyLjIyMyAyLjg3MiAyLjcyIDEuODUuNjUgNC4xMDIuMzYgNi44MDktMS4wNjMgMS44MjMtLjk2NiAzLjIxOC0yLjA0NCA0LjE0My0zLjEwNy45OTQtMS41MDUgMS4yMjktMy4wMS40MjgtNC41NzEtLjYyMi0xLjI1Ny0xLjY4NS0xLjg3OC0zLjEwOC0xLjkzNC0xLjA3NyAwLTIuNjY1LjIzNC00LjkzLjg0M2wtNC4wMTkuOTI1Yy0xLjg3OC40MjYtMy4zODMuNzYtNC4zMzYuOTM5LTEuNTYuMjQ2LTIuOTI4LjMzLTQuMTE2LjEzOC0xLjQ2NC0uMjA0LTIuNjY1LS43MzItMy43NTYtMS40OTItMS4xNi0uOTgtMi4yMzgtMi4yNzgtMy4xNzctNC4wMzItMS4zMjYtMi41NTUtMS42OTgtNS4xMjQtMS4wMjItNy42NzguODU3LTMuNjMzIDMuNjMyLTYuNjQ0IDguMjMxLTkuMDYgNC40NzUtMi4zMDcgOC40OTQtMi43MiAxMi4xMjYtMS4yOTkgMi42OTMgMS4xMDUgNC43NjUgMi45IDYuMTczIDUuNTUybC02LjQzNSAzLjI4N2MtLjc4OC0xLjE2LTEuNzgyLTEuOTYxLTIuNzYzLTIuMzYxLTEuNzgxLS42OS00LjAzMi0uNDAyLTYuNjE1LjkxMS0xLjQwOC44MDEtMi41NjkgMS43MjYtMy4yNiAyLjg0NS0uOTEgMS4zNjctLjk5MyAyLjY4LS4zMTYgNC4wNi41OTQgMS4wNzggMS4zOTQgMS43MjcgMi40NTggMS44NzkuNjQ5LjEzOCAxLjUxOSAwIDIuNzItLjE1aC4xMWw4Ljk3OC0yLjA4NmMzLjAxLS43NzMgNS4zNzItLjkxMSA3LjE5NS0uNDU2IDIuNTU1LjU0IDQuNTQ0IDIuMjUxIDYuMDA3IDUuMDI3IDIuMSA0LjIyNiAxLjkzNCA4LjIwNC0uNjkgMTEuOTA1LTEuNjE2IDIuMjkzLTMuNzU3IDQuMTQzLTYuNjAxIDUuNDY5LTUuMjIgMi44MTctOS44MDYgMy40MjUtMTMuNTM1IDEuOTItMi42MjQtMS4wNS00LjcxLTIuOTQyLTYuMTMyLTUuNzQ2ek0zNDYuMDQ1IDM3OC40OTRjMi40NDQuMTY4IDQuNjQtLjU0IDYuNjI4LTIuMTk2IDEuOTYyLTEuNjcxIDMuMDI1LTMuNzE1IDMuMjc0LTYuMTQ2LjI0OC0zLjIzMi0xLjA5MS02LjU3NC00LjA4OC0xMC4xNjUtMy4xNjMtMy41NzYtNi4yMjktNS41NjUtOS40Ni01LjgyNy0yLjQwNC0uMTY4LTQuNjEzLjUyOC02LjYwMiAyLjE4Mi0xLjk3NSAxLjY0My0zLjAyNCAzLjcyOC0zLjI4NyA2LjE1OS0uMTY1IDMuMTQ5IDEuMTg4IDYuNTYgNC4yNTQgMTAuMjA2IDMuMDUyIDMuNTkgNi4xNDYgNS40OTYgOS4yOCA1Ljc4N20tMjAuNTIyLTE3Ljk5NWMuOTUzLTMuNTY0IDIuOTQyLTYuNjcxIDUuOTUyLTkuMjgxIDMuMDUzLTIuNTU1IDYuNDIyLTQuMDA1IDEwLjE1MS00LjI1NCA1LjcxOC0uNDY4IDExLjA0OCAyLjMzNCAxNS45NjUgOC4xNDggNC45MDMgNS43NzMgNi43MTIgMTEuNDc3IDUuMzQ1IDE3LjA1Ny0uOTUzIDMuNjE4LTIuODYgNi43MTEtNS44ODQgOS4yOC0zLjA2NSAyLjU0MS02LjQ1IDMuOTc3LTEwLjE5MiA0LjI5NS01LjY0OC4zODQtMTAuOTc5LTIuMzQ4LTE1Ljg0LTguMTQ4LTQuOTg2LTUuODQyLTYuNzk1LTExLjUxOC01LjQ5Ny0xNy4wOTdNMzczLjU4NCAzMjQuMzg0Yy0xLjcxMy0uNjYzLTMuMTktLjkzOS00LjMyMy0uODU2LTIuMTU0LjE2OC00LjAwNSAxLjM1My01LjYzNCAzLjQ2Ny0xLjM5NSAxLjg5MS0xLjg5MiAzLjk5LTEuNDkyIDYuMjgzLjQ3IDMuMDM4IDIuNjEgNS45NTIgNi40NzcgOC43MjkgMi45IDIuMjIzIDUuNjkgMy40MjQgOC4zNDIgMy42NTkgMy4wNjYuMjg4IDUuNTI0LS44MjkgNy4zNi0zLjMgMS4yMy0xLjcyNyAxLjgyNC0zLjUyMiAxLjY0NC01LjI2My0uMTUyLTEuODIyLTEuMDIyLTMuNjMxLTIuNTU1LTUuMzU4bDQuNTQ0LTYuMjgzYzIuOTgzIDMuMjczIDQuNjEzIDYuNjcgNS4wNCAxMC4xMzYuNDQzIDMuODEyLS42MzUgNy40NDQtMy4zIDEwLjk4LTIuOTgzIDQuMDMyLTYuNzI2IDYuMjk3LTExLjIxNCA2LjY3LTQuNjk2LjQxNC05LjU3LTEuMjk4LTE0LjcwOC01LjA0MS00Ljk3Mi0zLjcxNS03Ljg4Ni03Ljk0MS04Ljc3LTEyLjYzNy0uOTQtNC40MzIuMTM4LTguNTc1IDMuMTA3LTEyLjU4IDIuOTQyLTMuOTkyIDYuNDc4LTYuMjQzIDEwLjYzNC02LjgyMyAzLjQ1My0uMzcyIDYuNjAyLjMwNiA5LjQ3NCAyLjA1OHpNNDA4LjUyOSAzMTMuNzgzbC0zLjUwOCA2LjgwOS0zMy42MDEtMTcuMDQyIDMuNTIxLTYuODIyek00MDQuNzkzIDI4NS41ODRsMi43NjItOS4xMy0xNS41NzguMTM5LS4wNTQuMTM4em0xMi4yMzYgOC43MTQtMi4zOSA3LjcwNy0zMi4wODEtMjMuNzY4IDIuNjEtOC40OCAzOS44NDMtMS40NjQtMi40MyA3LjkyNy04LjE0OC4xMzgtNC4xNDQgMTMuMzE0ek00MjguMzY3IDIzOC41OTVsLS42NjMgNy42NTEtMzAuODUyLTIuNTk2LS45NTMgMTEuMjY5LTYuNjQzLS41NCAyLjU1NS0zMC4yNzIgNi42MjkuNjM1LS45NjcgMTEuMjd6TTQyNy45NjMgMjA2LjQ4MmwuNTI1IDcuNjM3LTM3LjUzNyAyLjcwNy0uNTM5LTcuNjkzek00MTYuMDgxIDE4My41MDJjMS4yMTYtMi4xMTIgMS41Mi00LjQxOS44OTgtNi45MTktLjYwOC0yLjUxMy0xLjk3NS00LjM2NC00LjA2LTUuNjA3LTIuNzc2LTEuNjMtNi40MzYtMS45Ni0xMC45OTMtLjgxNS00LjU1OCAxLjIzLTcuNzA2IDMuMTQ5LTkuMzA4IDUuODg0LTEuMjU3IDIuMDk5LTEuNTc1IDQuNDQ2LS45NCA2LjkwNS41NCAyLjUyNyAxLjk5IDQuNDIgNC4wNzQgNS42NjIgMi43NjMgMS41NjEgNi40NjQgMS44NSAxMC45NjYuNjkxIDQuNTU3LTEuMTMzIDcuNzItMy4wOCA5LjM2My01LjhtLTI1LjE5IDEwLjQ5NWMtMi44MDMtMi4zNjItNC43NS01LjUzOC01Ljc0NS05LjQxOC0uOTk0LTMuODgxLS43NzMtNy41MTMuNjIyLTEwLjk5MyAyLjE1NC01LjI2MiA2LjkwNS04Ljg5NSAxNC4zNjItMTAuNzQ1IDcuMzM0LTEuODc4IDEzLjI4Ni0uOTI1IDE3LjY1IDIuNzA3IDIuODczIDIuNDAzIDQuNzY1IDUuNTI0IDUuNzMyIDkuNDE4IDEuMDIxIDMuODUzLjc3MyA3LjU0MS0uNjUgMTEuMDA3LTIuMTU0IDUuMjItNi44NSA4LjgxMS0xNC4yNTIgMTAuNjM1LTcuNDMgMS45MDUtMTMuMzI3IDEuMDA4LTE3LjcxOS0yLjYxMU0zNjguOTMxIDE0MS42MzhsLTMuMzQyLTYuMzggMzMuNDQ5LTE3LjQwMSAzLjQ4IDYuNzY3LTE2Ljc4IDI1LjYwNS4wMy4xOCAyMy43ODItMTIuNDAyIDMuMjE4IDYuMzI1LTMzLjM2NiAxNy40MDEtMy43OTgtNy4yNjQgMTYuNjI4LTI0Ljk1NmgtLjAxMnoiIHN0eWxlPSJzdHJva2Utd2lkdGg6MTMuODEwNCIvPjwvc3ZnPg==" alt="협회">
+    <div class="nb-title">DAILY ICE DECISION OS</div>
+  </div>
+  <div class="nb-right">
+    <a href="#ir" class="nb-btn ghost">제품 소개</a>
+    <a href="#screens" class="nb-btn ghost">화면 목록</a>
+    <a href="v2_Home.html" class="nb-btn primary">시스템 열기</a>
+  </div>
+</nav>
+
+<!-- ══ HERO ══ -->
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-eyebrow"><div class="hero-eyebrow-dot"></div>대한아이스하키협회 공식 시스템</div>
+    <h1 class="hero-title">
+      측정으로 상태를 이해하고<br>
+      <em>결정으로 경기 결과를 바꾸십시오</em>
+    </h1>
+    <p class="hero-sub">
+      보이지 않는 선수 상태를 데이터로 읽고,<br>
+      <strong>출전·훈련·보고까지 하나의 흐름으로 연결하는</strong> AI 의사결정 시스템
+    </p>
+    <div class="hero-product">Daily Ice Decision OS v2.0 · 대한민국 U18 아이스하키 국가대표팀</div>
+    <div class="hero-cta">
+      <a href="v2_Home.html" class="cta-primary">시스템 바로 열기</a>
+      <a href="#ir" class="cta-ghost">제품 소개 보기</a>
+    </div>
+    <!-- 두 레이어 대비 칩 -->
+    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:14px">
+      <div style="display:flex;align-items:center;gap:8px;padding:9px 18px;border-radius:980px;background:#e8f5ff;border:1px solid rgba(0,150,199,.25);box-shadow:0 1px 6px rgba(0,150,199,.12)">
+        <span style="width:8px;height:8px;border-radius:50%;background:var(--ice);flex-shrink:0;animation:pulse 1.5s infinite"></span>
+        <span style="font-size:11.5px;font-weight:700;color:var(--ice-t)">K-Grip — 매일 자동 갱신</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;padding:9px 18px;border-radius:980px;background:#fff;border:1px solid rgba(0,0,0,.1);box-shadow:0 1px 6px rgba(0,0,0,.06)">
+        <span style="width:8px;height:8px;border-radius:50%;background:rgba(0,0,0,.25);flex-shrink:0"></span>
+        <span style="font-size:11.5px;font-weight:600;color:var(--t2)">오프아이스 측정 — 연 2회</span>
+      </div>
+      <div style="font-size:12px;font-weight:700;color:var(--t3);align-self:center">+</div>
+      <div style="display:flex;align-items:center;gap:6px;padding:9px 18px;border-radius:980px;background:#fff;border:1px solid rgba(0,0,0,.08);box-shadow:0 1px 6px rgba(0,0,0,.06)">
+        <span style="font-size:11.5px;font-weight:600;color:var(--t2)">공백 없는 365일 모니터링</span>
+      </div>
+    </div>
+    <!-- 2레이어 강조 배지 -->
+    <div style="display:flex;align-items:center;gap:10px;justify-content:center;margin-bottom:14px;flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:6px;padding:8px 16px;border-radius:980px;background:rgba(0,150,199,.1);border:1.5px solid rgba(0,150,199,.3)">
+        <div style="width:8px;height:8px;border-radius:50%;background:var(--ice);animation:kgrip-pulse 1.5s infinite"></div>
+        <span style="font-size:12px;font-weight:700;color:var(--ice-t)">🔵 K-Grip — 매일 실시간 갱신</span>
+      </div>
+      <span style="font-size:13px;color:var(--t3);font-weight:500">+</span>
+      <div style="display:flex;align-items:center;gap:6px;padding:8px 16px;border-radius:980px;background:rgba(155,89,182,.07);border:1.5px solid rgba(155,89,182,.2)">
+        <div style="width:8px;height:8px;border-radius:50%;background:var(--purple)"></div>
+        <span style="font-size:12px;font-weight:700;color:var(--purple-t)">⚪ 오프아이스 측정 — 연 2회 정밀</span>
+      </div>
+    </div>
+    <style>@keyframes kgrip-pulse{0%,100%{opacity:1}50%{opacity:.35}}</style>
+    <div class="hero-kpi">
+      <div class="kpi-chip"><span class="kpi-chip-val">9</span> 화면</div>
+      <div class="kpi-chip"><span class="kpi-chip-val">PHV</span> 자동 보정</div>
+      <div class="kpi-chip"><span class="kpi-chip-val">3중</span> 검수 체계</div>
+      <div class="kpi-chip"><span class="kpi-chip-val">Kinvent</span> MFRC</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 감독의 하루 흐름 ══ -->
+<div class="flow-banner">
+  <div class="flow-inner">
+    <div class="flow-label">감독의 하루</div>
+    <div class="flow-steps">
+      <div class="flow-step"><div class="flow-step-num">1</div><div><div class="flow-step-text">판단</div><div class="flow-step-sub">선수 상태 확인</div></div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><div class="flow-step-num">2</div><div><div class="flow-step-text">결정</div><div class="flow-step-sub">라인·GK 구성</div></div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><div class="flow-step-num">3</div><div><div class="flow-step-text">실행</div><div class="flow-step-sub">훈련 강도 조정</div></div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><div class="flow-step-num">4</div><div><div class="flow-step-text">경기</div><div class="flow-step-sub">출전 여부 확정</div></div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><div class="flow-step-num">5</div><div><div class="flow-step-text">보고</div><div class="flow-step-sub">연맹 제출 자동화</div></div></div>
+    </div>
+    <div class="flow-time">매일 30초</div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- ══ IR 섹션 ══ -->
+<section class="section" id="ir">
+  <div class="section-label">Problem</div>
+  <h2 class="section-title">데이터는 쌓였지만,<br><em>결정은 여전히 감에 의존합니다</em></h2>
+  <p class="section-desc">이 간극이 부상을 만들고, 선발 논쟁을 만들고, 연맹 보고를 어렵게 만듭니다.</p>
+
+  <div class="key-msg">
+    <div class="key-msg-text">"데이터는 있다. 해석은 사람마다 다르다. 결정은 경험에 의존한다."<br>이것이 현재 스포츠 현장의 구조입니다.</div>
+    <div class="key-msg-sub">Daily Ice Decision OS는 이 구조를 바꿉니다</div>
+  </div>
+
+  <div class="prob-grid">
+    <div class="prob-col">
+      <div class="prob-col-label before">Before — 기존 방식</div>
+      <div class="prob-item"><span>❌</span><div>데이터 있지만 <strong>해석이 사람마다 다름</strong><div class="prob-impact">→ 같은 수치, 다른 판단 → 팀 혼선</div></div></div>
+      <div class="prob-item"><span>❌</span><div>결정은 <strong>경험과 감</strong>에 의존<div class="prob-impact">→ 부상 반복 · 사전 예측 불가</div></div></div>
+      <div class="prob-item"><span>❌</span><div>선발 논쟁 — <strong>데이터 근거 없음</strong><div class="prob-impact">→ 기술위원회 공정성 시비</div></div></div>
+      <div class="prob-item"><span>❌</span><div>연맹 보고 — <strong>매번 수작업</strong><div class="prob-impact">→ 시간 낭비 · 오류 가능성</div></div></div>
+    </div>
+    <div class="prob-col">
+      <div class="prob-col-label after">After — Daily Ice Decision OS</div>
+      <div class="prob-item"><span>✅</span><div>측정 데이터 → AI 판단 → <strong>결정 표준화</strong></div></div>
+      <div class="prob-item"><span>✅</span><div>K-Grip 실시간 + 측정 기반 <strong>통합 판단</strong></div></div>
+      <div class="prob-item"><span>✅</span><div>GK 선발 — <strong>데이터 기반 공정 근거</strong> 자동 생성</div></div>
+      <div class="prob-item"><span>✅</span><div>연맹 보고서 <strong>자동 생성</strong> — 3중 검수</div></div>
+    </div>
+  </div>
+
+  <!-- 3 Layer -->
+  <div class="section-label">Architecture</div>
+  <h2 class="section-title" style="margin-bottom:32px">제품 구조 — <em>3 Layer</em></h2>
+  <div style="font-size:13px;color:var(--t2);margin-bottom:28px">이 구조는 데이터를 <strong>'결정'으로 바꾸기 위해</strong> 설계되었습니다</div>
+  <div class="layer-grid">
+    <div class="layer-card">
+      <div class="layer-num">Layer 01</div>
+      <div class="layer-title">Data Layer</div>
+      <div class="layer-desc">현장의 모든 측정 데이터를 통합 수집. 보이지 않는 상태를 수치로 만듭니다.</div>
+      <ul class="layer-items">
+        <li class="layer-item">K-Grip API 실시간 (Kinvent)</li>
+        <li class="layer-item">오프아이스 측정 — 연 2회</li>
+        <li class="layer-item">Add/Abd · Nordic · RSA · GLSI</li>
+        <li class="layer-item">PHV 성숙도 자동 보정</li>
+      </ul>
+    </div>
+    <div class="layer-card core">
+      <div class="core-badge">핵심 엔진 — 우리의 차별점</div>
+      <div class="layer-num">Layer 02</div>
+      <div class="layer-title core">Decision Engine</div>
+      <div class="layer-desc">데이터를 해석하고 결정으로 연결합니다. 기존 시스템이 분석까지라면, 우리는 결정까지입니다.</div>
+      <ul class="layer-items">
+        <li class="layer-item">위험 분류 (Critical / High / Medium)</li>
+        <li class="layer-item">포지션별 판단 로직 (GK 전용)</li>
+        <li class="layer-item">훈련 자동 수정 권고</li>
+        <li class="layer-item">복귀 타임라인 + 기준값</li>
+      </ul>
+    </div>
+    <div class="layer-card">
+      <div class="layer-num">Layer 03</div>
+      <div class="layer-title">Output Layer</div>
+      <div class="layer-desc">결정을 전달하고 기록합니다. 이 데이터가 쌓일수록 결정은 더 정확해집니다.</div>
+      <ul class="layer-items">
+        <li class="layer-item">감독/코칭스태프 대시보드 (7화면)</li>
+        <li class="layer-item">연맹 관리자 뷰 (2화면)</li>
+        <li class="layer-item">공식 보고서 자동 생성</li>
+        <li class="layer-item">A4 개인 결과 카드 PDF</li>
+      </ul>
+    </div>
+  </div>
+  <div class="layer-caption">기존 시스템은 '분석'까지 — 우리는 '결정'까지</div>
+
+  <!-- 경쟁 포지셔닝 -->
+  <div class="section-label">Positioning</div>
+  <h2 class="section-title" style="margin-bottom:24px">"<em>결정을 만드는</em> 시스템"</h2>
+  <div style="font-size:13px;color:var(--t2);margin-bottom:24px">기존 시스템이 없는 두 가지: 의사결정 엔진 · 보고서 자동화</div>
+  <div class="pos-table-wrap">
+    <table class="pos-table">
+      <thead><tr><th>구분</th><th>Catapult</th><th>Kinvent</th><th>일반 대시보드</th><th style="color:#48cae4">Daily Ice Decision OS ✓</th></tr></thead>
+      <tbody>
+        <tr><td>데이터 수집</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td><td class="check pos-ours">✓</td></tr>
+        <tr><td>데이터 분석</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td><td class="check pos-ours">✓</td></tr>
+        <tr class="pos-ours"><td><strong>의사결정 엔진</strong></td><td class="cross">✗</td><td class="cross">✗</td><td class="cross">✗</td><td class="check" style="color:var(--ok-t);font-weight:700">✓ 독보적</td></tr>
+        <tr class="pos-ours"><td><strong>보고서 자동화</strong></td><td class="cross">✗</td><td class="cross">✗</td><td style="color:var(--t3)">△ 부분</td><td class="check" style="color:var(--ok-t);font-weight:700">✓ 완전 자동</td></tr>
+        <tr class="pos-ours"><td><strong>PHV 성숙도 보정</strong></td><td class="cross">✗</td><td class="cross">✗</td><td class="cross">✗</td><td class="check" style="color:var(--ok-t);font-weight:700">✓ U18 특화</td></tr>
+        <tr class="pos-ours"><td><strong>설명 가능성 (XAI)</strong></td><td class="cross">✗</td><td class="cross">✗</td><td class="cross">✗</td><td class="check" style="color:var(--ok-t);font-weight:700">✓ 근거 명시</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="pos-caption">기존 시스템은 '분석'까지 — Daily Ice Decision OS는 '결정'까지 책임집니다</div>
+
+  <!-- 핵심 가치 -->
+  <div class="section-label">Core Value</div>
+  <h2 class="section-title" style="margin-bottom:32px">3가지 <em>경쟁 우위</em></h2>
+  <div class="value-grid">
+    <div class="value-card">
+      <div class="value-icon">⚖️</div>
+      <div class="value-title">Decision Standardization</div>
+      <div class="value-desc">사람마다 달랐던 결정을 표준화합니다. 어떤 코치가 보더라도 동일한 데이터 기반으로 동일한 판단 구조를 갖습니다. 논쟁이 없어집니다.</div>
+    </div>
+    <div class="value-card hl">
+      <div class="value-icon">🔍</div>
+      <div class="value-title">Explainability (XAI)</div>
+      <div class="value-desc">"왜 이 결정인가"를 항상 설명할 수 있습니다. 측정 수치 → 위험 판단 → 경기 영향 → 코치 결정까지 전 과정이 투명하게 추적됩니다.</div>
+    </div>
+    <div class="value-card">
+      <div class="value-icon">🛡️</div>
+      <div class="value-title">Accountability</div>
+      <div class="value-desc">모든 결정에 데이터 근거가 기록됩니다. 부상 발생 시 사전 경고 여부, 조치 내역, 복귀 기준이 모두 추적 가능합니다. 책임이 구조화됩니다.</div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ══ 측정 기준 섹션 ══ -->
+<div style="background:var(--bg);padding:80px 44px;border-top:1px solid rgba(0,0,0,.07)">
+  <div style="max-width:1100px;margin:0 auto">
+
+    <div class="section-label">Measurement Protocol</div>
+    <h2 class="section-title">이 지표들이<br><em>출전 가능 여부를 결정합니다</em></h2>
+    <p style="font-size:15px;color:var(--t2);line-height:1.7;max-width:640px;margin-bottom:52px;word-break:keep-all">
+      부상과 퍼포먼스 저하는 특정 지표에서 먼저 신호가 나타납니다.<br>
+      우리는 이 신호를 측정하고, 기준과 비교해 <strong style="color:var(--t1)">출전·훈련·선발 여부를 판단</strong>합니다.
+    </p>
+
+    <div style="display:grid;grid-template-columns:180px 1fr;gap:24px;margin-bottom:40px">
+
+      <!-- 좌측: 장비 -->
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="font-size:9px;font-weight:800;letter-spacing:2px;color:var(--t3);text-transform:uppercase;margin-bottom:4px">측정 장비</div>
+        <div style="padding:13px 15px;border-radius:13px;background:#fff;border:1px solid rgba(0,0,0,.08);box-shadow:0 1px 6px rgba(0,0,0,.05)">
+          <div style="font-size:9.5px;font-weight:800;color:var(--ice-t);letter-spacing:.5px;margin-bottom:4px">K-FORCE LINK</div>
+          <div style="font-size:11px;font-weight:700;color:var(--t1);margin-bottom:3px">등척성 근력 측정</div>
+          <div style="font-size:10px;color:var(--t3);line-height:1.5">Add/Abd · Nordic LSI<br>GLSI (GK 전용)</div>
+        </div>
+        <div style="padding:13px 15px;border-radius:13px;background:#fff;border:1px solid rgba(0,0,0,.08);box-shadow:0 1px 6px rgba(0,0,0,.05)">
+          <div style="font-size:9.5px;font-weight:800;color:var(--ice-t);letter-spacing:.5px;margin-bottom:4px">K-POWER + BLAZEPOD</div>
+          <div style="font-size:11px;font-weight:700;color:var(--t1);margin-bottom:3px">속도·가속 · 온아이스</div>
+          <div style="font-size:10px;color:var(--t3);line-height:1.5">RSA · 5m Split<br>반응시간 · 방향 비대칭</div>
+        </div>
+        <div style="padding:13px 15px;border-radius:13px;background:#fff;border:1px solid rgba(0,0,0,.08);box-shadow:0 1px 6px rgba(0,0,0,.05)">
+          <div style="font-size:9.5px;font-weight:800;color:var(--ice-t);letter-spacing:.5px;margin-bottom:4px">K-GONIOMETER</div>
+          <div style="font-size:11px;font-weight:700;color:var(--t1);margin-bottom:3px">관절 가동범위</div>
+          <div style="font-size:10px;color:var(--t3);line-height:1.5">Hip IR ROM<br>좌우 비대칭</div>
+        </div>
+        <div style="padding:13px 15px;border-radius:13px;background:linear-gradient(145deg,rgba(0,150,199,.07),rgba(0,150,199,.02));border:1.5px solid rgba(0,150,199,.2)">
+          <div style="font-size:9.5px;font-weight:800;color:var(--ice-t);letter-spacing:.5px;margin-bottom:4px">K-GRIP</div>
+          <div style="font-size:11px;font-weight:700;color:var(--ice-t);margin-bottom:3px">CNS 피로 · 매일</div>
+          <div style="font-size:10px;color:var(--ice);line-height:1.5">실시간 API 동기화<br>훈련 전 즉시 판단</div>
+        </div>
+      </div>
+
+      <!-- 우측: 지표 카드 -->
+      <div>
+        <div style="font-size:9px;font-weight:800;letter-spacing:2px;color:var(--t3);text-transform:uppercase;margin-bottom:12px">측정 항목 — 지표 → 의미 → 경기 영향</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+
+          <!-- Add/Abd -->
+          <div style="padding:15px;border-radius:13px;background:#fff;border:1px solid rgba(0,0,0,.08);box-shadow:0 1px 6px rgba(0,0,0,.05);display:flex;flex-direction:column;gap:6px">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <div style="font-size:12px;font-weight:800;color:var(--t1)">Add/Abd Ratio</div>
+              <div style="font-size:8px;font-weight:700;padding:2px 6px;border-radius:6px;background:rgba(255,59,48,.08);color:var(--danger-t)">부상 예측</div>
+            </div>
+            <div style="font-size:11px;color:var(--t2);line-height:1.55;word-break:keep-all">고관절 <strong>좌우 불균형</strong>을 측정합니다</div>
+            <div style="padding:6px 9px;border-radius:8px;background:rgba(255,59,48,.04);border:1px solid rgba(255,59,48,.1);font-size:10.5px;color:var(--danger-t);font-weight:600;line-height:1.5">→ 불균형이 크면 방향 전환 시<br>서혜부 파열 위험 증가</div>
+            <div style="padding:5px 8px;border-radius:7px;background:var(--bg);border:1px solid rgba(0,0,0,.06)">
+              <div style="font-size:8.5px;font-weight:700;color:var(--t3)">GAME IMPACT</div>
+              <div style="font-size:10px;font-weight:600;color:var(--t2)">방향 전환 · 몸싸움 안정성</div>
+            </div>
+            <div style="font-size:9px;color:var(--t3)">기준: <span style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--danger-t)">≥ 0.90</span></div>
+          </div>
+
+          <!-- Nordic LSI -->
+          <div style="padding:15px;border-radius:13px;background:#fff;border:1px solid rgba(0,0,0,.08);box-shadow:0 1px 6px rgba(0,0,0,.05);display:flex;flex-direction:column;gap:6px">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <div style="font-size:12px;font-weight:800;color:var(--t1)">Nordic LSI</div>
+              <div style="font-size:8px;font-weight:700;padding:2px 6px;border-radius:6px;background:rgba(255,59,48,.08);color:var(--danger-t)">부상 예측</div>
+            </div>
+            <div style="font-size:11px;color:var(--t2);line-height:1.55;word-break:keep-all">햄스트링 <strong>좌우 힘 차이</strong>를 측정합니다</div>
+            <div style="padding:6px 9px;border-radius:8px;background:rgba(255,59,48,.04);border:1px solid rgba(255,59,48,.1);font-size:10.5px;color:var(--danger-t);font-weight:600;line-height:1.5">→ 차이가 크면 스프린트·<br>감속 중 파열 위험 증가</div>
+            <div style="padding:5px 8px;border-radius:7px;background:var(--bg);border:1px solid rgba(0,0,0,.06)">
+              <div style="font-size:8.5px;font-weight:700;color:var(--t3)">GAME IMPACT</div>
+              <div style="font-size:10px;font-weight:600;color:var(--t2)">급정지 · 스케이팅 안정성</div>
+            </div>
+            <div style="font-size:9px;color:var(--t3)">기준: <span style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--danger-t)">≥ 85%</span></div>
+          </div>
+
+          <!-- RSA Fatigue -->
+          <div style="padding:15px;border-radius:13px;background:#fff;border:1px solid rgba(0,0,0,.08);box-shadow:0 1px 6px rgba(0,0,0,.05);display:flex;flex-direction:column;gap:6px">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <div style="font-size:12px;font-weight:800;color:var(--t1)">RSA Fatigue</div>
+              <div style="font-size:8px;font-weight:700;padding:2px 6px;border-radius:6px;background:rgba(255,159,10,.08);color:var(--warn-t)">경기력</div>
+            </div>
+            <div style="font-size:11px;color:var(--t2);line-height:1.55;word-break:keep-all">반복 스프린트 후 <strong>피로 회복률</strong>을 측정합니다</div>
+            <div style="padding:6px 9px;border-radius:8px;background:rgba(255,159,10,.04);border:1px solid rgba(255,159,10,.12);font-size:10.5px;color:var(--warn-t);font-weight:600;line-height:1.5">→ 회복이 느리면 경기 후반<br>퍼포먼스 급격히 저하</div>
+            <div style="padding:5px 8px;border-radius:7px;background:var(--bg);border:1px solid rgba(0,0,0,.06)">
+              <div style="font-size:8.5px;font-weight:700;color:var(--t3)">GAME IMPACT</div>
+              <div style="font-size:10px;font-weight:600;color:var(--t2)">3피리어드 체력 · Shift 지속력</div>
+            </div>
+            <div style="font-size:9px;color:var(--t3)">기준: <span style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--warn-t)">+5% 이내</span></div>
+          </div>
+
+          <!-- GLSI -->
+          <div style="padding:15px;border-radius:13px;background:#fff;border:1px solid rgba(0,0,0,.08);box-shadow:0 1px 6px rgba(0,0,0,.05);display:flex;flex-direction:column;gap:6px">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <div style="font-size:12px;font-weight:800;color:var(--t1)">GLSI</div>
+              <div style="font-size:8px;font-weight:700;padding:2px 6px;border-radius:6px;background:rgba(155,89,182,.1);color:var(--purple-t)">GK 전용</div>
+            </div>
+            <div style="font-size:11px;color:var(--t2);line-height:1.55;word-break:keep-all">GK 좌우 측면 이동 <strong>비대칭</strong>을 측정합니다</div>
+            <div style="padding:6px 9px;border-radius:8px;background:rgba(155,89,182,.05);border:1px solid rgba(155,89,182,.15);font-size:10.5px;color:var(--purple-t);font-weight:600;line-height:1.5">→ 비대칭이 크면 특정 방향<br>실점률 급증 · 선발 제한</div>
+            <div style="padding:5px 8px;border-radius:7px;background:var(--bg);border:1px solid rgba(0,0,0,.06)">
+              <div style="font-size:8.5px;font-weight:700;color:var(--t3)">GAME IMPACT</div>
+              <div style="font-size:10px;font-weight:600;color:var(--t2)">세이브 범위 · PK 좌우 대응</div>
+            </div>
+            <div style="font-size:9px;color:var(--t3)">기준: <span style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--purple-t)">≤8% · 15% 초과시 선발 제한</span></div>
+          </div>
+
+          <!-- 5m Split -->
+          <div style="padding:15px;border-radius:13px;background:#fff;border:1px solid rgba(0,0,0,.08);box-shadow:0 1px 6px rgba(0,0,0,.05);display:flex;flex-direction:column;gap:6px">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <div style="font-size:12px;font-weight:800;color:var(--t1)">5m Split</div>
+              <div style="font-size:8px;font-weight:700;padding:2px 6px;border-radius:6px;background:rgba(255,159,10,.08);color:var(--warn-t)">경기력</div>
+            </div>
+            <div style="font-size:11px;color:var(--t2);line-height:1.55;word-break:keep-all">초반 5m <strong>폭발적 가속력</strong>을 측정합니다</div>
+            <div style="padding:6px 9px;border-radius:8px;background:rgba(255,159,10,.04);border:1px solid rgba(255,159,10,.12);font-size:10.5px;color:var(--warn-t);font-weight:600;line-height:1.5">→ 저하 시 퍽 쟁탈·역습 대응<br>포지셔닝 속도 직접 감소</div>
+            <div style="padding:5px 8px;border-radius:7px;background:var(--bg);border:1px solid rgba(0,0,0,.06)">
+              <div style="font-size:8.5px;font-weight:700;color:var(--t3)">GAME IMPACT</div>
+              <div style="font-size:10px;font-weight:600;color:var(--t2)">Faceoff · 역습 · 포지셔닝</div>
+            </div>
+            <div style="font-size:9px;color:var(--t3)">기준: <span style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--warn-t)">좌우차 -5% 이내</span></div>
+          </div>
+
+          <!-- Hip IR ROM -->
+          <div style="padding:15px;border-radius:13px;background:#fff;border:1px solid rgba(0,0,0,.08);box-shadow:0 1px 6px rgba(0,0,0,.05);display:flex;flex-direction:column;gap:6px">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <div style="font-size:12px;font-weight:800;color:var(--t1)">Hip IR ROM</div>
+              <div style="font-size:8px;font-weight:700;padding:2px 6px;border-radius:6px;background:rgba(52,199,89,.08);color:var(--ok-t)">성장 모니터</div>
+            </div>
+            <div style="font-size:11px;color:var(--t2);line-height:1.55;word-break:keep-all">고관절 내회전 <strong>가동범위 제한</strong>을 측정합니다</div>
+            <div style="padding:6px 9px;border-radius:8px;background:rgba(52,199,89,.04);border:1px solid rgba(52,199,89,.12);font-size:10.5px;color:var(--ok-t);font-weight:600;line-height:1.5">→ 제한 시 스케이팅 효율 저하<br>요추 과부하·부상 위험 증가</div>
+            <div style="padding:5px 8px;border-radius:7px;background:var(--bg);border:1px solid rgba(0,0,0,.06)">
+              <div style="font-size:8.5px;font-weight:700;color:var(--t3)">GAME IMPACT</div>
+              <div style="font-size:10px;font-weight:600;color:var(--t2)">스케이팅 효율 · 골반 안정성</div>
+            </div>
+            <div style="font-size:9px;color:var(--t3)">기준: <span style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--ok-t)">좌우차 10° 이내</span></div>
+          </div>
+
+          <!-- 온아이스 통합 (전체 너비) -->
+          <div style="padding:16px;border-radius:13px;background:linear-gradient(145deg,rgba(155,89,182,.06),rgba(155,89,182,.02));border:1.5px solid rgba(155,89,182,.2);grid-column:span 3">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+              <div style="font-size:13px;font-weight:800;color:var(--purple-t)">온아이스 통합 측정 (K-Power + BlazePod)</div>
+              <div style="font-size:9px;font-weight:700;color:var(--purple-t)">오프아이스 측정을 실제 빙상에서 교차 검증</div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+              <div>
+                <div style="font-size:10px;font-weight:800;color:var(--purple-t);margin-bottom:4px">크리즈 이동 속도</div>
+                <div style="font-size:11px;color:var(--t2);line-height:1.55;margin-bottom:5px;word-break:keep-all">GK 좌우 크리즈 이동 시간. GLSI 오프아이스 결과를 빙상에서 교차 검증.</div>
+                <div style="font-size:10px;font-weight:600;color:var(--purple-t)">→ 실제 세이브 범위 직접 측정</div>
+              </div>
+              <div>
+                <div style="font-size:10px;font-weight:800;color:var(--purple-t);margin-bottom:4px">BlazePod 반응시간</div>
+                <div style="font-size:11px;color:var(--t2);line-height:1.55;margin-bottom:5px;word-break:keep-all">빛 신호 반응 속도·방향 비대칭. 오프아이스 5m Split과 빙상 폭발력 연결.</div>
+                <div style="font-size:10px;font-weight:600;color:var(--purple-t)">→ Faceoff·역습 대응력 직접 측정</div>
+              </div>
+              <div>
+                <div style="font-size:10px;font-weight:800;color:var(--purple-t);margin-bottom:4px">RSA 온아이스 검증</div>
+                <div style="font-size:11px;color:var(--t2);line-height:1.55;margin-bottom:5px;word-break:keep-all">오프아이스 RSA 피로 지수와 실제 빙상 반복 스프린트 감퇴율 비교.</div>
+                <div style="font-size:10px;font-weight:600;color:var(--purple-t)">→ 3피리어드 체력 예측 정교화</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Dynamic Phased Benchmark -->
+    <div style="padding:24px 28px;border-radius:18px;background:linear-gradient(145deg,#f0f9ff,#e8f5ff);border:1px solid rgba(0,150,199,.15)">
+      <div style="display:flex;align-items:flex-start;gap:20px">
+        <div style="flex-shrink:0;min-width:180px">
+          <div style="font-size:9px;font-weight:800;letter-spacing:2px;color:var(--ice-t);text-transform:uppercase;margin-bottom:6px">판단의 기준</div>
+          <div style="font-size:17px;font-weight:900;color:var(--ice-t);line-height:1.3;word-break:keep-all;margin-bottom:6px">Dynamic Phased<br>Benchmark</div>
+          <div style="font-size:11px;color:var(--t2);line-height:1.6;word-break:keep-all">이 모든 측정은 단순 기록이 아닙니다. 매일 선수 상태를 판단하고 출전·훈련 여부를 결정하는 기준이 됩니다.</div>
+        </div>
+        <div style="width:1px;background:rgba(0,150,199,.2);align-self:stretch;flex-shrink:0"></div>
+        <div style="flex:1;display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+          <div>
+            <div style="font-size:9.5px;font-weight:800;color:var(--ice-t);margin-bottom:5px;display:flex;align-items:center;gap:5px">
+              <span style="width:16px;height:16px;border-radius:50%;background:var(--ice);color:#fff;font-size:8px;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0">1</span>팀 평균 Z-Score
+            </div>
+            <div style="font-size:11px;color:var(--t2);line-height:1.6;word-break:keep-all">스쿼드 내 상대적 위치 파악. 동일 팀 분포 기반 이상치 즉시 감지.</div>
+          </div>
+          <div>
+            <div style="font-size:9.5px;font-weight:800;color:var(--ice-t);margin-bottom:5px;display:flex;align-items:center;gap:5px">
+              <span style="width:16px;height:16px;border-radius:50%;background:var(--ice);color:#fff;font-size:8px;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0">2</span>개인 베이스라인
+            </div>
+            <div style="font-size:11px;color:var(--t2);line-height:1.6;word-break:keep-all">1차 측정 대비 변화율. 절대값보다 개인별 변화 패턴 중심으로 판단.</div>
+          </div>
+          <div>
+            <div style="font-size:9.5px;font-weight:800;color:var(--ice-t);margin-bottom:5px;display:flex;align-items:center;gap:5px">
+              <span style="width:16px;height:16px;border-radius:50%;background:var(--ice);color:#fff;font-size:8px;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0">3</span>동종 연령대 참조
+            </div>
+            <div style="font-size:11px;color:var(--t2);line-height:1.6;word-break:keep-all">쇼트트랙·스피드스케이팅 U18 물리 지표 + 스포츠과학 문헌 기반 하이브리드.</div>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:14px;padding-top:12px;border-top:1px solid rgba(0,150,199,.12);font-size:11px;color:var(--ice-t);font-weight:600;display:flex;align-items:center;gap:6px">
+        <span>📅</span> 2028년 한국 아이스하키 실측 DB 완성 시 → 전용 기준값으로 자동 전환
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══ K-Grip 상시 모니터링 ══ -->
+<div style="background:#fff;border-top:1px solid rgba(0,0,0,.07);border-bottom:1px solid rgba(0,0,0,.07);padding:72px 44px">
+  <div style="max-width:1100px;margin:0 auto">
+    <div class="section-label">Continuous Monitoring</div>
+    <h2 class="section-title">연 2회 측정으로<br><em>끝나지 않습니다</em></h2>
+
+    <!-- K-Grip 장비 소개 -->
+    <div style="display:grid;grid-template-columns:260px 1fr;gap:0;background:rgba(0,0,0,.04);border-radius:20px;overflow:hidden;margin-bottom:36px;border:1px solid rgba(0,0,0,.07)">
+      <!-- 좌측: 이미지 -->
+      <div style="background:#f0f0ee;display:flex;align-items:center;justify-content:center;padding:0;min-height:200px;position:relative;overflow:hidden">
+        <img src="data:image/png;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDAAUDBAQEAwUEBAQFBQUGBwwIBwcHBw8LCwkMEQ8SEhEPERETFhwXExQaFRERGCEYGh0dHx8fExciJCIeJBweHx7/2wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCAHsAewDASIAAhEBAxEB/8QAHQAAAgMAAwEBAAAAAAAAAAAAAAECAwQFBgcICf/EADwQAAICAQMDAwIEBAQGAQUBAAABAhEDBCExBRJBBlFhcYEHEyKRMqGx8AgUQsEVI1Ji0eHxFhclJkM0/8QAGgEBAAMBAQEAAAAAAAAAAAAAAAECAwUEBv/EACYRAQEAAgICAgIDAQEBAQAAAAABAhEDIRIxBEEFURMyYSIGFDP/2gAMAwEAAhEDEQA/APotLbcaQ0tiSXwWVL9/2JDUduBqPABQ0lRJLYaXwNiKjuSUdiSW/A0tuBsLtJJAk64GkTsJL+7Glt/7JJDoCKW//sf1HX0Q0vgBBV+xKmOgIJL+2NL+7JhuBHcbHTCvkCIEqf8AaDt/ugIhuSr4D7MCN/IbEvswAhS/ticSbQV8MCNBS+SVfDCgKNUl/l5LzR80f4lMb/IxTrjIfTWpV4JHzn/iShfS064mn/M3+P8A3Zc39Xzs04vbwa9M240ZpLc06Xg6Unbxq9SmmlRknfJt1bp0Ym22a4qUklVlbX67LuKYpVexoqplFN8UFNS2RZs57k3FXaIk7qKopr/5JwbscrT2SJr5SLxC2D2SZP8ATs5IrhFN7tosmlXatzaKDKobdsv5EG43zbBKnROSV32oXsYdU1G73KsU4tVGStPdGvLiWRvhGWenalaS+xjljdrxHPKUabSdMniyKk1WzI5INKmrK8Uanyim9Vb6cvp5SttO01wW3G+7tW3N+TNpG0orur5OQgsdNOUdz1Ydxjl7Y81NNxikva+DFlxvdrauKOWnHFJPtTbfOxk1GLZdsaa5IzxpjXFtSi3N+26LtPlaSTuq3LMmJW0291RnacaS/dGPeNX6rZUW206TRPFkjGaTTkvJixZJJtP9zXhl3bNJNmmOW1bGiDUp32tyW6bDJBznJy4ft7hjcYZHFzjSXLZoeXG4NRuXuzWSVWsc9InF9yqjHk07c3utjmHG3W7i0Uzxru/gZXLAmT7/AEqRNLgErJJHybukkTS43BIklsAkvglXsH2HQAlSGkOhpV/8gCQ0vALcaW4CUaJfZjoNhsFDElvuSobCr4Cl5Y0vgEiQlQ/sx0OvgCFP+2S7R7+wUwF2/ImtiW/yG/yBGvuFfBL7B9gI/YWxOvgTQEWkFezHTCmAqYUx0wpgV543hkvg+fv8R2n7uhTl/wBLs+g8q/5UvoeD/wCImLfp/Nt7/wBTbg/vGfL/AFfME7Ur+TTo9/uUTStlukdSX1Oq8R6+O90YOZHJ69XG0rON7W3t7l8VKko7EJJlsYtqiM006+TSzUUl0zqVTRfaaTvcpyR/UqLowbK4y7pSSuXJa4pNNFKUovdF0V3UaYoThuy5xi415K4KMeW0WSSpO9vg3lUqM4RvaiMsbSt8DlBNX3b+wu5NV3bhG1ThJS2bITuO7XBoprdSEo90mm07FmzbJnknFfJjai5ydNHKz06k+ODJl03a265McsK0xyVabJJbJv4OQwSfNp2/Pg47scXaXBp0krf8XkYZWdVGU25PEm7V/pb8kp41bVorwvtSTaLnG9oq780eqdxnpjz4t6jv8oxTwTinKKTXyctPHJXb4M+RNr+H7meWKccnGNdq7ZRSflrySg+1qm9vFl+aMm90tihwV0t7MrNVpLKtU7dqKt8qzVgyppJ7HH32Tpun42JY80ov9NPcnHPVVyxc3i7ZqP6kl8Ijkx/q/i/mZcGql2pUknw0X9ze7zb/AEN5lKy8dPv9KkTQkttiS5R8g75JbE0ttxRJACQ/ox18DStKgCgSGh18AJLcl8DS22CtgBL3GFfA0tgEk73Y0kOrHQCCmNDpgRpjHQJIBASACIEthUv7QCBodf3YUxBGmBKmIkICWwmrAQDrYEqArmrhL6HiP+IHF3enNTS3SZ7jL+GX0PHfx0xd/p3VJLftka8P9oz5f618kSX6mWadfqojNfqZPDtJUdZ4GnUr/l7nHtK9kclqFeD7HGKVt7F8faKthGkmQzq2OE2nTX7jnFPc9EZseR1JFsJUr+COWCTslFOkZzqp+jtOW6JwS7tnRBKS4Jp7q0aRC7tvhpiab/SxKSXHkdv3NIglkq1XAu6LqojUU3dkJqSe3A7RqVZ2/wCpcDgt+CpZMlcC/NklTfJPlEeNabqdJWQyxk1J9uxHHlindlncpRdMb2izTHKkncUUQjKOSPa1uzkJYbhWzZmngnFpuOy+TPLHva+Na8MZOG6d3yaYNtKLbVGPT5sqWy/Svc2Y87bpRS8tm2FimUDUnKmmQnDdU6XsXp3G7bsrlFtJJSsvpVlyRxuW5ly47bUY1fk3zxOSbVpr3KJ4pRacjPLFbGuPyxlGdveiqMlFyTW3JtyRu3V+yKcuNtcJfYxuNXlUwzKMlvUfY3wzwcU6l+5xufGkk47PyOGWMYpO7K+VntOpX6PpbfcmlxQktiXafNOwFwySW24JbjSAFux0CJJbAC25Gl8AlvY6sBbkqChgA0tgQ1u9gElQJe4cDW62AKGOv7sKASsKZIAI0wpkr+Q3/tgRphTJb/AUBGmH3JUFbARaYvqT+othoRoGiVf3YV/dkiNf3YUSr+7E4gRa2aPLfxkxd/QtUq37GeqJbHnX4rYHk6Pqo++ORpx3WUU5P618X5IpTkm+G0JRpprgs6hF49bmi/GSS/mLE00daenPXzt4q+Dj0u2TOSpdhhyxak2aYoqFJkmqiSxxWzHljsz0YzrbPbJlTq17iVtItmm4Nsqi99/cpfZPSxNpXSZKNtq0SSShdBCTNJDaXZHkO1PyTjJcSQ3CLVo0kV2jjxcuyyWN1/D9xRi62ZKMmlT39iZEKlF01W5CWFtfqRf+Y02qRFZLVOP3I0bULEl9/gTi0trNcFGraFUadLfwPGfRthUsiYPLJ7NN0ap4rTfbRRPG6tFbjYmWWo45ds+HybYZIf8ATTo413Fb8lmLI5bN/QY5WFxcrDJCknS+hZ+ZJNJK0/JjwS88o0N00q2N8btSrJtW1dWjJljadvjg1uCcb8+DNmV8PxwMp0iMb7XaXPuSj+W4SUl+rwRnGUXfkpkpO90Y3peRKWGM0123a/YxZNK1JpJ0X5VlxPujK01urKY6xpVOO/1KWy+1tX6fo+lsSQl8EkvY+XdkJEhKySQAlQ0rQB/5AasdAthpALckluFAkwAa2XAJJDS9wCvglVAvoFWABv8AIJIYCSGH2D6AFfABXwOl7AIKZJIG68gRpgNP5GBEK+B7MKXsIFXwJjr4CviyQt/kN/klsIBLdnSfxFxKfTc6q7gzu1HU/XmPu0GZe8WWw9xGfqvh/wBS4/y+t6uKWyySMeB06OV9bw/L9S62PH/MZxODdnZx9RzY2J/oaZjyy/UzS/4KMea+57l57RTg2pbMsm20/Jng2nvZfF3yejGs7FOVtQaM8JW9zVmiqdGWEW5Fcpdpnprx7xaItPuHitbFjTbWxpj6VF7XQ4zpU0WLGnBtXsCiqptWXVV9+9E07a2IOKTe4m2nswJzi+61wLeq7SSTlu2O1wWRShJ0k0Xwiqbog3GKTY1lTWxMDtvZohlgu2/JK2naE91bJ0T2wZ4U7r7FNJNSr7G7PSVGGScX/wCTDKa7aS7bdPlVUkvg1KblGKcaZxmGTS25N2nlJ1e/2NMKzyjbaUdnZTkeNONR8bsnFVFyvcqlK7TW5tfSsVZPy3vVGLLj/Vte5ucFTsqyuKScU20Z5YxaXTj8u0nb4MeWHdNujk87hVuPPJi8ultZhlitLp+kKVIdAl7kqVny7tChgC2WwAthpe6CrY+eAGPgKAASvka5oaQ0tgEkSXPAAl7AFDAAAEhx4+wwFQ/sAAAlY6sdfACphXwMABJBQAANewtxj2EEfsA6TE9mSE0IkAEeTrfrGHdosi+Dstb2df8AVKvSz+jJx9xGXp8Tfihh/J9WaqNVbs65gZ3T8Z8X5fqzK65T/qdLwcI7OF3jHN1q1rb2+xmyxTb2L5ukUtpl4iqlHfgsityL2ZLG3dnowUqOZNJlOJx7mmassZOLtGRLtnZOX0jFqgk1sScadbIhB0mNu2WxvSFuN+GxzW+xDDFykaHDdM1x9KbZsiaVkLd7I05Iv2KKd00RZpaJQntTH3RrgIY9weLljtFOSUo8kYKm2h0638EW2mSj2tjJ1VFijfgrhKy1O07LQVZYwrfk4/UJN7HJ5YxcTDlitymUTL0yK4vuT8m7T5H2qzDNVJpGnC0kkymN1VrNxtxtyfui2MXJqorfkoxOt0XwyOS2pJG89dqVHNjffS9iicGl42LJu5W2wUU92xdKsOpcnylSM8Vaujdnir7WRWONGdx7Wlfogh3uCVDR8k7gWyGt2HlIaAY1xuJbsbAEtxtbDABoYCYDiMSsYAK9xjQDAAAAQLdjAAAAAAp2NAJL+7HX92MAFX92FUhgBEBtCAW6FZJhS+CYI8nXvVH/APnl9DsdUdb9Tv8A5EvoWx9wy9PkT8cIf/sd/DPPsXFno/41x7uvSa8I87wVR1+P+sc2+6ub23K2nTaHOTT2E5PtZorVbLMVJ7kUhwW5vhVMvSybuLXwY5JqbdG5x/QZ2k29jTLuRERgyyKtijDfbgthF3uRCjHanRuxK2m34MsUu/c1wWyr2N8GdKbjbTVmXPV7KtzRNO+GVZ4Wk14JyhFUFxuTey5IKLS4ZOMVXkrE01C42Rcak34LJtpJLyDTqruy2kKLXcq2JqVtpNk4401dEXjp3dDQVOqsz5VTfyX9r8shONbuqIvYwZovdrmxYW1Vvya8vbTVFKjGuOTHx1V2jHkqNLdGjFP9FUY8DSfFmqMlWyVm0qlWpRa2juNQXnYrjlcX8km5ZHadGiKqywj3NS8CjitbJ0TnBt7O2ThGfat0UpH6ChHgBo+Pd00hgNLyAAt2A6AY0LkkAB/pAEgCPAwAAGhIkACp2OrHXwAAAJAF/I0twoYAAAAAAAAAAAJ0MTAQAAgGdZ9UyrBP6HZW9mdR9YZO3TZH8Mvh7iufp8q/i8/zeuZvg86hs6PQPxHl+Z1jUt+G0dBkqnsdnD1HO+6m1vZB1v8AUlbaIvjcvEUk9yyL/TRCEb4LKa2o2wUyScqikitKLe5altuiqcVZrfSILS4Q4ZN90RW23uSildjEqyM13XXJqxyTitzKlHwaYR/SjTGqVNtXwKUbXJFrcG2kXQXZSpkaRYnezIqMe8BOK8idp0mWzS/0lTtPhgNOVEJW202WuUaItqrAzt06ZGVyTounjTVhDHdoiwYcsabsgmktma8+GSbtcmeeJp7Gdxq0qPc07RYsjSW5FQdcEoxbVUJEGpNyu7RY5yXD5K02nVFsleO0t0WiKhByc7bNaUqMcJrvSbNyywrlE40foEHt9AQ0fIO4kOPAkMBpDEtkNcgNDATAflDQAAACJVQCodWwGkAVQ6sQ6AVbkgAAAdf3YwFQMYpcAIAAAABNgMiANgACdguRASpRb+DpHrfJWkyuv9LO65XWOT+Dz71/k7dDmftFmnH/AGiud6r5e9az/M6pqZf9zOmZI1N7eTtXqWXfrc7vmcjrGf8Aif1OxPTmxTJ0itscns0VvyXlSuhKkWQnbM8W6JJ+Ua41Szto7rI3uRi12/I1yka73FdH234G1tsSgqW41G3wWkQrhe5swK4lCil9y/G0lsWxVq3sTdEu2C5aKrdkXbfmzRCycY1exWlvdjTd0xOO9rgCTkktyPcpPgJKnRBJ91AOSi9yHc263LXF+xFqMXuBFKQ3aap7jWSPFDUop7gDXdF3/QpnBbe5N5FdIHJWnRPQUcSb39iM8fa7obnJPYjKTlW5HQrcXe1EW5V22WOlvaIzcXwyBXignLfku/THbYeGMWrT3ornB9z3GtD9DV/uSRHxRKPB8e7iUeQCPI0AMcQBbMCQmMAGAB5QAkSAEA6ABoASoYAAAAAG4WwAAbYAAAF/IMT8/UJ6DYciAIF/ImD3YAAvIxLlCCOd1il9DzL8SsvZ03O7/wBLPSdXKsT+h5R+K+Xt6Tna/wCmRtxf2jPk/rXzR1iSnmyyfmT/AKnX838TOY6jPunO/dnDZ/P1OtXgjPN0ypy5J5f9ip1YlTVikkth9yIKq2I2kzXHJWtEJ7UTUkmZe7csg3e/Bpjkz02RmnElFpvkyxnsNT33NZkjTY0mm0xwTSKIzfJJZWkWlValu6JONOzPiyysteVSXg0mURRkuyUeLY01Km3wTTjLYmCC7eWxtRatMk8aSt0VNKLdFgnd0iDTk6rgldCbreioFj7lyKWLbkay7EZybdXQFbg4vYT7lyWU634CSVDQrck1Xkg9nZJR/XdlrxppMjQz229kNR8JFyik9lYNbqkTrQMeJpWiLi7Jd7it2kVuVu+4ij9CiREkfHu4ceQCPIASDl0AL+ICQAJhMSBAASkHBFMkFTGhJ7bgBICMX4JAAAAAACtfADFYWvcQDbEANgDdCbB7ibQWMBWF/PIDBfxACW5CNMmvdQl9Dx/8Y8vb0jPT8M9d6g/0S+h41+NV/wDB8z+Gb8PecY8v9XzdrZXKX1OKzy3f1OQ18qnL2ZxeR2dW14pFWR7lMnyXT5+5TOtwklOthOVuyLE39CZkjSzvRYppLczXXDG5GmOSumqM02TUlaMimkuSSyfJpMkXFtjKkP8AMTZl/M/QRWTcv5q+LkYZUlVk4ZLV2cfDJvyWrKkqTRaZIuLaszXklHNW7Zx7yWOOT3ZfzRpvnqH4kEcid2zDLKr2BZnHyPNHi3TdrZlcpUt2Zpan5K5aht8jzh4tTnTsksjbuzH+cvcTz072qh5ni3fm7UxTyJK0YHqlzSK56trz/MfyJmLkI5E6bZKWeKVKRxL1UmnukQeopclbyxPg5ZatLZ0EtTGXmq+ThHqd+bKp6trhlf59Hg53LqI8KXBT/mV/1HAz1rtWyl63/uKX5Mi04q/TtEiKJHzTrHHkAjyAEgX8QkOIEgW4BEBgAAA073ECAkMQLnkBgnuAAOwsXiwAG9wAAAL+QFfyAN/IvuJ87fyOt+qfXPpb01DJ/wAW6xp8WTGnKeKEu6aXylx96GrR2VukYurdT6d0nSvVdT1un0eFbd+bIopv2V8s8C9V/wCJOOScsPo7oKzw3S12vk44215jBby/c829Z/il6o9X9Dj0rrr6fnhDNHPDJh035csco2tmm9mnTs9HF8bPPW50x5PkYYz/AF9Edf8Axs9C9McoYdZqOo5F402PZ/d0v2Ok9T/xGwU3HpnpyLj4eo1HP2S/3Pnbmm3e9qyav9/B78ficePvt5b8nPL109r1H+IT1ZNt4OndJwxe6Txyk1+7DT/4g/VmOSeXpvSc0fK/LlF/umeM4I5cuSOPFCeSb4jFOTf2Rs1fTtfo4RnqtJmwxlw5qk/uZ5X42OUwtm76m+2mOHyMsLnJbJ966e8dM/xBaPUVj610DNgTpPJpcyyJfVOmZPX/AKr9P+p/T+fJ0jqEM01Bt4ZJwyR+sXv+x4dHG5bUn9TPq8EsSjJNuLdJ3TT9rX3otODCXcZ3lys1WPqMv1v7nFzl8mnPmc5yhJ90ovn3T4bMU3TNsuqjHs3K/JXPyO/qJtNcldp0rk3x8iY58fcg3uDRN0rC9we4na8svDQbYKTvki2miLdPktKhd+Y0qDvb4Kb+o09h5I0vjla8klkb5MzluHcWmSNNby7Asu/Jm7thOew80eLV+b/3A8z4sxuRFzRPmmYtU8z9xLK35Mrmvcg8leSt5E+DXLM6qyuWWV8mZ5bXJVLK15ZW8i0wa5Ztmm0VTz/JknlKZ5djO8y84216jn9RXl1G3JglnM+XUNcNmV5l5xOQepaV2U5dWkrtGTA55bfh7fU3aXous1clHHhk4+7RhlztceDbBm1dqou38Gd58z3UXX0O99H9D5ckoy1CaveqO2aX0Xpo4Ip4Vf0PPl8mPRj8S196tkkRZKPBkolHkBLkYDjwNbMSGBITBMYAmMQIBggBchZIV70NCS3AkAIAqAAaAQDaEwE+TgPWfq3onpLp/wDm+s6tY3K1iwwV5Mr9or/fhGz1Z1ePQvTfUesTxvKtHp5Zexf6mlsv3o+NvU/Xeo+oOrZuq9V1Es+pyvdt7Qj4jFcKK8JF8MfLtGV07t+If4y9c6vp9S9Lml0XpOJNuGnn/wA7KuEnP3bdUqSPEs+o1fVHHVa5pwm+/T6ZNuEFwpSf+qT92cp1jH/ndBPSN9qlKMuea8fHJj6Vi/z2ix47cdTggsWXGkm047Jr4aPZ8fHG5dx5ubKzHpRLI293ult/6JQuTfbvwcti6Tlk7cG43X8LOU6P0nFhlOet0+bOlj7cUE+xKV8t8tJeEdG5XXUeGY7dfxaeXb3S/TG+XsjXj0c/8tm1Dxy/KxY5Tc5fpi0lbSvl/Q5vF0bUPvlhf5M5tN5HFScaVVG+EatN6XxPPHPqO7U5VxPNN5Gr9r2X0RS3/O18ZZWn0P1bo+j6HhhrezS6uu7JKELeS7cWmlvs1t4H13rkuqYFo9DpJ48MpKU8uXmaXhLwn7mzF0TFFNyjt7vYNZ/w3pmOOTUKVTTcKi/1U6dPjk+a4/8AzfBj8v8A+rPK5Zb3JvqPquT/ANJz5fC/+XDCYzWrZ9uAwdMyS27G/wCSOM9Rz0+lxLD3RlKElKdcJrhL5vn2NfV/U2XUKWDpuH8mDVOSe/3f/g4rQaSGTKs2q/50k7Sf8K+i8n1OHDb9dPk8+TGXUrT+EnT+n9V9c4tB1fD+ZDU4ZrHB8qUVcf3SZ7hn/DT07mxNR6ZjivdI8P6dqH0f1r0vq2N9qxamEpP4un/Jn15heKWCM4tSjNJxaWzTVo5H5bHLDklxtksdf8RccuLKZSWyvBfUv4O6CUJS0Ep4Z8pJ7HlvqP0L1zo85Slp5ZsSezgrPsfUYMU4ulu/JwnUemafLGSnijJPm0eHj+Xy8f3uOhyfF4uWetX/AB8UZVKEnGUZRknumqoplJ2fS/qz8OOk9UUprTxxZHxKCo8j9U/hp1fpkpZdJF6nEt6XKPfxfN48+rdVz+X4PJh3Jt0T7ilJFmr02o0s3j1GCeKS2qSoyzbbPZM5ZuV4rhZ7ScvoJsj3CckyZkjSSlQKdlcpeEVuVDyT4tPcntYr+TOsjvdg8m3I8jxaHlZX3uyrvQnNEeadLXkbI9xU50yLyLcr5rTBdKfmyuWQplP5IykVy5FpjInPLStcFU8u/NCXD82QcJSdKLbfwZXkq8wkRyZedymUpS4s5npnp7qXUZxWHTy7X5ao7v0D8OH+metltzT2R58+aY+634+DLK9R5lp9Hq9RJLFilJv2R2Xo3ofX6twlnhKMXvVHr3TPTGh0KSxYYt+9HP6Hp3cko40kvZHkz+V9R7cPha9vO+jegdLp1GWWNtLyrO2aL09p8EYxx44/sdv0nRJ5kkluznenemW2nNbPxRhlyZZfb048OOM6jpOn6NFSjKMbfskczg9PZ541JY6T+D0DQ+n9NglF9icvoctHQQjFKl+xWb+2ssn09BHHkSBHucJIaENAA09xBxuBIdiACQJ7gHlAMECBBO0gAOQjZoAAABsAAdiAGwMvVdDp+pdO1PTtVFSwanFLFkXvGSp/1Pi3196c13pP1FqOj67HKMoSbw5GtsuNv9Mk/Nr28n229zrnrr0d0L1l0p9O61pPzFG3hzQdZMUveL8fK4ZfHLx6LNviLJLZp8HE6vTTjq46zSaiWDURVJrhr5Xk9o9ZfgB6y6Zmlk9OarTdb0t3HHkax50vlPZ/VM8s9Q9C9SendWtN13oeq0OVq0skHTXFpq0/3NplLdyqZYdabujeqlihHH1TGk1sskY2ufK5Oz6L1F6ZnC8muhGnVW1/JrY8yklk3c1H6oktJpXvl1cYqrpKz1Y/Jy1qyV57wT9vVP8A6p9KYoKup4NvChOT+nCMup/EH03inKOm0/UtdJcRx444k/u23X2POYw6Ri7e6UsrfCbbb+y5NmCUntg0scMfDybX9lv+5N5sr6i04ZHb8v4hdWk//wAX6d6boo8rJq5PPk/nt+yOD/EL8SvUPXdf0TD1uPSoaPFN45Y8ONpyTpNtvZK62RRiTh3TlJTk9mnBNfzs4PrPTceXpXUId8pyyfqXc7WNp7OKS2rkj+TL3suE1p2zJgxRj+mMe3xS2ZnUlCaiqSvwZfTGun1D09pdRktZHDtyJ8px2f8AQuyySfymd3jy8sZf3HGzx8crL9JdTxfm4U06lFppn0h+G/Xo9Q9E9PnLJeXFj/KyXzcdl/I+cVJSxNc7HePwo61PT5NR0t5FGMl+ZFN8tc/1OL+W47lxeU+na/FZz+TX7e5PXxb3kinU6qE8bacbfszz/qfX8mJ/l4Zd0ny0+A0XUdVkj3PLV8I+W/k+n0n8f+u15MsZNq0nfBg1KxZpVOKSKdHn7knltyfll2eMZJtLdky77Xx66cB130r0fq2KUNTpccr/ANSVM8u9U/hJkxuWXpGouO7/AC5HsWSWaDuKbVke3JmuKTUjfj+Tnheqy5PjcfLO53+3y11f051npk5R1OjyJLa0rRwuRyi+2UXFrlNUfYcOg4tZjcdRijOL5TVnWfUv4UdJ6jCU8OGOKb32Pdx/Pt/tHO5Px2r/AMV8wuRXOSPWOp/g9q45pQ0+o7X4T4OH1P4P+qYLuxwhkj7pM9E+Vhft578Plx+nnikq5Ffsd3/+1fqzur/Kx/maNP8AhJ6oySqeOMF9Bfk4ftE+LyX6efykyLnseq4Pwb6nJReo1cYrykjl9L+DehjjUs2rnOXlJmWXy+Ofa+PwuW/TxN323RKGOc06jJ/CVn0Dovwp6Lg7XLHKf1RznT/QPSMMqxaGLfu0Y5fNx+m+P4/P7r5s0fR+papxWHSZpX57djntB6C63qpJPD2J+ZJn0jpPSsMaUcWkhH2/ScnpvS2eTblS+iMsvmW+o2w+DjPdfP8A078L8yinq89fCVHPdM9D9I0U3+ZjU5JeVZ7SvSrS/U7Qoel8H+YSyR35McubPL7enD43HPUed9O6fiwQa0+lqK2TS5OQh03V5sijHFJJ+a4PSNH0PTYZU8cVFvazkcOg02JSXZF2tnRjblb228Zj1p5703oWXI+3KnFLz7nYOmdK02KUotxcl48nYnp8WNd3bFe2xjhgxT1MskIVJ8teRIb3EulaHE8/aopJbnPLSRjiUox/ZGfp+mySff29tP2OYjjkoJJmmOLO1iwYsje0d/Nk3gmbJYnFLte4LDNqy+orcnZI8B5CIz1OMfI1sJDAdgJDAcfIxIaAaHHyAIBggBASEhgA0wEg39wGAkxtgArsL+AABNbDEt3QEfseX/4jOhLqXpDH1DGl+dpJuLXlwlz+zpnfOu9d0nSsb7335atQjz9zzP1n6ij1TpmV9Rk8eFp/l44urdbNjemmPFll6fJfWcaxZ5KqabOLc1bOU9V6jGupZowf6VN1f1Ou5M/6n9TTHJW4acxoskYtNKn7nNafJdbnU9NqN6vz7nNaTOqSPRjkyynbl3lXa9zNKSbcXvGS7WVvKvL45KM2Wt0y9qulvpTNLBPVdPclUG3jXsnvt9m/2RyuaVv6nWoZ1h6th1P/AFfolX7r/f8Ac56cne252PhZ+WGv05Py8fHPf7XYsvYmvgNF1SfTdbHWYpVLHb/luYc+bt5dbHX/AFB1OGn000pbtMfLwl4r5ek/E5bjyTx9vaPTvqDSdW08cuRJ5JLdLhHaelLHlnbkop8I8a/DLBq5dPwzytxtXXlXwewenMSi4xyNSXN35PhuXHHHLUfccVuWMtdk/KlKCjHxW6FGeTHN48jvbZm3BLG8aSYp44yk+PhsrI0Z3aVtWvklglGOS0rsvjgf5fc0q+SrLiljXe4przXgmEcjp89wVKlRN5G+OGcfilGMOWrXBbGTuO92i+0zHarqv5c8Tco1JcNGbpvVY4l+VklF0/Jrz4/zYSTV2cF1HornFywSlHL4ryVtT4u149fo5wtKNmHWazDkl240k/NHR8uTq2icoTxyklspIWm1+teTfHK38FLmTB3CGHHNt5JLfg0Y9FhirT29jgdFqtRJ1KDe22xzXT9RLKu1waldcETKVa8dchj0ce2LUU0zbDR4sdNxpv2HpIyxqKlw+Dc13Kq3razTGKSdjFp41FqKo3YsEEr2sp0sZf5ftaqRpWPLLEq4rk0k7Uyx7QngxR/08mTU6eP50Zey2ZyLxucVF7/Io6eU25S3iidbUlkcVnxXgbdrfZmPK8kcahFfNs57UaeOSKhFOvZFb0icGpRpeRcdr+UcJNTyQTk6SVs06LSJSt7Lbb3NOn0qlnmnH9KN2n0k3P8AMl/BwkTjiyyyW44qOOoqrVUacMFDH+regUYKaioptcFmfHUe26tFtM56V9vdluPHvfBojCKVWzNgwyipJt0+DRBxjGnyJf2WOWiMEKtz1OQkhgC8MB0ADS2AY0JDYDXIxIYANUIOPIEgFYwAAAAAAAAAABnXPXfqPB6d6dHLlkoPI+1SfCOxv6nQfxwWhh6PWbV41OSzwWFN7OW/PxRTK2TcacWMyykro/UOvx1beXG5TjOnc00578v2R1n1Tmx63TzxzzxjKtqKNJq5zyJqUXe79l9jnMWlhlwtylCUn7I8lzuXt1sMZj6fLfrOOTTdby4Msqlbad8r3OClktunZ9I+s/Q/SeuxS1GnjHNVRyQXbOH0aPIPWf4Y9T6Fpcut0Wux63HC3+U41kr2VbN/Btxc0k1Xl5uHK3cjp+DK0/c5bR6lppf7nE4Oi+pZQWSPRNb2y3TeOm19GzZh6X6jhTfQtY6/7V/5PXhySfbyZcWV+nNLO3FVyyuWVvZvkxw0nqSqXQNa/j8v/wBk10z1ZkdYvT+rjflxSX82afz4ftT+HP8ASOsyyjhyNfxJdy+sd0b9N17SS6bjzSypWqabpr6kdH6H9YdSn2aiGLR43s7fc687Lb+Z3P0t+FWk6f8Ak5NRGWqyp3eV2k37LgvxfkpwW2dq8n4vP5Gt9OpaPS9a9QTUen6V4cLdfnZk4xr4XLNuH8PJYtdh1XUeof5rsl3PCsdLxu/oeu4ui5NFh7Y4o+2y/oXaLoEss+/LBrm3Vnj5/wAlyc3VvT3/ABvxHFw967cZ0DFp9JCOHDhi9qs7Ro5T2UYSW9rbgu0XTI4lGkpKuWqZy2m0eKC7kmm+HZz7u3ddXHHxmojgm8cIrI33NXVmpZHSkl3RXJDLpZSaafdfFM06bTy/Kf6Xts7BMV0JxliaklT8FU5QacFW/gU8TjFvfnYjhjKM7mm0063CfGRXODTpNJUWQdNeUSeGbSk4tJ77k1iacXFNp7BbqJ6ZpycXuaPyYtxcV+qvBLTaff8Ahp+TbjwtKKST/qKeoofTsGoxfrxxb9zLPoWJLujjimn7HO4O3Ekmk1W/wXXjyW6S/wBytxifKz04BdIhh7XGKbr2J49JHHNSiqlw17HN5YLIopLgryaZ1+mNv4Exh5ftlxxccke9WkchjwrKu6K4fJKOnbxR/Q7RyelwKEVHZXu0aY47ZXORjw4ndNM1LG+5JJ8GtLHHZJfUl3Y1B+H7+xpMWWWVyZYYpRjUWrTtpjcWoO079i7TuMoyb5T59yWWmlGKu/5FpOmVrCseSm6r5GsTbXdJU1uaMv6rUHxSTIuNSipeOWE3tDNCGCFRjcn4LtNDJOEU4KK9iGKLyZpTlbjHg1dyjdvtS9iYrYrWBKbklQp43y3bLZSi2rdIrnmjdRXBJN6Nxkkordsthgj2rv5IwyxUbaWwSzNu7HSt25BjSE0SjwehyTGheUNANAwjwMBpAwQwGArGAAAAC2HfyxAA7+WF/LEADsZEAJAR3+P2AAb3POf8QeHJl9DwyQTrFq4Sk17NNf1Z6McV6t6Rj676e1fS8jUXnx1CT/0yW8X+5XKbml8L45SvlfHqJYZR3ateTdo+syU+zul9EYvUGh1HT9bm0mqhKGXFNwlFqqaOL0eSeLUOTTaTVfLfC+54sse3Xwy27u9XKcIy7lb8V/IsxYMeefdlxxlJcWrpmLQ6XUuEJZO2WabTb8L4Xwjsul0MovH+htSi2rXNUrKXG5PV46nbBg6LhyzueJO15RuxemtKml+RjkvNo53QaOckrjT544OawaNwgv0d0n/QtjxMsuSTp1XF6a0mN935UF9EaYdB0rSb08duP0na46SLUbV/PsWx0q7V3Llbr2Lfx1T+SOny6Lp1KoYoqlu62RN9Kx4432pLwq5O0ZNPGn2pO9nZnnpW1FJtMfxrTkdZy6FTkodqpXtXBLF07ItoRSR2LSaFTzOUpJpvZVwa3popdrTjSu1wTONa8v04HDofyoxjGKk2t9hx0M5KMlj7LX7nM5ceOE4xtSlXDRCcotKMfL8PZPwR4xbG23phz6BR0zjgUZT2u0V4NLklik2lt7L+Ry0IdrqW78VvRdNRjBppOluyPFffj04GeBtRj21FO3ZKGl23Xc14RqkqyZKbcfCLsUUoRrZfBGjK+tMjwL8puUHF3wyOLTpyWz7TlPy4vdu/gl/l+2Dlf2S4ExRcu2fFgVpcPySeKMJxcuVtZpjHti78oryrucate7HiWoZFttVcMeFd8ajtRcsSk2/ZFuiwQjku2m3tfkaLlYnpdO+ZN0bMOOMd1FN+4TlGEoxSpv8AoQlOMU+22WkkZ23K9tajj7G2o7OyvLOMWkl9zMtQ5Pte1q2h5JWt3widkx1drI5Ity9l5KZ55SlS2jf7mZ5KbS5fgu0mOm5ZGvdX4Evei6k214e6ULl+mK3+o3kcm+1bJcsqzZ+5dkXsCklCnuydsvG+6np07t8XsX5Y98HJcLyVaZOt1sXylVRgrtlkXpDBDsVXSfuOclKVLev5km4p7+CDlFccssqbxyk3KT29hKSp1H9yvJlmkopP5IxeRq3sRTZ5pKK7UuRwtxVlOR35GsvbtZBtz4REn7sNz1OOmOPBFEkwAaENAOJIinuSAPKGhDQAAAAAK18Be/IDAW/yCfuwGAWAAACbAYn7hfwH3A82/GX0V/xnRS6x0/D3azDGs0YrfLBLmvLX8zwDLH/L6/BBxcW2pN/RP/c+x3TTT8nzF676cn6w1uBYlF4s8kqVJxlunXxbPPzY6m46Hws95eNcl6ab1upUIUo40lv52ts7tp9O11HS4JSpLSu1XFs6T6S0+TDq80sakoSyKMd9tkkzvWCOSetzZ3dxisUW34W7KcdmnX5p+nK6dxxTUXaUcdNNbvfya8TjzJJ71GvCMGJya/VGrVJ+5sxJKKi2+5fJrK8GWPbbjku1bpv6eSvK49vCVpfbZlaSfmlft5FN0lvaQ8or4lKKcnFbJK/uVZIvu57mrSf0J48vbN911VL7FWXLG2lJq6Sd/dlcv8Xx/wBTg3HL3dqSul7Kl5M+TLlyQjKKtt8J80iUM7lkl+ldrk201vVf+jRil24Yx7UnXl7L/wAFK3xknbi3i1U8qirXe6TW/jcv0/S9Q5Sk5Ok199tzkNFKMcqTh3RirW98nKRywlGUXBKt3S2bZExXvNcepHCPC4O3JqtltyivOpdvalt5tnK5sak6T/T5VmSeJycoxal4qhZpPnLHE41KUlJ18qzRijL8vt4XyX58UMcUn93W5DtqLad7UV8Wcyl3aeNUrbuvY0YYuV9100ZtNk7ZODT+xshKUaS4e1MlY4407TX0Iygm6S29i2DbdJpU90i5dva7jslyEbZ8eJ0qVVuwbUWqStbolCbppeX59ivK0slpJ0yKbtSnOTUZNNtEb/Upey4JyTlKLj55JLFFY33Pd+CDcUyd5e5Km1sRy5PysTcnux5EpTTukkUSwrPPtcm4oaLfSzRY3myfmSdRRp1E33dkX+nzRWnHFCOKOzXsWafHJz/hv3La0z93Z4lLakjSoJpe5GUe1VF8exLD+lOTbJkMrtZ21HZ38ApUrSKozcp/pezLPy3/AKn9izPKotNtuT54Q4U3STsbi21SQKWLCm5Sivdtlt7Z236E4uK7n4M+XUPv7UqSOJ6/6s6T02Enm1WNNJtruR5Z6m/F7T4pyx6GDn4TWyNeP4/JyXqKZcuGE3lXsOfU4cULyZIx8ttnFZfUfSsc3Ceph3LndHzh1v8AETrevclHO8cX4T8HVc/VNdmyvJPU5ZSfLtnv4/xXJlN5dPHn+S4sbqTb71BO6AEeNiaZIg2ST2Alygi/AojAaHfyJNeaGBIEyKY7Ad/LC/gL+QAAAAAAAADf5AAFv7jbvwAAAACADwT8fsE+meo4a7TPsnnxrImlxJbcedj3to8j/wARuhU+n6HW9rbSyYlt5aTV/wAzPln/ADa9XxP/ANZHS/SnW5OODHn0kYzklLuxPa2/Z8fY7poOp6drackrd3F8+TqfpvQwlqun1FOMEotVW9t/0Zyuih+Vhjbrub3flydHnx9O1yYf67Vi6hpZ1/z4qtt/Bqxa7ROK7tTjv6nW8XZOPc9qfb+21k4xxuNpxlSrZE3JhMNuyf8AFNDFVLV4VXvJGbU9a6Zji5S1cJJeIJu/2OBWPHLuaUW0+GuCawY3FpQpeWlsRcr9LfxSexrvWPSsTaS1cmvbC2cW/XvS1NY3p9erfM9M0n9zdm0WGck1G5Ll0QWhi12yx7edjO5ZbaTHDTboutYdWoyxKUYtWjnNLnU4K20q4fJwei0ePE/0xUUl7HMaVUlSVe7/AKFscrfamWMnpyGBtzUoqov+ZthOSg3Wy4MmLLHsSuLpeGWKc5Qai4v334NYy3VksjS23dkYvttqu57hCLjC5ST9iM5ql+lJV4ZFTJb0z5blL9aTa8LgrnJJvtVJqvqWuk21JSvyiCjFySdt1wV3pbx3O1aqF3XFfUshmSTk9vNBPtcUlu73I6iMZQ7X/EvYXs3cWnFlVWnV+SyEu6DStN+5x+CVRcJXs9jQptK26RC1saFHtSa8CrutVdseC5Lu4VE0kpW3VkeO1fLSUMF7O75RXnuKUb3bNmWSUO6962MmKSnNylFtr+RaYqTK3tCOJ96T48kmoY1cUkSzyuad1eyohNNRk6ui3j0mbqpXkn/uclpcf6OPHJxOCUlk3WzZzWCUfy9t7W5GPtfPqKZ3vH3ZHKr/AEpluZ9sLSV8mLPq8Olxyz6nJGEUm93RpMax8uttWKKgkq49yGt1mDBDvz5YwivLZ5n61/FjpnS+7DoZLPmW2zujxv1T+IHXOszkpZ5YcT/0xfg9nD8Hl5dXWo8XP8zj4/d3XvPq38UOi9LwSx4s8cmVKkk73PHfVH4sdZ6jKUNHN4cbtX5POM+TJlblOcpN8tuyEVaOvw/juPDu91yeb8hnn1j1G/XdT12vyPJqdTkySfNtmOTdW7bHVcCbVHRwwxxmpHgyzyyu7VUnuS+wNJsdMtVd19+3RIgySPkHbNewMAT2Al4Gn7iQwGF/IIAHYyIW73Ab24Gm6FYwHYWIAHYkwABp2MiAEgAAAEAAM6x+JvRJ9d9JarS6ePdqMa/NxKt248pfVWdm3v6gyLNzVXwyuGUs+nz/AOmYTw6mCkpXBxtPlOt0cpBOWOSce1qbp38no/qz07oc+k1HUNPpoQ10YOSlHbva33S5PGIertJgyywa3R58cm2m4NSS3/c82WNx6dnD5c5fp2DDCSaTjKUbbaXk0q6UIKV1wkYOn9b6XqKcNX2N+MkWn/M5jA8GS5YskZWuVJP9iv0v59sunbjlkmklbe/v8m6MVki0riny0h4sKbdRVItVxpNNRfih4mWcquEYqbUYpu1uaIY3alLtpfcIuC/gaj8e5S3OMv0yTSu00RqEu/tfPHJSTUkk06VCxZnHuxypJNNX525K1lksfZKTTTTtedzjp5Mn5ib7qbppLhXyTJNbXxm/bmf87FN9qUfY0abXQlByjK4tX7fY61r55cWJVJK6SfPwW9B02tlKSzTbxt20lxt/Rjda48Ms3a7PDUrI1G/amXJQdt80mr2Ma6esUVKWSnSk3Zrj2tJpuUXun7jtTLHGeqrmm3JxTrxuLHtNW90vJZNrsptRvkyzdvbhCqbXTyJt9lbcMaSauT3ZQpJ20r3pUE5TtrtpfJGtVNx2vxxXa9kx9rdKXC8Iqi23GKtbmzFjqnPd+SN7UyknsR7mv07RX8yNSnkTi9kXSnFRaiV4pNuSiq8fc0jLKz3GiDbpS3IqLTk0qJYscrTu6Rk6x1PQ9L088+u1EMUVu03uzbGeV1PaZcZN1ernK5L6DlGoOMb3PJOvfjT03BqZYtBgnmjF13JbM4DN+NmtlO4aFqK4to9ePwebOdR5M/n8ON1t7rDFP+JRHqdbg0eF5NRqIYopW7Z4Drfxq6vkwyhg0sYNrls6N171j1/rU5f5rXZIwb/hg6RrxfieW3WXUefl/KceM67r3n1f+LHRulwli0+X8/MrVRdnjPqr8Qet9fyTi88sGB8Qi96Olttttttvltiba42OtwfA4+HvW65PP8/l5et6jQn3OUpScpe7ZXSbKu+VPYFlrbg9s08VqySoXC2ISy2+Bxbkt0TqK9n3NEW5E/BDtt7jxN1FtoO5/P7knFIjQ8Tb9AENEYvYl8nx+ndNDQAKGOPAgWwEh2vcQMBgCAABOmAANNDIgvYCQAAAAAAkSTQgAkBG2NvYBgAmApJOLUuGtz5x/EPpOLRet9XplFKM5qcPpLc+jm6R4z+OGmxL1P03UwTWSUXHI17J7P8AmZ80/wCdvX8O/wDcl+3X+mdOTxY5yiu1t2q5WxysNBhTTgu1r22KtFOS0y3TjB7uub2ZqhkksjTSRlt1Mse9xdiw54JqGoyRS/7rNH5uqikv8w3tw4orxZXObqml5Xksyxve+PNlNq+O1UtVqo3+qDry0YNR13UaZqefROeK6csct19nycjOD7batPajNnwJx7KpC3a0xkrXotdg1UPzMbe63tU19i2UY96lbbS5MGm0jg+6Cafle5vxxeydNPx7CXRqz0hmxLLUJbrlPz9DkujYJJp5JuSbtO7oyQxrv7orbzuaMOd4WqcW34YmS85LJp2RwjLEu1q6pFWWP5WL9VJr2KNFrYySU+3jgs1c1lhVtL6bFssmMyu9VizZXln2q0kR7H3ctV/MngjGeZuLuti3LFRk21e2yRSbbzSuCUE3y29ic+5p3XcyEJNZP4W9tkX3VJrfyxZVcs/0NNjkl+tcKy+OVtNIqhbyOLun4NSxpUlGkycYyyy/aGKKkpO9zieveouk+ntO8uv1OOEk77b3ZwH4l+vdB6W0c9Pgyxy66aaUE7o+bvUPW+o9c1ktTr9RKbbbSb2R1PifCvLq5dRy/lfOx4+se69l9Q/jpp8cZ4uk6OU5bpTapI8k9U+r+s+otTLJrdTL8tvbGm6R16ZHc7fF8Tj4u5O3H5fl8vJ1b0vTXBJsoTarcshK2emWx5bDS33JJIV7Be3LNMctq2BpLmg7U2K7JJlpqosDx7XexTONMvclVUVzpsixG1S5ZKMlXIpJXSElXuRpZapEtilSryH5nyTtFWSdeCtyCUk1yUtu+WNmn6DRJEfuCZ8e7qaGRuiQBHgYrpjQD/YZGJIaAuVuNCGmRoAAAAAAA0Mj9x3SQDAAAAAAAAAAvcdiAAe55X+OXTs6ei6vii5RwyrIvh+f3PVDF1nQ4OpaDNo9RBShOLi0/kZY+U0048vHKV4l0vXYNVB9rS71TTdNM5D8uc1st2qdM6v6v6Rq/TvVZaTJGSxNt4p+8f8AycXptVqZTvFnzJripM8eUsunY487nOnoWkwZYOPctkalibdt870dJ0uTrjkni1eWvl2cksnqVNduqi157oJjx2vZZ9uy5sfCi+CpJ2nOP2Rg0kuuzT/Mlhk147Dbjx9Rce7Liwv6JotMVLlY3Y4RaXZvfj2FlUcadqvtwzLDLqYfq/KS3rZ0Rj1XE8rxajHPHK6trYi46TMq14m27juqtJ/0FmxymlKS82qZqxQw6iCliyLjwy2eFuPa7aXtyPHa2Oc32NBBtxVqktmzk5u8fb2tuqVcGfSYoxSbcvpRpy5Vjxul2/XktjirnZb0x9v+XladNjtydvZLx7g28jUpe+yLVBLml734NPBHldI4nJtKKr5NCxJrn7nVvU/rv056dhKOq1sJ5l//ADhK3Z5L6s/GjqmtUsHR8C0uJqlN819Dfi+HycnqdPJz/L4+L3e3uvV+udH6Hgln12tx40vDatnlPrr8acTxT0nQMbcmmnlfCPFOp9V6j1TNLLr9ZlzSe/6m6X2MlebOnwfjsMO8u65PN+Qzz6xmo1dR1+q6lrJ6vWZpZc03bk3/AEM6exF34JR/Y6cxkmo5mVtu6bjaI1TJprgKsvEK22mSi9gca5CqLzVitSTJdyK9wbdkasRtaq80JvbZlXc/I1ImZGk3xsQfc5bBf0JRau7LeUoSjKyTjSE5xTqyLyJ+SdhO02Uyk/Ba3fFkGk3uRZsQUn5sXd/dFkkqK3yyLB+hC2Y/oQv5JJ1wfIu2kt0MiOwlMLIp7EgHfyCe4lsxgSBEVsNOwJWAg4AYBf8AdARoAAA0HbCxANCQEeAT9xoSAV/3QXsSGArBsiQO/kTC7ESOv+t/Tek9R9Iy6bNBLMk3jyVvF+GeB6LQajp3W8mg1mNxzY8jTTXK918M+nGdI/Ef0nHqih1TRY61eBbpLecfb6mXJhvuPX8Xm8MtX1XVukaTFkxJpU79jmsOlxxilSv6HC6OcsUE3GUWtpRapqRyWPVu7k9n8lJ09979OSxYMcU3tuGXHFR4tGNaiWR1C6LlN9lSko/VkWq9Rnyxu0ot2ZcvT/zn3SW6do3PNp8f8WfDGvLyJFWXqnS8KvL1HSwXm8iFlv0t/JjPtRp8EsU0mnGuaOQxSbbcW3/ucLr/AFf6VwJ/m9Z03ct0ou2WdD9R9K6mnk0GXNlxr/WsbSf3NMcLpS8vH+3Y4ahY49qim2R7XnbcnVHU/VXrPp3QsTySwZcs4/6Uqs8m9VfjP1zXrJp+l4I6DG12t8y+xvx8GWV6jPk+bw8c6u69s9UequgemdFLL1DW44ySbWNNOTf0PB/XH4udZ61lyYOlOWh0rbimn+po886jrNV1DPLPrNRlz5W23Kbb/wDgypOzp8HxMMe73XH+R+Qz5NzG6jRmzZdRllmz5ZZMjduUnbY4soTaJqVqmdDHrqObbv2sfn6jTpELtDjwW0jaxS3G9lsV7gnvuJdITd3Y7IOQr+S87RtYt+QbEm65BysTcPZuXv8A0ISft7D+xFtWXmW1bD7dhXXFjUthSVvkWEDfwHcQaaV2JPcrdxKxO3ux2iEd2TSSRbHJATtsGnxROKS58ibV7MuiouLorcG35LZcESNEfoBfySTK0yS2Z8g7iew+UVpqySAkm0SIpoFswlJMd1uRVDiBNOxLZgF7AO/kaewgAkCe4kxgMBLkd/IAAAAAAAAAAAACt2AwFbC2Aw2b3Cx7A2zZ+naHPJvLpcUm/Liip9J6dGLS0mJX57UbR7kai0zyn28P/Fz0Z6rjOev9L9RzRTVy06dJ/R+GfPvXtb610WeWLqmo6rgmnup2l9nwz7unCM04ySaZx2s6F0zV2s+kxTT94pkySX0i3K/b4Oxa7q+oydstVrc0m+FKTf7HbfTfov1X11xjp+nartf/APTM3GKX33Z9eaf0t0TBPux9PwRfusaRyeDSafAqx4oxS9kaTPX0r42/bxP0N+B2j0soavr2RavKv1LG1WNP6Pn7npsukaLQaT8jS4IY4xVJRXg7K1ar2MOux3GSK+Vt7TJqPFfxH6QtRp8jS3p7nz31/RS0mrlLtai272Prj1ToVlxTVXaPBPXvQqy5P07O6Z6/j5d6eTln6eWuW/wTVPwLVYZYMssck1TKlJp0dPD08uS5xdbCSdihkTRYpKuUaxQuCSexF1bYL4LlWBEruubJKW3JGkJMi1uDlv4Bkyhxkq5CUknyVzdMjdvcvvaq9T29yLdsgk64Y7p0yLLEynuCdCtMaRMyVsD3QdroapPkbexfWxBtpElLbci7b4INlLNE0vU0OCT32M6bXuTU6RMyLNrpyitiNxKnKxNu+S3kP0DRKyKGj5F20kNMQfcCd/I/kgiceAGvYaEh38hMSAVjBsXtwC3QBHgBjTtCBcgSDf5C/kABMdiAB38hYt/cAG2gb2Et+QALYAAAAmxX8gSv5C7I7/IXXuBK9x2Rv5YXfuBJtfAlXwF/IrAlS+ApfAvuw3+QG0qM+qj3J/Jfv8kZq4tAdZ6rp+6El2+DzD1r0dZYykoJv6HsGuxWmjqnW9EskZJxu0a4ZeN2zzm3zN6r9PyblOEGmrOl6nR5ME3GcWvk+jOudFjNyTjafwdD6/6ZjJSqH02Olw83Tx54fbyZqUQWR3ycz1fpGXSylUW4nDzx77qmezHKVhYshJNclkWqM0VKJJTfBpEVcxxK1P3ZJS2JQnW9he24u9Cbv2AbV/IQxtsIbtJmjGl4E6B2pR44MuZpNm6dVsY88G3Zfe1NaqqM9y6LTS3Mzi1wShKXkr2ncrSkvAV/dkISJd5fHJGkqRVKrJOTpsi/4ty1sqJNCkkQe3ks5RCapMrpMJOnVj7l/bKpOmRv+6I2P0ITaZO/BX/5Jp20fKO2nY1sQ4GnvuBNOxp+SIwJ+BoinvQ0A9ySdkUMCQCjwMJ2FxQxXQIGzDf4/YABs7GRBWCJAR3+P2C/kCQCv5E2BITYgABNgwAL+QtiboL/ALoB38hfwK/7oL/ugHfwCfwK/wC6C/7oB3sP7oiqYb+4Et/j9ge65Fv8fsDv3BWfVY04vycH1LTqSlsdimrVM43WY7UtvBaIvbonVdIqk+3+R1rqehhOL2Xnwd+6pp7T2W51XX4nGcl4N+PLTDLF5h6h6NGXd+i/sefdZ6M8c24xao9x6jplkUk1/I6r1fpEcjf6Vv8AB7cObTDLB41nxyxOpRaKpRpJpHfep+nnPuqH8jruv6HqMCcoRbXsezDOWMMsde3BO74HbLp4pQk4zTi/ki4Uv/ZrLtWq+73JxZBx3/8AYK1wSrtojKmtyyE68mWMqe/gksitg21qTfkGk1yURnsTUyYhCcFexW40aG00Qkk/BbZpUr4Q035bJdtPYT2QiKaew00Qbpsj3e1BK1NJ8lc5WLvYbDe0KpCte/8AMsaT80QaSdDQ/QZMnfFFUWTT+x8o7acX49yRBNDT3AkvKJRIjW6AlEkmQsa3An5GnsJAtgHwyVkbGBICIKwJbhv8fsJMYBbGtxPcFdAMBWwtgML+RcgEwxNgANgTYyLAAAi7sCQC3+QtgMBWFg2d0G4rCwbO/oF/JF2D+rBadlGojaZd9yM0mmEOB1+JNSOsdV09tuuDumsx2nscB1LCnexpjVMo6ZqMCl3WvJxer0qbVo7NqcPbN7eTFnwJq1HdHoxrPTrUumQyX+lbmbU+noZMVdi3+Ds607T/AITVggqSktjfDOxnljt5P1r0fGSk1iX7HSuq+mdTpm3ii6u6aPo7LoseW12rf3OL6h6dxZYt/lo9WHNr2wy4v0+Z8+DNhlWXHKL+hS1Hd2e3de9HY8ilWJfsef8AW/SGbBKTxRap8G+OcrK42e3TnyQbaZr1ej1Olm45cUkk+aMjav2+pf2rIcZtE1ldlaj7B2u/IiK0QntyT7l8GW2vI1O3yWtGq0/JFr2ZSpuuQ77e5G6LJEGNyVCbsbqdI3uPvdbEWtxEbQl3MjbDzyOvgtKP0CT9iSf9CtS2JJ8HyztLLJp8blaZJPYCafySTIJ7jTAsToaa9yCe5JMCY7Ip7DvcBh/fAk/djtfADsd2RDewJA3v7isYDsZFErQAAWgtAACbFv7gSv5I27Df5AAAL+RNhOwxAANgAC6BsB9gsTvywg2wcvoRsGwH3fQTYr+RfcCVr4C17iv5E2BTqYWjhuoYrvY52e6o4/WY78E43Q6d1DE02/kxUmqOd6lh2lscFlXbkpnpxyZZey/LXHInDtfBdBrywmlV0aS6Us2rjKpVZqxSUlTp/Uy9u90WRk4vk2xu1L0efBiyKpRRwfUujYcyl+hHL5srXDM7ztPf+ZeWz0rdV0PrfpPDlUn+Wnfujz/r/o78tzljg4/Q97nPFkVNL9jiOq6DBlhKknfwbY8tntnlhL6fNet6bqdJJxlBtJ8mW62ez+T2nrfQsUlJ/lp38HSOsenlGUnGH8jbHOMbhXTXT9hdqvajktV0rJiuk9vBhnhyQbuL2LzKVXxqtp0xNexJuuU19QtPyiyEJSaEslLkeRJ8GecWn8FbdLRe8qbqx9yaMick9i7G3VsS7RVqe5YnsUd1Mdv3J2h+gaJp78laexKLWx8w7SyLfuTT+StPZjT2JgsTJJuitMknsSJpu+SS55IJoaf90BYpUCfkgn7DTQE7+Rp2iKYJqqKiX3JWQi/A9gJWJPfYNgT97GhO/kNiPK2BP3GhL7h9xWg7l8gMBWhANsX3AACvgewm0K/kB38g3uL7gAfcAbE2gC9xN/UTatibfwA299w7r2Fdcib9rAl9xbCv5F9wJbBZHYYBfuijUxtF5GcU1YHAdQxNqWx1vX4ak3R3HW4009jr3UcXOxthe1Mo4SEvDLk9qbM+Zdk3sCn4dnonpk0beCXbaKYyXDJqe3OxbG6RZtRn2s4zU5HGXOxyOolbZxOuTqTo0mSlhT1FR2aMubVSSe5nzTkkZc8m03fgvPSEdVqFKLbp2cF1COLI3skbc8qTOL1eR26FysV+3EazRRm3STtmP/gryv8AgTv4Oahjc2krZzvSNHGTXdFDHOpsmnQ9R6TlNNqG/wAI4jX+l9Tit41I94wdPwPHTgv2Iaro2nnD9MI8ex6MeWsssNvm/VaPU6ZtZcUqXlIySpqmke6dZ9LYsqk/y1+x0brXo/tcnji0/hGkzlZ+NjoKgm/BdGFLY263ous003UJSS+DJWTHanGUfqi0RVcoB+peCxNPyO17lkdPvyLJJ1RWm6JJ8WfNOusT2JJ7FafsSvgJlTi9iSaK09xpsJWKW9EkytNcEk1QE0/eh7EExp+QJW0ST33IpoPLI0LL+Q2Ip7DW7+BoSTHZFMLJEx2QT3JAMBARoO18iv5AVjQe/wAfsG4rC/kgMTYN+wgBsHvyAmwG3sJv2Bu0JsAYrYmK7Abe4yIOgGw2I37CbYEnQJ/KIthYE/74F4IpoaYGbUxtM4TX49nSOfzq42cTr4Jplsb2iupdQhUm0Y3Jr2OV6ni2kzhpSp0enDLpjYn315COWvJS5K9yE3saaQ0Tl3OyjPjUkyH5rT3HHLGXI3pGtsefSd0XRxup000mqf7HYoOL9gnp4ZU00jTHJWx0bV4ZU6TOLz4JOTVM9Bz9IU7aX2MOXodO3H+Ra1Gu3UtJpZJW/c5/psXjatbGt9LcFajt9CWLSzi906Jx0hv0+RONInPJK65KMScdhzdMv6VW7StSin9TJq+n4M6f6Y7lqyNM0Yl3U+Cd67hp1zV+mMWZOoxd/B17qnomE+6sS+yPUtPBLZOy6eHHJbxT+xbHksVuMrwPXegZW3jjKL+Dhs3ovqEMjim6XwfSGTQ6eXMUZcnRtNKbl2rf4L/zT7V/ij0xO0TT35Ko/wCxNHCdFYmNP6EESQEk3XJJPyQ8D/8AIFie47vyQQ48BMTvwST+SCHFv3CVie5JOyuPBKPIEk/kaf0IWySAlfyOyKGBJMlsVkgGmCbsSGAPkewhANuhdwNL2FSsB2FgABbAAIoTZFsYmQEDfsDEAWw+rATAGxNgKXADsVr4AAHYJiBAE1ao4/WQ24OQlwZdWlXAnsdZ6nj/AEy2Os6xOGTc7h1GMalsdW6rFK9j0YVllIwuW5Bu1yRTd8g3sbxnUMkvkyzyyjdMvyefqZMvBJtZDXU0mzfpNbGT3f8AM69mVN0R0+Wam6ZG0O86XLCSV0bPy8ct1R1XQ58nav1exzeHNk7f4vBPlU6acmmg/CMefSxVtI1vJJrdmbLKVPcmVWxhz4Ut0ZMqNuZtt2ZZpWay7RYohF92/g243GMVuV44pvdDkkkqLKNmHIlvyjQ8jaVWZNOkasYEm2lfuCntyOaXaZ3yB//Z" alt="Kinvent K-Grip" style="width:100%;height:200px;object-fit:cover;object-position:center">
+        <div style="position:absolute;bottom:10px;left:12px;font-size:8.5px;font-weight:700;letter-spacing:1px;color:rgba(0,0,0,.3);text-transform:uppercase">Kinvent · K-Grip</div>
+      </div>
+      <!-- 우측: 설명 -->
+      <div style="background:#fff;padding:28px 32px;display:flex;flex-direction:column;justify-content:center">
+        <div style="font-size:9.5px;font-weight:800;letter-spacing:2px;color:var(--ice-t);text-transform:uppercase;margin-bottom:12px">이 작은 장비 하나가</div>
+        <div style="font-size:26px;font-weight:900;color:var(--t1);line-height:1.2;margin-bottom:16px;word-break:keep-all">선수의 오늘 상태를<br><span style="color:var(--ice)">매일 판단합니다</span></div>
+        <div style="font-size:13px;color:var(--t2);line-height:1.7;margin-bottom:20px;word-break:keep-all">악력(Hand Grip) 측정만으로 중추신경계(CNS) 피로를 추적합니다. 훈련 전 10초. 전날 대비 변화율이 기준을 넘으면 즉시 시스템에 반영됩니다.</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;background:var(--bg);border:1px solid rgba(0,0,0,.07)">
+            <div style="font-size:16px">⏱</div>
+            <div>
+              <div style="font-size:11.5px;font-weight:800;color:var(--t1)">측정 시간 10초</div>
+              <div style="font-size:10.5px;color:var(--t3)">훈련 시작 전 · 매일 · 누구나 가능</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;background:var(--ice-d);border:1px solid rgba(0,150,199,.15)">
+            <div style="font-size:16px">📡</div>
+            <div>
+              <div style="font-size:11.5px;font-weight:800;color:var(--ice-t)">API 자동 동기화</div>
+              <div style="font-size:10.5px;color:var(--ice-t);opacity:.8">측정 즉시 → Home 화면 반영</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;background:var(--bg);border:1px solid rgba(0,0,0,.07)">
+            <div style="font-size:16px">🚨</div>
+            <div>
+              <div style="font-size:11.5px;font-weight:800;color:var(--t1)">전날 대비 -10% 초과 시</div>
+              <div style="font-size:10.5px;color:var(--t3)">즉각 경고 · 훈련 강도 자동 권고</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 공백의 위험 -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:36px">
+      <div style="padding:20px 24px;border-radius:16px;background:rgba(255,59,48,.04);border:1px solid rgba(255,59,48,.12)">
+        <div style="font-size:9.5px;font-weight:800;letter-spacing:2px;color:var(--danger-t);text-transform:uppercase;margin-bottom:10px">연 2회 측정만으로는</div>
+        <div style="font-size:15px;font-weight:800;color:var(--t1);margin-bottom:8px;line-height:1.4">측정과 측정 사이<br>약 180일의 공백</div>
+        <div style="font-size:12px;color:var(--t2);line-height:1.65;word-break:keep-all">이 180일 동안 선수 상태는 매일 변합니다. 훈련 피로가 쌓이고, 컨디션이 떨어지고, 부상 위험이 올라가도 <strong>다음 측정일까지 알 수 없습니다.</strong></div>
+      </div>
+      <div style="padding:20px 24px;border-radius:16px;background:rgba(0,150,199,.05);border:1.5px solid rgba(0,150,199,.2)">
+        <div style="font-size:9.5px;font-weight:800;letter-spacing:2px;color:var(--ice-t);text-transform:uppercase;margin-bottom:10px">K-Grip이 메꾸는 것</div>
+        <div style="font-size:15px;font-weight:800;color:var(--ice-t);margin-bottom:8px;line-height:1.4">매일 CNS 피로 추적<br>이상 징후 즉시 감지</div>
+        <div style="font-size:12px;color:var(--t2);line-height:1.65;word-break:keep-all">악력(Grip)으로 중추신경계 피로를 매일 측정합니다. <strong>전날 대비 -10% 초과 시</strong> 당일 훈련 강도 자동 조정 권고가 발동됩니다.</div>
+      </div>
+    </div>
+
+    <!-- 감지 → 반응 흐름 -->
+    <div style="display:flex;align-items:center;gap:0;margin-bottom:36px;background:var(--bg);border-radius:16px;overflow:hidden;border:1px solid rgba(0,0,0,.07)">
+      <div style="padding:18px 22px;flex:1;border-right:1px solid rgba(0,0,0,.07)">
+        <div style="font-size:9px;font-weight:800;letter-spacing:1.5px;color:var(--danger-t);text-transform:uppercase;margin-bottom:5px">감지</div>
+        <div style="font-size:13px;font-weight:800;color:var(--t1);margin-bottom:3px">K-Grip -10% 초과</div>
+        <div style="font-size:11px;color:var(--t3)">CNS 피로 임계값 돌파</div>
+      </div>
+      <div style="padding:0 14px;font-size:18px;color:rgba(0,0,0,.18)">→</div>
+      <div style="padding:18px 22px;flex:1;border-right:1px solid rgba(0,0,0,.07)">
+        <div style="font-size:9px;font-weight:800;letter-spacing:1.5px;color:var(--warn-t);text-transform:uppercase;margin-bottom:5px">경고</div>
+        <div style="font-size:13px;font-weight:800;color:var(--t1);margin-bottom:3px">Home 화면 즉시 표시</div>
+        <div style="font-size:11px;color:var(--t3)">K-Grip ALERT 발동</div>
+      </div>
+      <div style="padding:0 14px;font-size:18px;color:rgba(0,0,0,.18)">→</div>
+      <div style="padding:18px 22px;flex:1;border-right:1px solid rgba(0,0,0,.07)">
+        <div style="font-size:9px;font-weight:800;letter-spacing:1.5px;color:var(--ice-t);text-transform:uppercase;margin-bottom:5px">조정</div>
+        <div style="font-size:13px;font-weight:800;color:var(--t1);margin-bottom:3px">훈련 강도 자동 권고</div>
+        <div style="font-size:11px;color:var(--t3)">Planner 수정안 생성</div>
+      </div>
+      <div style="padding:0 14px;font-size:18px;color:rgba(0,0,0,.18)">→</div>
+      <div style="padding:18px 22px;flex:1">
+        <div style="font-size:9px;font-weight:800;letter-spacing:1.5px;color:var(--ok-t);text-transform:uppercase;margin-bottom:5px">결정</div>
+        <div style="font-size:13px;font-weight:800;color:var(--t1);margin-bottom:3px">감독 최종 승인</div>
+        <div style="font-size:11px;color:var(--t3)">데이터 근거 포함</div>
+      </div>
+    </div>
+
+    <!-- 타임라인 -->
+    <div style="background:var(--bg);border-radius:20px;padding:24px 28px;margin-bottom:28px;border:1px solid rgba(0,0,0,.07)">
+      <div style="font-size:9.5px;font-weight:700;letter-spacing:2px;color:var(--t3);text-transform:uppercase;margin-bottom:18px">2026 운영 타임라인 — 공백 없는 365일</div>
+      <div style="display:flex;align-items:center;gap:0;margin-bottom:14px">
+        <div style="width:14px;height:14px;border-radius:50%;background:var(--ok);border:2px solid #fff;box-shadow:0 0 0 2px var(--ok);flex-shrink:0"></div>
+        <div style="flex:1;height:6px;background:linear-gradient(90deg,rgba(0,150,199,.12),rgba(0,150,199,.22));position:relative;margin:0 3px">
+          <div style="position:absolute;top:50%;transform:translateY(-50%);left:0;right:0;display:flex;justify-content:space-around;align-items:center">
+            <div style="width:8px;height:8px;border-radius:50%;background:var(--ice);opacity:.7"></div>
+            <div style="width:8px;height:8px;border-radius:50%;background:var(--ice);opacity:.7"></div>
+            <div style="width:8px;height:8px;border-radius:50%;background:var(--danger);box-shadow:0 0 0 3px rgba(255,59,48,.2)"></div>
+            <div style="width:8px;height:8px;border-radius:50%;background:var(--ice);opacity:.7"></div>
+            <div style="width:8px;height:8px;border-radius:50%;background:var(--warn);opacity:.9"></div>
+            <div style="width:8px;height:8px;border-radius:50%;background:var(--ice);opacity:.7"></div>
+            <div style="width:8px;height:8px;border-radius:50%;background:var(--ice);opacity:.7"></div>
+            <div style="width:8px;height:8px;border-radius:50%;background:var(--danger);box-shadow:0 0 0 3px rgba(255,59,48,.2)"></div>
+            <div style="width:8px;height:8px;border-radius:50%;background:var(--ice);opacity:.7"></div>
+            <div style="width:8px;height:8px;border-radius:50%;background:var(--ice);opacity:.7"></div>
+          </div>
+        </div>
+        <div style="width:14px;height:14px;border-radius:50%;background:var(--ice);border:2px solid #fff;box-shadow:0 0 0 2px var(--ice);flex-shrink:0"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div>
+          <div style="font-size:11px;font-weight:800;color:var(--ok-t)">1차 측정 완료</div>
+          <div style="font-size:10px;color:var(--t3)">2026.04.14 · Kinvent 오프아이스</div>
+        </div>
+        <div style="text-align:center">
+          <div style="display:flex;align-items:center;gap:12px;justify-content:center;margin-bottom:4px">
+            <div style="display:flex;align-items:center;gap:4px"><div style="width:8px;height:8px;border-radius:50%;background:var(--ice)"></div><div style="font-size:10px;font-weight:600;color:var(--ice-t)">정상 — 훈련 유지</div></div>
+            <div style="display:flex;align-items:center;gap:4px"><div style="width:8px;height:8px;border-radius:50%;background:var(--warn)"></div><div style="font-size:10px;font-weight:600;color:var(--warn-t)">주의 — 강도 조정</div></div>
+            <div style="display:flex;align-items:center;gap:4px"><div style="width:8px;height:8px;border-radius:50%;background:var(--danger)"></div><div style="font-size:10px;font-weight:600;color:var(--danger-t)">즉시조치 — 훈련 제한</div></div>
+          </div>
+          <div style="font-size:10px;color:var(--t3)">K-Grip 매일 측정 → API 자동 동기화 → Home 화면 반영</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:11px;font-weight:800;color:var(--ice-t)">2차 측정 예정</div>
+          <div style="font-size:10px;color:var(--t3)">2026.10월 · 온+오프 통합</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2계층 실제 시나리오 카드 -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+      <div style="padding:22px;border-radius:18px;background:linear-gradient(145deg,#f0f9ff,#e8f5ff);border:1.5px solid rgba(0,150,199,.2)">
+        <div style="font-size:22px;margin-bottom:10px">🔵</div>
+        <div style="font-size:14px;font-weight:800;color:var(--ice-t);margin-bottom:5px">K-Grip 단독 감지 시나리오</div>
+        <div style="padding:10px 12px;border-radius:10px;background:rgba(0,150,199,.08);border:1px solid rgba(0,150,199,.15);margin-bottom:10px">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;color:var(--ice-t);line-height:1.8">#16 류한결 — 오프아이스 정상<br>K-Grip 오늘 -11% 감지<br>→ CNS 피로 — 당일 세트 감소 권고</div>
+        </div>
+        <div style="font-size:11.5px;color:var(--t2);line-height:1.65;word-break:keep-all">오프아이스 측정에서 이상이 없어도, K-Grip이 당일 피로를 잡아냅니다. 정밀 측정 사이 <strong>180일의 공백을 메우는 일간 안전망</strong>입니다.</div>
+      </div>
+      <div style="padding:22px;border-radius:18px;background:var(--bg);border:1px solid rgba(0,0,0,.08)">
+        <div style="font-size:22px;margin-bottom:10px">⚡</div>
+        <div style="font-size:14px;font-weight:800;color:var(--t1);margin-bottom:5px">2계층 동시 감지 — 즉각 조치</div>
+        <div style="padding:10px 12px;border-radius:10px;background:rgba(255,59,48,.05);border:1px solid rgba(255,59,48,.15);margin-bottom:10px">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;color:var(--danger-t);line-height:1.8">#16 류한결 — RSA +7.1% (측정 기반)<br>+ K-Grip -11% (당일 피로)<br>→ 두 신호 동시 → Shift 즉시 제한</div>
+        </div>
+        <div style="font-size:11.5px;color:var(--t2);line-height:1.65;word-break:keep-all">오프아이스 측정 기반 위험 + K-Grip 당일 피로가 <strong>동시에 감지</strong>될 때, 시스템은 즉각 훈련 제한을 발동합니다. 두 신호가 겹칠수록 판단은 더 정확해집니다.</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══ 화면 네비게이터 ══ -->
+<section class="nav-section" id="screens">
+  <div class="nav-inner">
+    <div style="margin-bottom:36px">
+      <div class="section-label">System Navigation</div>
+      <h2 class="section-title">감독의 하루를 구조화한 <em>9개 화면</em></h2>
+      <p style="font-size:13.5px;color:var(--t2);margin-bottom:20px;word-break:keep-all">각 화면은 감독의 의사결정 흐름 순서로 배치되어 있습니다. 카드를 클릭하면 해당 화면으로 이동합니다.</p>
+    </div>
+
+    <!-- 결정 흐름 뱃지 -->
+    <div class="decision-flow">
+      <div class="df-step s1">① 판단 — 상태 파악</div>
+      <div class="df-arrow">→</div>
+      <div class="df-step s2">② 결정 — 라인·GK</div>
+      <div class="df-arrow">→</div>
+      <div class="df-step s3">③ 실행 — 훈련 조정</div>
+      <div class="df-arrow">→</div>
+      <div class="df-step s4">④ 보고 — 자동 문서화</div>
+    </div>
+
+    <div class="user-group">
+      <div class="ug-header">
+        <div class="ug-icon">⛸</div>
+        <div class="ug-title">감독 / 코칭스태프 <span class="ug-badge coach">Coach View</span></div>
+        <div class="ug-flow">판단 → 결정 → 실행 → 보고</div>
+      </div>
+      <div class="screen-grid">
+
+        <a href="v2_Home.html" class="sc">
+          <div class="sc-top"><div class="sc-icon">📌</div><div class="sc-meta"><div class="sc-flow">① 판단</div><div class="sc-name">Home</div></div><span class="sc-upd daily">매일 갱신</span></div>
+          <div class="sc-decision">오늘 팀 상태와 훈련 방향을 한 번에 결정합니다</div>
+          <div class="sc-desc">출전 가능 여부 / 훈련 강도 / 주요 리스크 30초 확인</div>
+          <div class="sc-tags"><span class="sc-tag d">OUT 1명</span><span class="sc-tag w">LIMIT 3명</span><span class="sc-tag ice">K-Grip 실시간</span></div>
+        </a>
+
+        <a href="v2_Skaters.html" class="sc">
+          <div class="sc-top"><div class="sc-icon">⛸</div><div class="sc-meta"><div class="sc-flow">① 판단</div><div class="sc-name">Skaters</div></div><span class="sc-upd measure">측정 기반</span></div>
+          <div class="sc-decision">누가 위험한지 한눈에 파악하고 즉시 조치합니다</div>
+          <div class="sc-desc">19명 피지컬 프로파일 · TOP RISK 배너 · 라인별 필터</div>
+          <div class="sc-tags"><span class="sc-tag d">TOP 3 위험</span><span class="sc-tag ok">Full Go 14명</span><span class="sc-tag ice">PHV 보정</span></div>
+        </a>
+
+        <a href="v2_Risk.html" class="sc">
+          <div class="sc-top"><div class="sc-icon">⚠️</div><div class="sc-meta"><div class="sc-flow">① 판단</div><div class="sc-name">Risk &amp; Return</div></div><span class="sc-upd measure">측정 기반</span></div>
+          <div class="sc-decision">이 선수 써도 되는가 — 리스크와 퍼포먼스를 비교합니다</div>
+          <div class="sc-desc">TODAY USAGE DECISION · 복귀 타임라인 · GAME IMPACT</div>
+          <div class="sc-tags"><span class="sc-tag d">Critical 2명</span><span class="sc-tag w">High 2명</span><span class="sc-tag ice">복귀 로드맵</span></div>
+        </a>
+
+        <a href="v2_Lines.html" class="sc">
+          <div class="sc-top"><div class="sc-icon">👥</div><div class="sc-meta"><div class="sc-flow">② 결정</div><div class="sc-name">Lines &amp; D-Pairs</div></div><span class="sc-upd measure">측정 기반</span></div>
+          <div class="sc-decision">누구를 같이 쓸지 — 라인 조합과 역할 배치를 결정합니다</div>
+          <div class="sc-desc">퍼포먼스 vs 리스크 기반 조합 최적화 · D-Pairs 수비 특화</div>
+          <div class="sc-tags"><span class="sc-tag w">1LINE 조건부</span><span class="sc-tag ok">3LINE 역할 확대</span></div>
+        </a>
+
+        <a href="v2_Goalies.html" class="sc">
+          <div class="sc-top"><div class="sc-icon">🥅</div><div class="sc-meta"><div class="sc-flow">② 결정</div><div class="sc-name">Goalies</div></div><span class="sc-upd measure">측정 기반</span></div>
+          <div class="sc-decision">오늘 경기 선발 골리를 결정합니다</div>
+          <div class="sc-desc">데이터 기반 최종 선택 + 리스크 설명 · GLSI 비대칭 시각화</div>
+          <div class="sc-tags"><span class="sc-tag ok">#25 선발 확정</span><span class="sc-tag d">#1 제한</span></div>
+        </a>
+
+        <a href="v2_Planner.html" class="sc">
+          <div class="sc-top"><div class="sc-icon">📅</div><div class="sc-meta"><div class="sc-flow">③ 실행</div><div class="sc-name">Planner</div></div><span class="sc-upd daily">매일 갱신</span></div>
+          <div class="sc-decision">훈련 강도와 구성을 선수 상태 기반으로 조정합니다</div>
+          <div class="sc-desc">훈련 강도 72% (-13%) · FINAL TRAINING PLAN · TEAM IMPACT</div>
+          <div class="sc-tags"><span class="sc-tag w">강도 72%</span><span class="sc-tag d">Contact 제거</span></div>
+        </a>
+
+        <a href="v2_Reports.html" class="sc">
+          <div class="sc-top"><div class="sc-icon">📁</div><div class="sc-meta"><div class="sc-flow">④ 보고</div><div class="sc-name">Reports</div></div><span class="sc-upd measure">측정 기반</span></div>
+          <div class="sc-decision">의사결정 결과를 자동으로 보고서로 생성합니다</div>
+          <div class="sc-desc">A4 개인 카드 · 팀 리포트 · 연맹 제출 · 측정 히스토리</div>
+          <div class="sc-tags"><span class="sc-tag ok">A4 카드</span><span class="sc-tag ice">팀 리포트</span><span class="sc-tag w">PDF 출력</span></div>
+        </a>
+
+      </div>
+    </div>
+
+    <div class="user-group">
+      <div class="ug-header">
+        <div class="ug-icon">🏛</div>
+        <div class="ug-title">연맹 관리자 <span class="ug-badge fed">Federation View</span></div>
+        <div class="ug-flow">준비도 판단 → 보고서 관리</div>
+      </div>
+      <div class="screen-grid">
+        <a href="v2_FedDashboard.html" class="sc sc-fed">
+          <div class="sc-top"><div class="sc-icon">📊</div><div class="sc-meta"><div class="sc-flow" style="color:rgba(155,89,182,.7)">연맹 판단</div><div class="sc-name">연맹 대시보드</div></div><span class="sc-upd measure">측정 기반</span></div>
+          <div class="sc-decision">팀의 출전 준비 상태를 한눈에 판단합니다</div>
+          <div class="sc-desc">준비도 72%→85% 예측 · KEY INSIGHTS · ACTION PLAN</div>
+          <div class="sc-tags"><span class="sc-tag w">조건부 출전</span><span class="sc-tag ok">관리 가능</span><span class="sc-tag ice">Forecast</span></div>
+        </a>
+        <a href="v2_FedReports.html" class="sc sc-fed">
+          <div class="sc-top"><div class="sc-icon">📋</div><div class="sc-meta"><div class="sc-flow" style="color:rgba(155,89,182,.7)">연맹 보고</div><div class="sc-name">연맹 보고서 관리</div></div><span class="sc-upd measure">측정 기반</span></div>
+          <div class="sc-decision">공식 보고서를 생성·관리하고 제출 상태를 추적합니다</div>
+          <div class="sc-desc">우선순위 🔥⚠📄 · GK 선발 공정성 근거 · Normative DB</div>
+          <div class="sc-tags"><span class="sc-tag ok">완료 3건</span><span class="sc-tag w">작성 중 1건</span></div>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 데모 스토리 ══ -->
+<section class="demo-section">
+  <div class="demo-inner">
+    <div style="margin-bottom:40px">
+      <div class="section-label">Demo Story</div>
+      <h2 class="section-title">실제 현장에서 <em>어떻게 달라지나</em></h2>
+    </div>
+    <div class="demo-grid">
+      <div class="demo-col before">
+        <div class="demo-label before">Before — 지금 현장</div>
+        <div class="demo-dialog">
+          <div class="dialog-q">코치: "이 선수 오늘 나가도 되나?"</div>
+          <div class="dialog-bad">트레이너: "음… 좀 애매한데요"</div>
+          <div class="dialog-q">연맹: "선발 결정 근거가 뭐냐?"</div>
+          <div class="dialog-bad">코치: "경험상 이 선수가 더 나을 것 같아서…"</div>
+          <div class="dialog-q">부상 발생 후: "왜 내보냈냐?"</div>
+          <div class="demo-result">→ 책임 소재 불명확 · 논쟁 반복 · 선수 재부상</div>
+        </div>
+      </div>
+      <div class="demo-arrow">→</div>
+      <div class="demo-col after" style="padding:0;overflow:hidden;background:transparent;border:none">
+        <div style="font-size:9.5px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--ok-t);margin-bottom:10px;padding:0 4px">After — Daily Ice Decision OS</div>
+
+        <!-- 미니 대시보드 카드 1 -->
+        <div style="background:#fff;border:1px solid rgba(0,0,0,.09);border-radius:14px;overflow:hidden;margin-bottom:8px;box-shadow:0 2px 10px rgba(0,0,0,.06)">
+          <div style="padding:9px 14px;border-bottom:1px solid rgba(0,0,0,.06);display:flex;align-items:center;gap:7px;background:#f9f9fb">
+            <span style="font-size:11px">✅</span>
+            <div style="font-size:9.5px;font-weight:800;letter-spacing:1px;color:rgba(15,26,46,.5);text-transform:uppercase">Today Usage Decision</div>
+          </div>
+          <div style="padding:10px 14px;display:flex;flex-direction:column;gap:6px">
+            <div style="display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:8px;background:rgba(255,59,48,.05);border:1px solid rgba(255,59,48,.12)">
+              <div style="font-size:13px;font-weight:800;color:#0a1628;flex-shrink:0">#13 공시완</div>
+              <div style="font-size:10px;font-weight:800;padding:2px 8px;border-radius:10px;background:rgba(255,59,48,.12);color:#8b1a1a;flex-shrink:0">⛔ Contact 금지</div>
+              <div style="font-size:9.5px;color:rgba(15,26,46,.45);margin-left:auto">Add/Abd 0.72 · Nordic 78%</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:8px;background:rgba(255,159,10,.05);border:1px solid rgba(255,159,10,.12)">
+              <div style="font-size:13px;font-weight:800;color:#0a1628;flex-shrink:0">#16 류한결</div>
+              <div style="font-size:10px;font-weight:800;padding:2px 8px;border-radius:10px;background:rgba(255,159,10,.12);color:#7a4500;flex-shrink:0">⚠ Shift 제한</div>
+              <div style="font-size:9.5px;color:rgba(15,26,46,.45);margin-left:auto">RSA +7.1% · Grip -11%</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 미니 대시보드 카드 2 -->
+        <div style="background:#fff;border:1px solid rgba(0,0,0,.09);border-radius:14px;overflow:hidden;margin-bottom:8px;box-shadow:0 2px 10px rgba(0,0,0,.06)">
+          <div style="padding:9px 14px;border-bottom:1px solid rgba(0,0,0,.06);display:flex;align-items:center;gap:7px;background:#f9f9fb">
+            <span style="font-size:11px">🥅</span>
+            <div style="font-size:9.5px;font-weight:800;letter-spacing:1px;color:rgba(15,26,46,.5);text-transform:uppercase">GK Final Decision</div>
+          </div>
+          <div style="padding:10px 14px;display:flex;flex-direction:column;gap:6px">
+            <div style="display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:8px;background:rgba(52,199,89,.05);border:1px solid rgba(52,199,89,.12)">
+              <div style="font-size:13px;font-weight:800;color:#0a1628;flex-shrink:0">#25 송근우</div>
+              <div style="font-size:10px;font-weight:800;padding:2px 8px;border-radius:10px;background:rgba(52,199,89,.12);color:#1a6b30;flex-shrink:0">✅ 선발 확정</div>
+              <div style="font-size:9.5px;color:rgba(15,26,46,.45);margin-left:auto">GLSI 5.2% · Grip -3%</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:8px;background:rgba(255,59,48,.05);border:1px solid rgba(255,59,48,.12)">
+              <div style="font-size:13px;font-weight:800;color:#0a1628;flex-shrink:0">#1 임재훈</div>
+              <div style="font-size:10px;font-weight:800;padding:2px 8px;border-radius:10px;background:rgba(255,59,48,.12);color:#8b1a1a;flex-shrink:0">⛔ Sliding 금지</div>
+              <div style="font-size:9.5px;color:rgba(15,26,46,.45);margin-left:auto">GLSI 16.3%</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 미니 대시보드 카드 3 -->
+        <div style="background:#fff;border:1px solid rgba(0,0,0,.09);border-radius:14px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,.06)">
+          <div style="padding:9px 14px;border-bottom:1px solid rgba(0,0,0,.06);display:flex;align-items:center;gap:7px;background:#f9f9fb">
+            <span style="font-size:11px">📋</span>
+            <div style="font-size:9.5px;font-weight:800;letter-spacing:1px;color:rgba(15,26,46,.5);text-transform:uppercase">Squad Decision — 연맹 제출</div>
+          </div>
+          <div style="padding:10px 14px">
+            <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;background:rgba(0,150,199,.05);border:1px solid rgba(0,150,199,.12)">
+              <div style="font-size:12px;font-weight:800;color:#003f5e">⚠ 조건부 출전 가능 · 관리 가능 수준</div>
+            </div>
+            <div style="margin-top:7px;font-size:10.5px;color:rgba(15,26,46,.5);font-weight:600;padding:0 2px">→ 모든 결정에 <strong style="color:#0a1628">데이터 근거 + 설명</strong> 포함</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 로드맵 ══ -->
+<section class="roadmap-section">
+  <div class="roadmap-inner">
+    <div style="margin-bottom:44px">
+      <div class="section-label">Roadmap</div>
+      <h2 class="section-title">이 데이터가 쌓일수록,<br><em>결정은 더 정확해집니다</em></h2>
+      <p style="font-size:13.5px;color:var(--t2);margin-top:10px">Normative DB 구축 로드맵 — 협회 중장기 핵심 인프라</p>
+    </div>
+    <div class="rm-tl">
+      <div class="rm-step">
+        <div class="rm-dot done">✓</div>
+        <div class="rm-year done">2026</div>
+        <div class="rm-title">베이스라인 수립</div>
+        <div class="rm-desc">U18 1차 오프아이스<br>K-Grip API 연동<br>Dynamic Benchmark 적용</div>
+        <div class="rm-milestone done">완료</div>
+      </div>
+      <div class="rm-step">
+        <div class="rm-dot cur">▶</div>
+        <div class="rm-year cur">2026 하반기</div>
+        <div class="rm-title">온+오프 통합</div>
+        <div class="rm-desc">K-Power + BlazePod<br>온아이스 측정 추가<br>RSA 하키 특이적 베이스라인</div>
+        <div class="rm-milestone cur">진행 중</div>
+      </div>
+      <div class="rm-step">
+        <div class="rm-dot plan">3</div>
+        <div class="rm-year plan">2027</div>
+        <div class="rm-title">PHV 알고리즘 정교화</div>
+        <div class="rm-desc">U15/U18 성숙도<br>보정 알고리즘 완성</div>
+        <div class="rm-milestone plan">예정</div>
+      </div>
+      <div class="rm-step">
+        <div class="rm-dot plan">4</div>
+        <div class="rm-year plan">2028</div>
+        <div class="rm-title">실측 DB 1차 완성</div>
+        <div class="rm-desc">포지션별 · PHV별<br>한국 아이스하키 기준값</div>
+        <div class="rm-milestone plan">예정</div>
+      </div>
+      <div class="rm-step">
+        <div class="rm-dot future">5</div>
+        <div class="rm-year future">2030+</div>
+        <div class="rm-title">전 연령대 확장</div>
+        <div class="rm-desc">U16·U18·성인<br>국가대표 선발 과학화</div>
+        <div class="rm-milestone future">장기</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 미션 ══ -->
+<div class="mission">
+  <div class="mission-inner">
+    <div class="mission-quote">우리는 <em>데이터를 보여주는</em> 회사가 아닙니다<br>"결정을 만들어내는 회사"입니다</div>
+    <div class="mission-sub">"책임을 대신 구조화해주는 시스템" — 지금 팀의 의사결정을 구조화해보십시오</div>
+    <div class="mission-ctas">
+      <a href="v2_Home.html" class="cta-primary">지금 바로 시작하기</a>
+      <a href="v2_Reports.html" class="cta-ghost">보고서 확인하기</a>
+    </div>
+  </div>
+</div>
+
+<!-- ══ FOOTER ══ -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div>
+        <div class="footer-brand">
+          <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0NTBwdCIgaGVpZ2h0PSI0NTBwdCIgdmlld0JveD0iMCAwIDQ0OS45OTk5OCA0NDkuOTk5OTkiPjxkZWZzPjxjbGlwUGF0aCBpZD0iYSI+PHBhdGggZD0iTTAgMTcwMC43OWgxMjA3LjU2VjBIMFoiLz48L2NsaXBQYXRoPjxjbGlwUGF0aCBpZD0iYiI+PHBhdGggZD0iTTAgMTcwMC43OWgxMjA3LjU2VjBIMFoiLz48L2NsaXBQYXRoPjxjbGlwUGF0aCBpZD0iYyI+PHBhdGggZD0iTTEyMDcuNTU5IDE3MDAuNzlIMFYuMDAzaDEyMDcuNTU5eiIvPjwvY2xpcFBhdGg+PGltYWdlIGlkPSJkIiB3aWR0aD0iNDI2IiBoZWlnaHQ9IjI4NSIvPjxpbWFnZSBpZD0iZSIgd2lkdGg9IjQyNiIgaGVpZ2h0PSIyODUiLz48aW1hZ2UgaWQ9ImYiIHdpZHRoPSIxMDExIiBoZWlnaHQ9IjE0NDAiLz48L2RlZnM+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTAgMjI1QzAgMTAwLjczMyAxMDAuNzA2IDAgMjI0Ljk3MiAwIDM0OS4yMTIgMCA0NTAgMTAwLjczMyA0NTAgMjI1YzAgMTI0LjI5NC0xMDAuNzg5IDIyNS0yMjUuMDI4IDIyNUMxMDAuNzA2IDQ1MCAwIDM0OS4yOTQgMCAyMjUiIHN0eWxlPSJzdHJva2Utd2lkdGg6MTMuODEwNCIvPjxwYXRoIGZpbGw9IiMzYTNhNmEiIGQ9Ik0yMjQuOTc0IDM4Mi41OGMtODcuMDc1IDAtMTU3LjU2NC03MC41MDItMTU3LjU2NC0xNTcuNTc3IDAtODcuMDYxIDcwLjQ4OS0xNTcuNTY0IDE1Ny41NjQtMTU3LjU2NCA4Ny4wMiAwIDE1Ny41NzcgNzAuNTAzIDE1Ny41NzcgMTU3LjU2NCAwIDg3LjA3NS03MC41NTggMTU3LjU3Ny0xNTcuNTc3IDE1Ny41NzdtMC0zNjguNjE1Yy0xMTYuNjE2IDAtMjExLjAzOCA5NC40NjMtMjExLjAzOCAyMTEuMDM4IDAgMTE2LjU2IDk0LjQyMiAyMTEuMDM3IDIxMS4wMzggMjExLjAzNyAxMTYuNTMyIDAgMjExLjAxLTk0LjQ3NyAyMTEuMDEtMjExLjAzNyAwLTExNi41NzUtOTQuNDc4LTIxMS4wMzgtMjExLjAxLTIxMS4wMzgiIHN0eWxlPSJzdHJva2Utd2lkdGg6MTMuODEwNCIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Im0xMTEuMzYgNzUuMzIzLTIuNTU0IDE0Ljg0NyAxMy42ODYgNy4yNS0xNS43NTggMS44NzktMi42NjUgMTQuOTU3LTYuNjAyLTEzLjc1Ni0xNC41NTYgMS42NTcgMTAuNzg2LTEwLjE5Mi02LjExOC0xMy4xNDcgMTIuOTQgNi43NTN6TTE0Ni43NSA3OS42MjdsLTYuODY0IDMuMjczLTE2LjItMzMuOTc0IDYuOTA2LTMuMjQ1IDYuNTQ2IDEzLjgyNCA2LjAwNy0xOS44NiA4LjkwOC00LjIyNS02LjgyMiAyMC4zNTcgMjMuNzY4IDEzLjIwMi04LjkyMiA0LjI5NS0xNy4yMDgtMTAuMTIzLTEuNTg4IDUuMDR6TTE4My4wMyA1Ni42NzJjMi4wMTYgMS4zOTUgNC4zMDkgMS43NTUgNi44NzggMS4zMjYgMi41NTUtLjU4MiA0LjQ3NC0xLjg5MSA1Ljc3Mi0zLjkzNiAxLjc4Mi0yLjY3OSAyLjE2OS02LjMxMSAxLjIwMi0xMC44ODItLjk0LTQuNjI3LTIuNzItNy44MzEtNS41MS05LjU1Ny0xLjkzNC0xLjM2Ny00LjI4Mi0xLjc4Mi02LjgyMy0xLjI4NC0yLjQ0NC41NTItNC40MzMgMS44NjQtNS44MTQgMy45MjItMS42NzEgMi42NjUtMi4wNTggNi4yOTgtMS4wNzcgMTAuOTY1Ljk1MyA0LjU1OCAyLjcwNyA3LjczNCA1LjM3MiA5LjQ0Nm0tOS40NzQtMjUuNTA3YzIuNDg2LTIuNzQ4IDUuNzE4LTQuNTMgOS42NC01LjMzMSAzLjg5NC0uODI5IDcuNTgyLS41MSAxMC45NjUgMS4wNSA1LjIzNCAyLjM2MSA4LjU3NyA3LjMwNSAxMC4xMjMgMTQuNzc2IDEuNjAyIDcuNDE3LjQ1NiAxMy4yNzItMy40MSAxNy41MjYtMi40NzMgMi43NzYtNS42NjMgNC41NzEtOS41NzIgNS4zNzItMy45NjMuODQzLTcuNTgxLjQ0NC0xMC45NzktMS4wOS01LjE3OS0yLjMyLTguNTc2LTcuMjM3LTEwLjExLTE0LjY5NS0xLjYxNS03LjQ4NS0uNTI0LTEzLjM1NCAzLjM0My0xNy42MDhNMjMxLjI5OSAzOS4yMzRjMS45ODkgMCAzLjQ2Ni0uMzA2IDQuNDItMS4wMzYuOTgtLjg1NiAxLjQzNi0yLjE0IDEuNTQ2LTQuMDA1IDAtMS4zNC0uMzA0LTIuNDAzLS44NDItMy4yODYtLjg5OC0xLjEyLTIuMzQ4LTEuNzEzLTQuMzIzLTEuNzRsLTkuNjQtLjMwNi0uMTkzIDEwLjE3OHptLTE2LjEzLTE2Ljk4NyAxOC41MzMuNDg2YzQuMjU0IDAgNy4zMDYgMS40NSA5LjI2NyA0LjI1NCAxLjMxMiAxLjkwNiAxLjk2IDQuMTQzIDEuOTMzIDYuNTg4LS4wODMgMi4xMTMtLjYzNSAzLjk5MS0xLjU2IDUuNTM4LTEuMTA1IDEuNjMtMi41NTUgMi43Mi00LjI4MiAzLjMxNCAxLjYxNi43NiAyLjc2MiAxLjY4NSAzLjMyOSAyLjcwNy44IDEuMzk1IDEuMTg3IDMuNzE1IDEuMDkgNi45ODgtLjEyMyAyLjk0Mi0uMTIzIDQuNzkzIDAgNS40OTcuMjA4IDEuMDM2LjYwOCAxLjcxMyAxLjQ1IDIuMDE2bC0uMDMuODg0LTguNDc5LS4xOGMtLjI0OC0uOTgtLjQ5Ny0xLjk2MS0uNTI1LTMuMDI1YTUwLjk3MyA1MC45NzMgMCAwIDEtLjA4My00LjU1N2MuMDgzLTIuODg2LS4xNTEtNC42OTYtLjcwNC01LjUyNC0uNjYzLTEuMTMzLTIuNDAzLTEuNjk5LTUuMDEzLTEuNzU0bC03Ljk1NS0uMjA0LS40NDIgMTQuNzIxLTcuNDcyLS4xOTJ6TTI4NC45MDggMzguMDZsLTE4LjgxLTQuNTcxLTEuOTIgNy43MzQgMTcuMjkyIDQuMTQzLTEuNTg5IDYuNDA4LTE3LjI2My00LjE3LTIuMjY1IDkuNDczIDE5LjYzOSA0Ljc3OS0xLjYwMiA2LjM2Ni0yNi45MDMtNi40NzcgOC44OTQtMzYuNTcgMjYuMDg4IDYuMzUzek0yOTkuMTUxIDYxLjkwNmw4LjUyMSA0LjI2NyAyLjM3Ni0xNS40ODJoLS4xNTJ6TTI4OC41NzIgNzIuNjlsLTcuMTY3LTMuNTQ5IDI4LjM5NC0yNy45OCA3Ljk4MiAzLjg4LTQuODA2IDM5LjU4MS03LjMyLTMuNjE4IDEuMjMtOC4wNjUtMTIuNTI2LTYuMDc3ek0zNjUuMzAzIDk5Ljk3OGwtMTUuMDY3LTEuNDA5LTYuMTE4IDE0LjIzOS0zLjEwNy0xNS41NjQtMTUuMTIzLTEuNDkyIDEzLjE0OC03LjY2NS0yLjY5My0xNC4zOSAxMC44ODIgOS45NTcgMTIuNzM0LTcuMDg0LTUuNzg3IDEzLjM1NHoiIHN0eWxlPSJzdHJva2Utd2lkdGg6MTMuODEwNCIvPjxwYXRoIGZpbGw9IiNiYTMwMzUiIGQ9Ik0xNjIuMzI3IDI4My4zNTdjLTIuMzYyIDMuNzg0LTMuNTc3IDYuODIzLTYuODkyIDYuNjg1LTIuMzc1LS4xMzgtMjkuMDAyLTIuMzQ4LTMzLjQ2Mi0yLjcyMS02LjU0Ny0uNTEtMTAuODE0IDguNTIxLTEzLjkyMSAxMy40MjQtMy4wOTQgNC44Mi01Ljk5NCAxMi4zMDUgNS45NTIgMTIuNjY0IDYuNjQzLjE2OCAyNS44MTIuNDY4IDMwLjc0Mi40NjggNC44NzUgMCA4LjEyLjM4NCAxMi40NDMtNS4yMiA0LjMxLTUuNTk0IDY5LjcwMi0xMTguNjA1IDY5LjcwMi0xMTguNjA1bC00LjQ2MS03Ljc3NXMtNTcuNzE0IDk3LjI2Ny02MC4xMDMgMTAxLjA3OCIgc3R5bGU9InN0cm9rZS13aWR0aDoxMy44MTA0Ii8+PHBhdGggZmlsbD0iI2JhMzAzNSIgZD0iTTIwNy4wNzcgMTQzLjY4OGMtMi4xOTYtMy45MjItNC4yMjYtNi40NjMtMi40NTgtOS4yOTQgMS4yMjktMi4wODYgMTYuMTg1LTI0LjE5NiAxOC42OTktMjcuODk4IDMuNjE4LTUuNDEzLTIuMTEzLTEzLjU3NS00LjkxNy0xOC42NzEtMi42OTMtNS4wOTYtNy43NDctMTEuMjI4LTEzLjkwNy0uOTgtMy40NTIgNS43NTgtMTMuMTIgMjIuMjktMTUuNDk1IDI2LjUwMi0yLjQwMyA0LjI2Ny00LjI4MSA2Ljk4OC0xLjUyIDEzLjUwNiAyLjcyMSA2LjQ3NyA2OS4zMTUgMTE4Ljc4NCA2OS4zMTUgMTE4Ljc4NGw5LjAwNS0uMTM4cy01Ni41OTUtOTcuODg5LTU4LjcyMi0xMDEuODExIiBzdHlsZT0ic3Ryb2tlLXdpZHRoOjEzLjgxMDQiLz48cGF0aCBmaWxsPSIjYmEzMDM1IiBkPSJNMzA1LjM0MSAyNTEuNzA0YzQuMzc4LjE1IDcuNzItLjI4OCA5LjIyNSAyLjU5NiAxLjIwMiAyLjEgMTIuNjM3IDI2LjI2OCAxNC41MTUgMzAuMjE4IDIuODQ1IDUuOTY1IDEyLjg1OCA1LjEyMyAxOC41ODkgNS4zNTggNS43ODcuMTY4IDEzLjY1OS0xLjA3NyA3Ljk2OS0xMS41NDYtMy4yODctNS44NjktMTIuNjEtMjIuNTkzLTE0Ljk4NS0yNi44MDYtMi41MTMtNC4yMjYtMy44MTEtNy4xODEtMTAuOTEtOC4xMzQtNi45NDctLjg5OC0xMzcuNDk3LS41MjgtMTM3LjQ5Ny0uNTI4bC00LjQzMyA3Ljg3MnMxMTMuMDM5LjgyOSAxMTcuNTI3Ljk2NyIgc3R5bGU9InN0cm9rZS13aWR0aDoxMy44MTA0Ii8+PHBhdGggZmlsbD0iIzJjMjUyMyIgZD0iTTE4Mi44OTUgMzYxLjcxNXYtMTkuMDE3aC0zLjc3di0zLjk1aDguNDc5djIyLjk2N3pNMjEwLjE1MSAzNDIuMTczYy0xLjA5MSAwLTIuMDAzLjM3Mi0yLjgwNCAxLjA5MS0uNzYuNzMyLTEuMTA0IDEuNjMtMS4xMDQgMi42OCAwIDEuMDUuMzQ1IDEuOTA1IDEuMTA0IDIuNjkzLjgwMS43MDQgMS43MTMgMS4wNzcgMi44MDQgMS4wNzdhNC4xMzIgNC4xMzIgMCAwIDAgMi43OS0xLjA1Yy43NzMtLjc0NiAxLjE3NC0xLjYzIDEuMTc0LTIuNjc5IDAtMS4wOS0uNDAxLTEuOTYxLTEuMTc0LTIuNjY1LS43NzQtLjc3My0xLjY1OC0xLjE0Ny0yLjc5LTEuMTQ3bTcuMzg5IDcuMTU0LTYuOTYgMTIuMzg4aC00LjY5Nmw0LjY5NS04LjQzOGMtMi41OTYuMTM4LTQuNjk1LS40NjgtNi4yOTctMS45ODgtMS41MDYtMS4zNC0yLjIyNC0zLjEyMi0yLjMzNC01LjMxOC0uMDEyLTIuMTY4Ljc0NS00LjAxOCAyLjMzNC01LjUyNCAxLjY0My0xLjUxOSAzLjU3Ni0yLjI2NSA1Ljg2OS0yLjI2NSAyLjI1MSAwIDQuMjI2Ljc0NiA1Ljg1NiAyLjI2NSAxLjYwMiAxLjQ2NCAyLjM0NyAzLjM1NiAyLjMwNiA1LjUyNCAwIDEuMjQzLS4yMzUgMi40MDMtLjc3MyAzLjM1Nk0yMjguMjIzIDM2MS43MTV2LTQuMjEyYzIuNjgtMi4zMDYgNS43NDUtNS4wNTUgOS4xOTgtOC4xMiAxLjUzMy0xLjM4MiAyLjI2NS0yLjkgMi4yNjUtNC40ODkgMC0uODQzLS4yNDgtMS40NjQtLjc0Ni0xLjk3NS0uNTk0LS41NTItMS40MDgtLjgyOC0yLjUxMy0uODI4LTEuMTE5IDAtMi4xNC4zODQtMi43NDkgMS4xNzMtLjY2Mi43Ni0xLjAyMSAxLjYzLTEuMDIxIDIuNzIxaC00LjQzNGMtLjA0Mi0xLjg2NC42MDgtMy41OSAyLjAwMy01LjE5MyAxLjYxNi0xLjc1NCAzLjY2LTIuNjY1IDYuMi0yLjY2NSAyLjI2NiAwIDQuMjQuNTUyIDUuODE1IDEuNzgxIDEuNTA1IDEuMjE2IDIuMzkgMi43OSAyLjM5IDQuNzc5IDAgMi40NTgtMS4zNjggNC45MDItNC4xNDQgNy4zNjFhMzU3LjQwMyAzNTcuNDAzIDAgMCAwLTYuMjI4IDUuNThoMTAuMzcxdjQuMDg3ek0yNjIuNjE0IDM0MS43ODNjLS45MTEgMC0xLjY4NS4yNDYtMi4yOTIuODU2LS43MDUuNjc3LTEuMDM2IDEuMzgxLTEuMDM2IDIuMjY1IDAgLjg1Ni4zMzEgMS41ODggMS4wMzYgMi4yMjMuNjYzLjU2NCAxLjM5NC44NyAyLjI5Mi44Ny44ODQgMCAxLjY4NS0uMzA1IDIuMzktLjg4NC41OTMtLjYyLjk1Mi0xLjM1My45NTItMi4yMDkgMC0uODg0LS4zNi0xLjU4OC0uOTUzLTIuMjY1LS43MDQtLjYwOC0xLjUwNS0uODU2LTIuMzg5LS44NTZtMCA5LjM3N2MtMS4wNzcgMC0yLjAwMi4zNDgtMi43MzQgMS4xMDUtLjc0Ni43ODctMS4xNiAxLjY0My0xLjE2IDIuNjc5IDAgMS4wMzYuNDE0IDEuOTIgMS4xNiAyLjY2Ni43MzIuNzg3IDEuNjU3IDEuMTA0IDIuNzM0IDEuMTA0IDEuMTA1IDAgMi4wNzItLjMxOCAyLjg3My0xLjEwNC43NDUtLjc0NiAxLjEwNS0xLjYzIDEuMTA1LTIuNjY2cy0uMzYtMS44OTItMS4xMDUtMi42OGMtLjgwMS0uNzU5LTEuNzY4LTEuMTA0LTIuODczLTEuMTA0bTAgMTEuMDc2Yy0yLjI2NSAwLTQuMjEyLS43MDQtNS43NDUtMi4xMTMtMS42NDMtMS40MjMtMi40MDMtMy4xNzYtMi40MDMtNS4zMDMgMC0yLjExNCAxLjIzLTMuOTUgMy42NDYtNS4zNTktMi4wNDQtMS4xMzItMy4wNjYtMi43MDctMy4wNjYtNC42OTYgMC0xLjgyMi43Ni0zLjM5NyAyLjMyLTQuNjEyIDEuNTc1LTEuMzQgMy4zMTUtMS45NzUgNS4yNDgtMS45NzUgMS45NDcgMCAzLjc5OC42MzUgNS4zMTcgMS45NzUgMS40NSAxLjIxNSAyLjMyIDIuNzkgMi4zMiA0LjUzIDAgMi4wNzEtMS4wMjIgMy42NDYtMy4wNTIgNC43NzggMi40NTkgMS40MDkgMy42NiAzLjIwNCAzLjY2IDUuMzU5IDAgMi4xMjctLjc0NiAzLjg4LTIuNDU4IDUuMzAzLTEuNDkyIDEuNDA5LTMuNDUzIDIuMTEzLTUuNzg3IDIuMTEzIiBzdHlsZT0ic3Ryb2tlLXdpZHRoOjEzLjgxMDQiLz48cGF0aCBmaWxsPSIjM2EzYTZhIiBkPSJtMjExLjE3NiAxMzkuMjEuOTY2IDEuNzI3Yy41NTMuOTk0IDQuODkgOC4zNyAxMC45MSAxOS4wNzJoMS45MmMzNS44OTQgMCA2NS4wNDggMjkuMDg1IDY1LjA0OCA2NS4wMiAwIDQuMTMtLjM0NiA4LjE5LTEuMTMzIDEyLjA0MyA5LjM2NCAwIDE3Ljk5NS4xMzggMjQuODU5LjE5Mi41MTEtMy45OTEuODE1LTguMTA3LjgxNS0xMi4yMzYgMC00OS41MS00MC4wNzgtODkuNjAzLTg5LjU4OS04OS42MDMtNS4xMjMgMC0xMC4wOTUuNDE0LTE0Ljk3IDEuMjQ0LS4wODMgMC0uMDgzLjEzOC0uMTUyLjE2OC4zMDQuNzA0Ljg3IDEuNTYgMS4zMjYgMi40MDNNMzA1LjEzOCAyNTcuNTNjLTEuMjAyLS4xMzctMTAuNDI3LS4xNS0yMy42NzEtLjI3NS0xMS4yMTQgMTkuNTctMzIuMzMgMzIuNzg2LTU2LjQ5OSAzMi43ODYtMTUuNjA2IDAtMjkuODMtNS41MjQtNDEuMDQ0LTE0LjU4NC00LjcxIDguMDM4LTkuMDc0IDE1LjMwMi0xMi41ODIgMjEuMzIzIDE0LjkwMiAxMS4yMTQgMzMuNTA0IDE3Ljg4NSA1My42MjYgMTcuODg1IDM4LjAzNCAwIDcwLjQyLTIzLjc1NCA4My41MTItNTcuMTA2aC0xLjMyNnpNMTU3LjQ0NSAyODAuMjQyYy42NjMtLjk4MSA1LjQ1NS05LjE1NyAxMi4zNzQtMjAuNzQzLTYuMzExLTEwLjAyNy05Ljg2LTIxLjgyMS05Ljg2LTM0LjQ5OSAwLTI3LjgxNCAxNy40Ny01MS42MjMgNDIuMTA3LTYwLjg2M2ExNjk3MC41NSAxNjk3MC41NSAwIDAgMC0xMi40NDMtMjEuNTE2Yy0zMS45MTYgMTMuNzEzLTU0LjI3NSA0NS40NS01NC4yNzUgODIuMzc5IDAgMjEuODYyIDcuODU4IDQxLjg0NiAyMC43ODUgNTcuNDM3LjA4My0uMTguMTUyLS4zNzIuMjYyLS40Njh6IiBzdHlsZT0ic3Ryb2tlLXdpZHRoOjEzLjgxMDQiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJtNDcuMzggMTI0LjkwMiAzLjg4LTYuNjMgMzIuMzg2IDE5LjE3LTMuODk1IDYuNjAxek01NC44NjUgMTY5Ljc4NmMxLjgwOS4yNTIgMy4zMjguMTM4IDQuNDA1LS4yODggMi4wMDMtLjcxOSAzLjQ2Ny0yLjMzNCA0LjQyLTQuODYyLjg4NC0yLjI1LjgxNC00LjQwNS0uMTgtNi40NzctMS4zMjYtMi44MDMtNC4yNTMtNS04LjYxNy02LjY3LTMuNDQtMS4zMTItNi41NDctMS43NjgtOS4xMTUtMS4yMy0yLjk4My42MDgtNS4wNTUgMi4zNDktNi4xMTggNS4yNjItLjc3NCAxLjk3NS0uODE1IDMuNzk4LS4xMjUgNS40NDIuNjA4IDEuNzQgMS45NjIgMy4yNDUgMy45MzYgNC41MDJsLTIuNzQ4IDcuMjM3Yy0zLjcwMS0yLjMyLTYuMjI4LTUuMTEtNy42MS04LjM5Ny0xLjQ2My0zLjQ4LTEuMzgtNy4zNDcuMTk0LTExLjM5NCAxLjc5NS00LjcxIDQuNzY0LTcuOTI3IDguOTM1LTkuNTAxIDQuNDQ3LTEuNjcxIDkuNjI2LTEuMzgyIDE1LjQ5Ni44NTYgNS44NTUgMi4yMjMgOS44NDYgNS40MjcgMTEuOTg3IDkuNzIyIDIuMDg1IDQuMDMzIDIuMjEgOC4zNy40NDIgMTIuOTU1LTEuNzU0IDQuNjY4LTQuNTE2IDcuNzYxLTguNDUyIDkuNDQ2LTMuMjA0IDEuMzUzLTYuNDA4IDEuNTA2LTkuNjI2LjYyMXpNNTEuOTM4IDIxMy4yOTRsMi44NDUtMTkuMjEtNy44NTgtMS4xNi0yLjYyNCAxNy41OC02LjQ2My0uOTggMi41NTUtMTcuNTY3LTkuNjQtMS4zOTUtMi45ODMgMTkuOTg0LTYuNTE4LTEuMDA4IDQuMDYtMjcuMzQ1IDM3LjE5MSA1LjQ2OS0zLjkyMiAyNi42ek0zOS4zMTQgMjQ4LjkxM2wtMTYuNTcyIDIuNzktMS4yNy03LjU5NiAzNy4xMjItNi4yNDIgMS4zMTIgNy42MzYtMTQuMTI4IDIuMzIgMi40MyAxNC40MDUgMTQuMDczLTIuMzkgMS4yNyA3LjQ0NS0zNy4xNSA2LjItMS4yMjktNy40ODUgMTYuNi0yLjcyek00Mi4zNjIgMjk0LjkwM2MtLjkxMSAyLjI1MS0uODU2IDQuNjI3LjEzOCA3LjAxNiAxLjAwOCAyLjMzNCAyLjYxIDMuOTYzIDQuODc1IDQuOTMgMi45NyAxLjIwMiA2LjY1Ny44ODQgMTAuOTM4LS45NjcgNC4zMjMtMS44MDkgNy4wOTktNC4yMTIgOC4zNDItNy4yMDkuOTI1LTIuMjM3LjkxMS00LjU1Ny0uMDU0LTYuOTE5LTEuMDc4LTIuNDAzLTIuNjkzLTQuMDQ2LTUuMDE0LTQuOTcxLTIuOTQxLTEuMjAyLTYuNTYtLjg0My0xMC45NjUuOTM5LTQuMzA5IDEuODkxLTcuMDMgNC4yNjctOC4yNTkgNy4xODFtMjMuMjk5LTE0LjIxMWMzLjA5MyAxLjg3OCA1LjQ5NiA0Ljc1IDcuMDU3IDguNDM4IDEuNTYgMy42NzQgMS44OTIgNy4zMiAxLjA5IDEwLjkzOC0xLjMzOSA1LjU5NC01LjUxIDkuODQ3LTEyLjYyMiAxMi44MTYtNi45NiAzLjAxMS0xMi44OTkgMy4wMTEtMTcuODAyIDAtMy4yNDUtMS44OTItNS41NTEtNC42NjgtNy4xNjctOC4zMjgtMS41MzMtMy43MjgtMS44NS03LjQwMi0xLjAzNi0xMS4wMzQgMS4zMTItNS41NTIgNS40ODMtOS44MzMgMTIuNDg1LTEyLjczMyA3LjA1Ny0yLjk3IDEzLjA1LTIuOTcgMTcuOTk1LS4xMzhNODUuODE3IDMzNy4zMDVjMS4xMTgtMS40NzcgMS45NDctMi43NDggMi4xNC0zLjk3Ny40ODQtMi4wMy0uMDk2LTQuMTE2LTEuNjE1LTYuMjg0LTEuNDY0LTEuOTc1LTMuMjYtMy4wNjYtNS41NTItMy4zODQtMy4wNjYtLjM4NC02LjUxOS43ODgtMTAuMzQ0IDMuNjA1LTIuOTI4IDIuMTU0LTQuOTU4IDQuNDg4LTUuOTM5IDYuOTMzLTEuMTc0IDIuODQ1LS44MjggNS41MjQuOTggOC4wMSAxLjM0IDEuNzEzIDIuODA0IDIuNzYyIDQuNTcyIDMuMTA4IDEuNzU0LjM3MiAzLjc4NC4xMzggNS44ODMtLjg0M2w0LjU4NSA2LjIxNGMtMy45OSAxLjgxLTcuNjY0IDIuNDMxLTExLjEzIDEuNzY5LTMuNzQzLS42OTEtNi45MzQtMi44MDQtOS40ODktNi4zNTMtMi45ODMtNC4wODktNC4wMTgtOC4zLTMuMDgtMTIuNzIgMS4wMjMtNC41ODUgNC4wNjEtOC43NDIgOS4xNDMtMTIuNDcgNS4xMS0zLjcwMiA5Ljk3MS01LjI5IDE0Ljc1LTQuNzM4IDQuNDYuNDY4IDguMTkgMi43MDcgMTEuMDM0IDYuNzEyIDIuOTgzIDMuOTkxIDQuMDc0IDguMDM4IDMuMzAxIDEyLjIzNi0uNTk0IDMuMzg0LTIuMTk2IDYuMTczLTQuNzIzIDguMzd6TTg1Ljk2NSAzNzQuMzEzbC01Ljc0Ni00Ljk4NSAyNC41NTUtMjguNTQ3IDUuNzA0IDQuOTU4LTkuOTU3IDExLjYyOSAyMC41NzctMi41NDEgNy40MTcgNi40MjItMjEuMzM4IDIuMDU3LTIuNDAzIDI3LjA4My03LjU5NS02LjQ1IDIuMzM0LTE5LjgwNC01LjI5LjQ4NnpNMTU2LjAwMiAzODQuMTg1bC0xNy4xMjUtOS4xMTUtMy43NTcgNi45NzQgMTUuNjc1IDguMzk3LTMuMTIxIDUuNzg2LTE1LjYzNC04LjM1NS00LjU4NSA4LjYwNCAxNy43NzQgOS41MTYtMy4wNjYgNS44NjktMjQuNDQ0LTEzLjEwNiAxNy42NjQtMzMuMTg2IDIzLjc2NyAxMi42NXpNMTcyLjQ5NyA0MjIuMDI4bC03LjQxNi0yLjA5OSA0LjAzMi0xMy42NTgtNi4wNzYtMjYuMTMgOC43IDIuNDg2IDMuMDEgMTcuOTk1IDExLjUzMy0xMy43NjkgOC4zMTMgMi4zMzQtMTguMTc0IDE5LjMyek0yMjcuOTY4IDQxNC42NjVsOS41My0uNDAyLTUuMjIxLTE0LjY5NGgtLjE4em0tNC4xNTcgMTQuNDA0LTguMDM4LjM0OCAxMS43OTQtMzguMTE3IDguODUzLS4zNDIgMTQuNTI4IDM3LjA0LTguMjcyLjMzLTIuNzQ4LTcuNjY2LTEzLjgyNS41ODJ6TTI2Ny4xMzMgNDEyLjgzYy4zMzEgMS40MzcgMS4xMDUgMi41NDIgMi4xODIgMy4yMTggMS42MDIgMS4wNjQgMy45NjQgMS4xNzQgNi44MzYuNDU2IDIuMTI3LS41OTQgMy41OS0xLjMyNiA0LjcxLTIuMjM3IDEuNDA4LTEuMTc0IDEuODkyLTIuNjM4IDEuNDUtNC4zNS0uMzMyLTEuMzY4LTEuMjQzLTIuMTI3LTIuNjgtMi41NTUtLjg3LS4yMzQtMi41NTUtLjQwMi00LjkxNi0uMjA0aC04LjU3NmMtMS41ODktLjEzOC0yLjkyOC0uMzcyLTQuMDYtLjc4OC0xLjM2OC0uNTQtMi40NTktMS4yMjktMy4yODgtMi4zMDYtLjk2Ni0xLjEzMy0xLjcxMi0yLjY2Ni0yLjIyMy00LjU3MS0uNzczLTIuNzc2LS42MzUtNS4zODcuNTM5LTcuNzM0IDEuNjg1LTMuMzk4IDQuOTcxLTUuNzQ1IDEwLjA2OC03LjA0NCA0Ljc5Mi0xLjMxMSA4LjgyNC0uODI4IDEyLjA0MiAxLjI5OSAyLjQwMyAxLjYzIDQuMDQ3IDMuODggNC44NDggNi43MjZsLTYuOTg4IDEuODkxYy0uNDk4LTEuMjk4LTEuMjctMi4zMDYtMi4xODItMi45MTQtMS42MDItMS4xMzItMy43ODQtMS4yMjktNi41Ni0uNTIyLTEuNjU4LjQ1Ni0yLjk3IDEuMTQ2LTMuOTA5IDIuMDQ0LTEuMTE4IDEuMTE5LTEuNTMzIDIuNDU4LTEuMTE4IDMuOTA4LjMwMyAxLjIwMi45NjYgMS45NzUgMS45ODggMi40MDMuNTY3LjIyMiAxLjQ2NC4zODQgMi42OTMuMzg0aC4wODNsOS4yMTItLjEzOGMzLjA4LS4xMzggNS40NjkuMjUyIDcuMTY3IDEuMDc4IDIuMjUxIDEuMTE4IDMuODY3IDMuMjA0IDQuNzI0IDYuMjI4IDEuMjE1IDQuNjU1LjE3OSA4LjQzOC0zLjE2MyAxMS40NjMtMi4xIDEuODkyLTQuNjEzIDMuMjE4LTcuNjIzIDQuMDQ2LTUuNzg3IDEuNDkyLTEwLjMxNyAxLjEwNS0xMy42MTgtMS4xMDQtMi40MTYtMS41ODktNC4wMDUtMy44NjctNC43NjQtNi45NDd6TTMwNi4wODMgMzk5LjUyYy42OSAxLjMyNiAxLjY0MyAyLjIyMyAyLjg3MiAyLjcyIDEuODUuNjUgNC4xMDIuMzYgNi44MDktMS4wNjMgMS44MjMtLjk2NiAzLjIxOC0yLjA0NCA0LjE0My0zLjEwNy45OTQtMS41MDUgMS4yMjktMy4wMS40MjgtNC41NzEtLjYyMi0xLjI1Ny0xLjY4NS0xLjg3OC0zLjEwOC0xLjkzNC0xLjA3NyAwLTIuNjY1LjIzNC00LjkzLjg0M2wtNC4wMTkuOTI1Yy0xLjg3OC40MjYtMy4zODMuNzYtNC4zMzYuOTM5LTEuNTYuMjQ2LTIuOTI4LjMzLTQuMTE2LjEzOC0xLjQ2NC0uMjA0LTIuNjY1LS43MzItMy43NTYtMS40OTItMS4xNi0uOTgtMi4yMzgtMi4yNzgtMy4xNzctNC4wMzItMS4zMjYtMi41NTUtMS42OTgtNS4xMjQtMS4wMjItNy42NzguODU3LTMuNjMzIDMuNjMyLTYuNjQ0IDguMjMxLTkuMDYgNC40NzUtMi4zMDcgOC40OTQtMi43MiAxMi4xMjYtMS4yOTkgMi42OTMgMS4xMDUgNC43NjUgMi45IDYuMTczIDUuNTUybC02LjQzNSAzLjI4N2MtLjc4OC0xLjE2LTEuNzgyLTEuOTYxLTIuNzYzLTIuMzYxLTEuNzgxLS42OS00LjAzMi0uNDAyLTYuNjE1LjkxMS0xLjQwOC44MDEtMi41NjkgMS43MjYtMy4yNiAyLjg0NS0uOTEgMS4zNjctLjk5MyAyLjY4LS4zMTYgNC4wNi41OTQgMS4wNzggMS4zOTQgMS43MjcgMi40NTggMS44NzkuNjQ5LjEzOCAxLjUxOSAwIDIuNzItLjE1aC4xMWw4Ljk3OC0yLjA4NmMzLjAxLS43NzMgNS4zNzItLjkxMSA3LjE5NS0uNDU2IDIuNTU1LjU0IDQuNTQ0IDIuMjUxIDYuMDA3IDUuMDI3IDIuMSA0LjIyNiAxLjkzNCA4LjIwNC0uNjkgMTEuOTA1LTEuNjE2IDIuMjkzLTMuNzU3IDQuMTQzLTYuNjAxIDUuNDY5LTUuMjIgMi44MTctOS44MDYgMy40MjUtMTMuNTM1IDEuOTItMi42MjQtMS4wNS00LjcxLTIuOTQyLTYuMTMyLTUuNzQ2ek0zNDYuMDQ1IDM3OC40OTRjMi40NDQuMTY4IDQuNjQtLjU0IDYuNjI4LTIuMTk2IDEuOTYyLTEuNjcxIDMuMDI1LTMuNzE1IDMuMjc0LTYuMTQ2LjI0OC0zLjIzMi0xLjA5MS02LjU3NC00LjA4OC0xMC4xNjUtMy4xNjMtMy41NzYtNi4yMjktNS41NjUtOS40Ni01LjgyNy0yLjQwNC0uMTY4LTQuNjEzLjUyOC02LjYwMiAyLjE4Mi0xLjk3NSAxLjY0My0zLjAyNCAzLjcyOC0zLjI4NyA2LjE1OS0uMTY1IDMuMTQ5IDEuMTg4IDYuNTYgNC4yNTQgMTAuMjA2IDMuMDUyIDMuNTkgNi4xNDYgNS40OTYgOS4yOCA1Ljc4N20tMjAuNTIyLTE3Ljk5NWMuOTUzLTMuNTY0IDIuOTQyLTYuNjcxIDUuOTUyLTkuMjgxIDMuMDUzLTIuNTU1IDYuNDIyLTQuMDA1IDEwLjE1MS00LjI1NCA1LjcxOC0uNDY4IDExLjA0OCAyLjMzNCAxNS45NjUgOC4xNDggNC45MDMgNS43NzMgNi43MTIgMTEuNDc3IDUuMzQ1IDE3LjA1Ny0uOTUzIDMuNjE4LTIuODYgNi43MTEtNS44ODQgOS4yOC0zLjA2NSAyLjU0MS02LjQ1IDMuOTc3LTEwLjE5MiA0LjI5NS01LjY0OC4zODQtMTAuOTc5LTIuMzQ4LTE1Ljg0LTguMTQ4LTQuOTg2LTUuODQyLTYuNzk1LTExLjUxOC01LjQ5Ny0xNy4wOTdNMzczLjU4NCAzMjQuMzg0Yy0xLjcxMy0uNjYzLTMuMTktLjkzOS00LjMyMy0uODU2LTIuMTU0LjE2OC00LjAwNSAxLjM1My01LjYzNCAzLjQ2Ny0xLjM5NSAxLjg5MS0xLjg5MiAzLjk5LTEuNDkyIDYuMjgzLjQ3IDMuMDM4IDIuNjEgNS45NTIgNi40NzcgOC43MjkgMi45IDIuMjIzIDUuNjkgMy40MjQgOC4zNDIgMy42NTkgMy4wNjYuMjg4IDUuNTI0LS44MjkgNy4zNi0zLjMgMS4yMy0xLjcyNyAxLjgyNC0zLjUyMiAxLjY0NC01LjI2My0uMTUyLTEuODIyLTEuMDIyLTMuNjMxLTIuNTU1LTUuMzU4bDQuNTQ0LTYuMjgzYzIuOTgzIDMuMjczIDQuNjEzIDYuNjcgNS4wNCAxMC4xMzYuNDQzIDMuODEyLS42MzUgNy40NDQtMy4zIDEwLjk4LTIuOTgzIDQuMDMyLTYuNzI2IDYuMjk3LTExLjIxNCA2LjY3LTQuNjk2LjQxNC05LjU3LTEuMjk4LTE0LjcwOC01LjA0MS00Ljk3Mi0zLjcxNS03Ljg4Ni03Ljk0MS04Ljc3LTEyLjYzNy0uOTQtNC40MzIuMTM4LTguNTc1IDMuMTA3LTEyLjU4IDIuOTQyLTMuOTkyIDYuNDc4LTYuMjQzIDEwLjYzNC02LjgyMyAzLjQ1My0uMzcyIDYuNjAyLjMwNiA5LjQ3NCAyLjA1OHpNNDA4LjUyOSAzMTMuNzgzbC0zLjUwOCA2LjgwOS0zMy42MDEtMTcuMDQyIDMuNTIxLTYuODIyek00MDQuNzkzIDI4NS41ODRsMi43NjItOS4xMy0xNS41NzguMTM5LS4wNTQuMTM4em0xMi4yMzYgOC43MTQtMi4zOSA3LjcwNy0zMi4wODEtMjMuNzY4IDIuNjEtOC40OCAzOS44NDMtMS40NjQtMi40MyA3LjkyNy04LjE0OC4xMzgtNC4xNDQgMTMuMzE0ek00MjguMzY3IDIzOC41OTVsLS42NjMgNy42NTEtMzAuODUyLTIuNTk2LS45NTMgMTEuMjY5LTYuNjQzLS41NCAyLjU1NS0zMC4yNzIgNi42MjkuNjM1LS45NjcgMTEuMjd6TTQyNy45NjMgMjA2LjQ4MmwuNTI1IDcuNjM3LTM3LjUzNyAyLjcwNy0uNTM5LTcuNjkzek00MTYuMDgxIDE4My41MDJjMS4yMTYtMi4xMTIgMS41Mi00LjQxOS44OTgtNi45MTktLjYwOC0yLjUxMy0xLjk3NS00LjM2NC00LjA2LTUuNjA3LTIuNzc2LTEuNjMtNi40MzYtMS45Ni0xMC45OTMtLjgxNS00LjU1OCAxLjIzLTcuNzA2IDMuMTQ5LTkuMzA4IDUuODg0LTEuMjU3IDIuMDk5LTEuNTc1IDQuNDQ2LS45NCA2LjkwNS41NCAyLjUyNyAxLjk5IDQuNDIgNC4wNzQgNS42NjIgMi43NjMgMS41NjEgNi40NjQgMS44NSAxMC45NjYuNjkxIDQuNTU3LTEuMTMzIDcuNzItMy4wOCA5LjM2My01LjhtLTI1LjE5IDEwLjQ5NWMtMi44MDMtMi4zNjItNC43NS01LjUzOC01Ljc0NS05LjQxOC0uOTk0LTMuODgxLS43NzMtNy41MTMuNjIyLTEwLjk5MyAyLjE1NC01LjI2MiA2LjkwNS04Ljg5NSAxNC4zNjItMTAuNzQ1IDcuMzM0LTEuODc4IDEzLjI4Ni0uOTI1IDE3LjY1IDIuNzA3IDIuODczIDIuNDAzIDQuNzY1IDUuNTI0IDUuNzMyIDkuNDE4IDEuMDIxIDMuODUzLjc3MyA3LjU0MS0uNjUgMTEuMDA3LTIuMTU0IDUuMjItNi44NSA4LjgxMS0xNC4yNTIgMTAuNjM1LTcuNDMgMS45MDUtMTMuMzI3IDEuMDA4LTE3LjcxOS0yLjYxMU0zNjguOTMxIDE0MS42MzhsLTMuMzQyLTYuMzggMzMuNDQ5LTE3LjQwMSAzLjQ4IDYuNzY3LTE2Ljc4IDI1LjYwNS4wMy4xOCAyMy43ODItMTIuNDAyIDMuMjE4IDYuMzI1LTMzLjM2NiAxNy40MDEtMy43OTgtNy4yNjQgMTYuNjI4LTI0Ljk1NmgtLjAxMnoiIHN0eWxlPSJzdHJva2Utd2lkdGg6MTMuODEwNCIvPjwvc3ZnPg==" alt="대한아이스하키협회">
+          <div class="footer-brand-txt">DAILY ICE DECISION OS v2.0</div>
+        </div>
+        <div class="footer-desc">
+          대한아이스하키협회 공식 피지컬 운영 시스템<br>
+          Kinvent MFRC · K-Grip API · PHV 자동 보정 · 3중 검수<br>
+          대한민국 U18 아이스하키 국가대표팀 · 2026 IIHF U18 D1B 탈린
+        </div>
+      </div>
+      <div class="footer-partner">
+        <div class="footer-partner-label">Powered by</div>
+        <div class="footer-partner-logo">
+          <img class="footer-mfr-logo" src="data:image/jpeg;base64,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" alt="My Favorite Recovery">
+        </div>
+        <div class="footer-mfr-name">My Favorite Recovery</div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div>© 2026 My Favorite Recovery · 대한아이스하키협회. All rights reserved.</div>
+      <div style="font-size:10px;color:rgba(0,0,0,.3)">모든 측정 데이터의 소유권은 대한아이스하키협회에 100% 귀속됩니다</div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Daily Ice Decision OS v2 — 연맹 보고서 관리</title>
+<link rel="stylesheet" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"/>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f0f2f5;--card:#fff;--inset:#f4f5f7;
+  --border:rgba(0,0,0,.07);
+  --t1:#0f1a2e;--t2:rgba(15,26,46,.72);--t3:rgba(15,26,46,.44);
+  --ok:#34c759;--ok-d:rgba(52,199,89,.11);--ok-t:#0d5c29;
+  --warn:#ff9f0a;--warn-d:rgba(255,159,10,.11);--warn-t:#7a4500;
+  --danger:#ff3b30;--danger-d:rgba(255,59,48,.11);--danger-t:#8b1a1a;
+  --ice:#0096c7;--ice-d:rgba(0,150,199,.09);--ice-t:#003f5e;
+  --purple:#9b59b6;--purple-d:rgba(155,89,182,.09);--purple-t:#5b2c6f;
+  --deep:#0a1628;--r:13px;--sh:0 2px 10px rgba(0,0,0,.06);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--t1);font-family:'Pretendard',-apple-system,sans-serif;font-size:13.5px;line-height:1.5;-webkit-font-smoothing:antialiased;min-height:100vh;}
+
+/* SIDEBAR */
+.sidebar{position:fixed;left:0;top:0;bottom:0;width:232px;background:linear-gradient(180deg,#0a1628,#0d2040);display:flex;flex-direction:column;z-index:100;border-right:1px solid rgba(255,255,255,.06)}
+.sb-logo{padding:18px 18px 14px;border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;gap:10px}
+.sb-logo-img{width:40px;height:40px;border-radius:50%;background:#fff;padding:2px;flex-shrink:0;box-shadow:0 0 16px rgba(0,150,199,.3)}
+.sb-logo-txt h1{font-family:'Orbitron';font-size:9.5px;font-weight:700;letter-spacing:2px;color:#fff;line-height:1.4}
+.sb-logo-txt p{font-size:9px;color:rgba(255,255,255,.38);margin-top:2px}
+.sb-role{padding:9px 18px;border-bottom:1px solid rgba(255,255,255,.07)}
+.sb-role-badge{display:inline-flex;align-items:center;gap:5px;font-size:9.5px;font-weight:700;padding:3px 9px;border-radius:5px;background:rgba(155,89,182,.2);color:#c39bd3;border:1px solid rgba(155,89,182,.3)}
+.sb-team{font-size:9.5px;color:rgba(255,255,255,.35);margin-top:4px}
+.sb-nav{flex:1;padding:6px 0;overflow-y:auto}
+.nav-sec{padding:14px 18px 4px;font-size:8.5px;font-weight:800;letter-spacing:2.5px;color:rgba(255,255,255,.25);text-transform:uppercase}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 18px;font-size:12.5px;font-weight:500;color:rgba(255,255,255,.55);border-left:3px solid transparent;cursor:pointer;transition:all .15s;text-decoration:none}
+.nav-item:hover{background:rgba(255,255,255,.05);color:#fff}
+.nav-item.active{background:rgba(155,89,182,.15);color:#c39bd3;border-left-color:#9b59b6;font-weight:600}
+.nav-ic{width:18px;height:18px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.nav-ic svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.nav-em{font-size:14px;width:18px;text-align:center;flex-shrink:0}
+.sb-divider{margin:8px 18px;height:1px;background:rgba(255,255,255,.07)}
+.sb-switch{margin:8px 14px;padding:7px 12px;border-radius:8px;background:rgba(0,150,199,.12);border:1px solid rgba(0,150,199,.2);font-size:10px;font-weight:700;color:#48cae4;cursor:pointer;text-align:center}
+.sb-foot{padding:12px 18px;border-top:1px solid rgba(255,255,255,.07);font-size:9px;color:rgba(255,255,255,.25);line-height:1.7}
+
+/* MAIN */
+.main{margin-left:232px;min-height:100vh}
+.topbar{position:sticky;top:0;z-index:50;height:52px;background:rgba(240,242,245,.92);backdrop-filter:blur(20px) saturate(180%);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 28px}
+.tb-left{display:flex;align-items:center;gap:10px}
+.tb-page{font-size:13px;font-weight:700}
+.tb-badge{font-size:9px;font-weight:700;padding:2px 8px;border-radius:4px;background:var(--purple-d);color:var(--purple-t);border:1px solid rgba(155,89,182,.2)}
+.tb-right{display:flex;align-items:center;gap:10px}
+.tb-date{font-family:'JetBrains Mono';font-size:11px;font-weight:600;color:var(--ice)}
+.tb-chip{font-size:9.5px;font-weight:700;padding:3px 9px;border-radius:16px}
+.tb-chip.ok{background:var(--ok-d);color:var(--ok-t);border:1px solid rgba(52,199,89,.2)}
+.tb-chip.warn{background:var(--warn-d);color:var(--warn-t);border:1px solid rgba(255,159,10,.2)}
+.content{padding:20px 28px 48px}
+.sec-hd{font-size:9px;font-weight:800;letter-spacing:2px;color:var(--t3);text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.sec-hd::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* ── 제출 현황 요약 배너 ── */
+.submit-banner{
+  background:linear-gradient(135deg,#0a1628,#1a0a40);
+  border-radius:var(--r);border:1px solid rgba(155,89,182,.2);
+  overflow:hidden;margin-bottom:18px;
+  box-shadow:0 4px 20px rgba(0,0,0,.15);
+}
+.sb2-head{padding:12px 20px;border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;justify-content:space-between}
+.sb2-title{font-size:10px;font-weight:800;letter-spacing:2px;color:rgba(255,255,255,.4);text-transform:uppercase}
+.sb2-sub{font-size:14px;font-weight:900;color:#fff;margin-top:2px}
+.sb2-note{font-size:9px;color:rgba(255,255,255,.3)}
+.sb2-body{display:grid;grid-template-columns:repeat(5,1fr);gap:0}
+.sb2-col{padding:14px 16px;border-right:1px solid rgba(255,255,255,.07);text-align:center}
+.sb2-col:last-child{border-right:none}
+.sb2-label{font-size:8.5px;font-weight:800;letter-spacing:.5px;color:rgba(255,255,255,.4);text-transform:uppercase;margin-bottom:5px}
+.sb2-val{font-family:'Orbitron';font-size:24px;font-weight:900;line-height:1;margin-bottom:3px}
+.sb2-val.ok{color:var(--ok)}.sb2-val.warn{color:var(--warn)}.sb2-val.danger{color:var(--danger)}.sb2-val.muted{color:rgba(255,255,255,.3)}
+.sb2-sub2{font-size:8.5px;color:rgba(255,255,255,.35)}
+
+/* ── 보고서 카드 그리드 ── */
+.report-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+
+.report-card{background:#fff;border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--sh);overflow:hidden;transition:box-shadow .15s}
+.report-card:hover{box-shadow:0 4px 16px rgba(0,0,0,.1)}
+.report-card.ready{border-left:5px solid var(--ok)}
+.report-card.draft{border-left:5px solid var(--warn)}
+.report-card.pending{border-left:5px solid rgba(0,0,0,.15)}
+
+.rc2-head{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;background:var(--inset)}
+.rc2-icon{font-size:24px;flex-shrink:0}
+.rc2-info{flex:1}
+.rc2-title{font-size:13px;font-weight:800}
+.rc2-meta{font-size:9.5px;color:var(--t3);margin-top:2px}
+.rc2-status{font-size:9px;font-weight:700;padding:3px 10px;border-radius:10px;flex-shrink:0}
+.rc2-status.ready{background:var(--ok-d);color:var(--ok-t)}
+.rc2-status.draft{background:var(--warn-d);color:var(--warn-t)}
+.rc2-status.pending{background:rgba(0,0,0,.06);color:var(--t3)}
+
+.rc2-body{padding:12px 16px}
+.rc2-desc{font-size:10px;color:var(--t2);line-height:1.6;margin-bottom:10px}
+
+/* 체크리스트 */
+.rc2-checks{display:flex;flex-direction:column;gap:4px;margin-bottom:10px}
+.rc2-check{display:flex;align-items:center;gap:7px;font-size:10px;font-weight:600;padding:3px 0}
+.rc2-check-icon{font-size:11px;flex-shrink:0}
+.rc2-check-text.done{color:var(--ok-t)}.rc2-check-text.pending{color:var(--warn-t)}.rc2-check-text.na{color:var(--t3)}
+
+.rc2-footer{display:flex;align-items:center;gap:8px;padding-top:10px;border-top:1px solid var(--border)}
+.rc2-dl-btn{flex:1;padding:7px 12px;border-radius:7px;font-size:10.5px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;border:none;transition:all .15s}
+.rc2-dl-btn.ready{background:var(--ok-d);color:var(--ok-t)}
+.rc2-dl-btn.ready:hover{background:rgba(52,199,89,.2)}
+.rc2-dl-btn.draft{background:var(--warn-d);color:var(--warn-t)}
+.rc2-dl-btn.pending{background:var(--inset);color:var(--t3);border:1px solid var(--border)}
+.rc2-preview-btn{padding:7px 12px;border-radius:7px;font-size:10px;font-weight:700;color:var(--ice);background:var(--ice-d);border:none;cursor:pointer;flex-shrink:0}
+
+/* ── 제출 이력 ── */
+.history-card{background:#fff;border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--sh);overflow:hidden;margin-bottom:14px}
+.hist-head{padding:11px 18px;border-bottom:1px solid var(--border);background:var(--inset);display:flex;align-items:center;justify-content:space-between}
+.hist-row-head{display:grid;grid-template-columns:160px 1fr 100px 100px 110px 100px;gap:0;padding:7px 18px;background:var(--deep);font-size:8.5px;font-weight:700;color:rgba(255,255,255,.6);letter-spacing:.3px}
+.hist-row{display:grid;grid-template-columns:160px 1fr 100px 100px 110px 100px;gap:0;padding:10px 18px;border-bottom:1px solid rgba(0,0,0,.04);align-items:center;transition:background .15s}
+.hist-row:last-child{border-bottom:none}
+.hist-row:hover{background:rgba(155,89,182,.03)}
+.hist-doc{font-size:11.5px;font-weight:700}
+.hist-desc{font-size:9.5px;color:var(--t3);margin-top:2px}
+.hist-submitter{font-size:10.5px;font-weight:600;color:var(--t2)}
+.hist-date{font-family:'JetBrains Mono';font-size:10px;font-weight:700;color:var(--t3)}
+.hist-status{font-size:8.5px;font-weight:700;padding:2px 8px;border-radius:4px}
+.hist-status.accepted{background:var(--ok-d);color:var(--ok-t)}
+.hist-status.reviewing{background:var(--warn-d);color:var(--warn-t)}
+.hist-status.pending{background:rgba(0,0,0,.06);color:var(--t3)}
+.hist-dl{font-size:10px;font-weight:700;color:var(--ice);cursor:pointer;display:flex;align-items:center;gap:3px}
+.hist-dl:hover{text-decoration:underline}
+
+/* ── 보안 & 데이터 관리 ── */
+.security-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px}
+.sec-card{background:#fff;border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--sh);overflow:hidden}
+.sec-card-head{padding:10px 14px;border-bottom:1px solid var(--border);background:var(--inset);font-size:11.5px;font-weight:800}
+.sec-card-body{padding:12px 14px}
+.sec-item{display:flex;align-items:flex-start;gap:7px;padding:5px 0;border-bottom:1px solid rgba(0,0,0,.04);font-size:10px;font-weight:600;color:var(--t2);line-height:1.5}
+.sec-item:last-child{border-bottom:none}
+.sec-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.sec-dot.ok{background:var(--ok)}.sec-dot.ice{background:var(--ice)}.sec-dot.warn{background:var(--warn)}.sec-dot.purple{background:var(--purple)}
+
+/* ── 검수 체계 ── */
+.verify-flow{display:flex;align-items:center;gap:0;margin-bottom:12px}
+.vf-step{flex:1;padding:12px 14px;text-align:center;position:relative}
+.vf-step:not(:last-child)::after{content:'→';position:absolute;right:-8px;top:50%;transform:translateY(-50%);font-size:14px;font-weight:800;color:var(--t3)}
+.vf-num{font-family:'Orbitron';font-size:18px;font-weight:900;margin-bottom:4px}
+.vf-num.step1{color:var(--ice)}.vf-num.step2{color:var(--ok)}.vf-num.step3{color:var(--purple)}
+.vf-label{font-size:10.5px;font-weight:800;margin-bottom:2px}
+.vf-desc{font-size:9px;color:var(--t3);line-height:1.5}
+
+/* ── 연도별 보고서 계획 ── */
+.plan-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.plan-card{padding:12px 14px;border-radius:10px;border:1px solid var(--border);background:#fff}
+.plan-year{font-family:'Orbitron';font-size:13px;font-weight:900;color:var(--ice);margin-bottom:4px}
+.plan-title{font-size:11px;font-weight:800;margin-bottom:6px}
+.plan-items{display:flex;flex-direction:column;gap:3px}
+.plan-item{font-size:9.5px;font-weight:600;color:var(--t2);display:flex;align-items:center;gap:5px}
+.plan-dot{width:4px;height:4px;border-radius:50%;flex-shrink:0}
+.plan-dot.done{background:var(--ok)}.plan-dot.plan{background:var(--ice)}.plan-dot.future{background:rgba(0,0,0,.15)}
+.plan-status{font-size:8px;font-weight:700;padding:1px 5px;border-radius:3px;margin-top:6px;display:inline-block}
+.plan-status.done{background:var(--ok-d);color:var(--ok-t)}
+.plan-status.cur{background:var(--ice-d);color:var(--ice-t)}
+.plan-status.future{background:rgba(0,0,0,.06);color:var(--t3)}
+
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-thumb{background:rgba(0,0,0,.15);border-radius:4px}
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <a href="index.html" style="text-decoration:none"><div class="sb-logo" style="cursor:pointer" title="홈으로">
+    <img class="sb-logo-img" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0NTBwdCIgaGVpZ2h0PSI0NTBwdCIgdmlld0JveD0iMCAwIDQ0OS45OTk5OCA0NDkuOTk5OTkiPjxkZWZzPjxjbGlwUGF0aCBpZD0iYSI+PHBhdGggZD0iTTAgMTcwMC43OWgxMjA3LjU2VjBIMFoiLz48L2NsaXBQYXRoPjxjbGlwUGF0aCBpZD0iYiI+PHBhdGggZD0iTTAgMTcwMC43OWgxMjA3LjU2VjBIMFoiLz48L2NsaXBQYXRoPjxjbGlwUGF0aCBpZD0iYyI+PHBhdGggZD0iTTEyMDcuNTU5IDE3MDAuNzlIMFYuMDAzaDEyMDcuNTU5eiIvPjwvY2xpcFBhdGg+PGltYWdlIGlkPSJkIiB3aWR0aD0iNDI2IiBoZWlnaHQ9IjI4NSIvPjxpbWFnZSBpZD0iZSIgd2lkdGg9IjQyNiIgaGVpZ2h0PSIyODUiLz48aW1hZ2UgaWQ9ImYiIHdpZHRoPSIxMDExIiBoZWlnaHQ9IjE0NDAiLz48L2RlZnM+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTAgMjI1QzAgMTAwLjczMyAxMDAuNzA2IDAgMjI0Ljk3MiAwIDM0OS4yMTIgMCA0NTAgMTAwLjczMyA0NTAgMjI1YzAgMTI0LjI5NC0xMDAuNzg5IDIyNS0yMjUuMDI4IDIyNUMxMDAuNzA2IDQ1MCAwIDM0OS4yOTQgMCAyMjUiIHN0eWxlPSJzdHJva2Utd2lkdGg6MTMuODEwNCIvPjxwYXRoIGZpbGw9IiMzYTNhNmEiIGQ9Ik0yMjQuOTc0IDM4Mi41OGMtODcuMDc1IDAtMTU3LjU2NC03MC41MDItMTU3LjU2NC0xNTcuNTc3IDAtODcuMDYxIDcwLjQ4OS0xNTcuNTY0IDE1Ny41NjQtMTU3LjU2NCA4Ny4wMiAwIDE1Ny41NzcgNzAuNTAzIDE1Ny41NzcgMTU3LjU2NCAwIDg3LjA3NS03MC41NTggMTU3LjU3Ny0xNTcuNTc3IDE1Ny41NzdtMC0zNjguNjE1Yy0xMTYuNjE2IDAtMjExLjAzOCA5NC40NjMtMjExLjAzOCAyMTEuMDM4IDAgMTE2LjU2IDk0LjQyMiAyMTEuMDM3IDIxMS4wMzggMjExLjAzNyAxMTYuNTMyIDAgMjExLjAxLTk0LjQ3NyAyMTEuMDEtMjExLjAzNyAwLTExNi41NzUtOTQuNDc4LTIxMS4wMzgtMjExLjAxLTIxMS4wMzgiIHN0eWxlPSJzdHJva2Utd2lkdGg6MTMuODEwNCIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Im0xMTEuMzYgNzUuMzIzLTIuNTU0IDE0Ljg0NyAxMy42ODYgNy4yNS0xNS43NTggMS44NzktMi42NjUgMTQuOTU3LTYuNjAyLTEzLjc1Ni0xNC41NTYgMS42NTcgMTAuNzg2LTEwLjE5Mi02LjExOC0xMy4xNDcgMTIuOTQgNi43NTN6TTE0Ni43NSA3OS42MjdsLTYuODY0IDMuMjczLTE2LjItMzMuOTc0IDYuOTA2LTMuMjQ1IDYuNTQ2IDEzLjgyNCA2LjAwNy0xOS44NiA4LjkwOC00LjIyNS02LjgyMiAyMC4zNTcgMjMuNzY4IDEzLjIwMi04LjkyMiA0LjI5NS0xNy4yMDgtMTAuMTIzLTEuNTg4IDUuMDR6TTE4My4wMyA1Ni42NzJjMi4wMTYgMS4zOTUgNC4zMDkgMS43NTUgNi44NzggMS4zMjYgMi41NTUtLjU4MiA0LjQ3NC0xLjg5MSA1Ljc3Mi0zLjkzNiAxLjc4Mi0yLjY3OSAyLjE2OS02LjMxMSAxLjIwMi0xMC44ODItLjk0LTQuNjI3LTIuNzItNy44MzEtNS41MS05LjU1Ny0xLjkzNC0xLjM2Ny00LjI4Mi0xLjc4Mi02LjgyMy0xLjI4NC0yLjQ0NC41NTItNC40MzMgMS44NjQtNS44MTQgMy45MjItMS42NzEgMi42NjUtMi4wNTggNi4yOTgtMS4wNzcgMTAuOTY1Ljk1MyA0LjU1OCAyLjcwNyA3LjczNCA1LjM3MiA5LjQ0Nm0tOS40NzQtMjUuNTA3YzIuNDg2LTIuNzQ4IDUuNzE4LTQuNTMgOS42NC01LjMzMSAzLjg5NC0uODI5IDcuNTgyLS41MSAxMC45NjUgMS4wNSA1LjIzNCAyLjM2MSA4LjU3NyA3LjMwNSAxMC4xMjMgMTQuNzc2IDEuNjAyIDcuNDE3LjQ1NiAxMy4yNzItMy40MSAxNy41MjYtMi40NzMgMi43NzYtNS42NjMgNC41NzEtOS41NzIgNS4zNzItMy45NjMuODQzLTcuNTgxLjQ0NC0xMC45NzktMS4wOS01LjE3OS0yLjMyLTguNTc2LTcuMjM3LTEwLjExLTE0LjY5NS0xLjYxNS03LjQ4NS0uNTI0LTEzLjM1NCAzLjM0My0xNy42MDhNMjMxLjI5OSAzOS4yMzRjMS45ODkgMCAzLjQ2Ni0uMzA2IDQuNDItMS4wMzYuOTgtLjg1NiAxLjQzNi0yLjE0IDEuNTQ2LTQuMDA1IDAtMS4zNC0uMzA0LTIuNDAzLS44NDItMy4yODYtLjg5OC0xLjEyLTIuMzQ4LTEuNzEzLTQuMzIzLTEuNzRsLTkuNjQtLjMwNi0uMTkzIDEwLjE3OHptLTE2LjEzLTE2Ljk4NyAxOC41MzMuNDg2YzQuMjU0IDAgNy4zMDYgMS40NSA5LjI2NyA0LjI1NCAxLjMxMiAxLjkwNiAxLjk2IDQuMTQzIDEuOTMzIDYuNTg4LS4wODMgMi4xMTMtLjYzNSAzLjk5MS0xLjU2IDUuNTM4LTEuMTA1IDEuNjMtMi41NTUgMi43Mi00LjI4MiAzLjMxNCAxLjYxNi43NiAyLjc2MiAxLjY4NSAzLjMyOSAyLjcwNy44IDEuMzk1IDEuMTg3IDMuNzE1IDEuMDkgNi45ODgtLjEyMyAyLjk0Mi0uMTIzIDQuNzkzIDAgNS40OTcuMjA4IDEuMDM2LjYwOCAxLjcxMyAxLjQ1IDIuMDE2bC0uMDMuODg0LTguNDc5LS4xOGMtLjI0OC0uOTgtLjQ5Ny0xLjk2MS0uNTI1LTMuMDI1YTUwLjk3MyA1MC45NzMgMCAwIDEtLjA4My00LjU1N2MuMDgzLTIuODg2LS4xNTEtNC42OTYtLjcwNC01LjUyNC0uNjYzLTEuMTMzLTIuNDAzLTEuNjk5LTUuMDEzLTEuNzU0bC03Ljk1NS0uMjA0LS40NDIgMTQuNzIxLTcuNDcyLS4xOTJ6TTI4NC45MDggMzguMDZsLTE4LjgxLTQuNTcxLTEuOTIgNy43MzQgMTcuMjkyIDQuMTQzLTEuNTg5IDYuNDA4LTE3LjI2My00LjE3LTIuMjY1IDkuNDczIDE5LjYzOSA0Ljc3OS0xLjYwMiA2LjM2Ni0yNi45MDMtNi40NzcgOC44OTQtMzYuNTcgMjYuMDg4IDYuMzUzek0yOTkuMTUxIDYxLjkwNmw4LjUyMSA0LjI2NyAyLjM3Ni0xNS40ODJoLS4xNTJ6TTI4OC41NzIgNzIuNjlsLTcuMTY3LTMuNTQ5IDI4LjM5NC0yNy45OCA3Ljk4MiAzLjg4LTQuODA2IDM5LjU4MS03LjMyLTMuNjE4IDEuMjMtOC4wNjUtMTIuNTI2LTYuMDc3ek0zNjUuMzAzIDk5Ljk3OGwtMTUuMDY3LTEuNDA5LTYuMTE4IDE0LjIzOS0zLjEwNy0xNS41NjQtMTUuMTIzLTEuNDkyIDEzLjE0OC03LjY2NS0yLjY5My0xNC4zOSAxMC44ODIgOS45NTcgMTIuNzM0LTcuMDg0LTUuNzg3IDEzLjM1NHoiIHN0eWxlPSJzdHJva2Utd2lkdGg6MTMuODEwNCIvPjxwYXRoIGZpbGw9IiNiYTMwMzUiIGQ9Ik0xNjIuMzI3IDI4My4zNTdjLTIuMzYyIDMuNzg0LTMuNTc3IDYuODIzLTYuODkyIDYuNjg1LTIuMzc1LS4xMzgtMjkuMDAyLTIuMzQ4LTMzLjQ2Mi0yLjcyMS02LjU0Ny0uNTEtMTAuODE0IDguNTIxLTEzLjkyMSAxMy40MjQtMy4wOTQgNC44Mi01Ljk5NCAxMi4zMDUgNS45NTIgMTIuNjY0IDYuNjQzLjE2OCAyNS44MTIuNDY4IDMwLjc0Mi40NjggNC44NzUgMCA4LjEyLjM4NCAxMi40NDMtNS4yMiA0LjMxLTUuNTk0IDY5LjcwMi0xMTguNjA1IDY5LjcwMi0xMTguNjA1bC00LjQ2MS03Ljc3NXMtNTcuNzE0IDk3LjI2Ny02MC4xMDMgMTAxLjA3OCIgc3R5bGU9InN0cm9rZS13aWR0aDoxMy44MTA0Ii8+PHBhdGggZmlsbD0iI2JhMzAzNSIgZD0iTTIwNy4wNzcgMTQzLjY4OGMtMi4xOTYtMy45MjItNC4yMjYtNi40NjMtMi40NTgtOS4yOTQgMS4yMjktMi4wODYgMTYuMTg1LTI0LjE5NiAxOC42OTktMjcuODk4IDMuNjE4LTUuNDEzLTIuMTEzLTEzLjU3NS00LjkxNy0xOC42NzEtMi42OTMtNS4wOTYtNy43NDctMTEuMjI4LTEzLjkwNy0uOTgtMy40NTIgNS43NTgtMTMuMTIgMjIuMjktMTUuNDk1IDI2LjUwMi0yLjQwMyA0LjI2Ny00LjI4MSA2Ljk4OC0xLjUyIDEzLjUwNiAyLjcyMSA2LjQ3NyA2OS4zMTUgMTE4Ljc4NCA2OS4zMTUgMTE4Ljc4NGw5LjAwNS0uMTM4cy01Ni41OTUtOTcuODg5LTU4LjcyMi0xMDEuODExIiBzdHlsZT0ic3Ryb2tlLXdpZHRoOjEzLjgxMDQiLz48cGF0aCBmaWxsPSIjYmEzMDM1IiBkPSJNMzA1LjM0MSAyNTEuNzA0YzQuMzc4LjE1IDcuNzItLjI4OCA5LjIyNSAyLjU5NiAxLjIwMiAyLjEgMTIuNjM3IDI2LjI2OCAxNC41MTUgMzAuMjE4IDIuODQ1IDUuOTY1IDEyLjg1OCA1LjEyMyAxOC41ODkgNS4zNTggNS43ODcuMTY4IDEzLjY1OS0xLjA3NyA3Ljk2OS0xMS41NDYtMy4yODctNS44NjktMTIuNjEtMjIuNTkzLTE0Ljk4NS0yNi44MDYtMi41MTMtNC4yMjYtMy44MTEtNy4xODEtMTAuOTEtOC4xMzQtNi45NDctLjg5OC0xMzcuNDk3LS41MjgtMTM3LjQ5Ny0uNTI4bC00LjQzMyA3Ljg3MnMxMTMuMDM5LjgyOSAxMTcuNTI3Ljk2NyIgc3R5bGU9InN0cm9rZS13aWR0aDoxMy44MTA0Ii8+PHBhdGggZmlsbD0iIzJjMjUyMyIgZD0iTTE4Mi44OTUgMzYxLjcxNXYtMTkuMDE3aC0zLjc3di0zLjk1aDguNDc5djIyLjk2N3pNMjEwLjE1MSAzNDIuMTczYy0xLjA5MSAwLTIuMDAzLjM3Mi0yLjgwNCAxLjA5MS0uNzYuNzMyLTEuMTA0IDEuNjMtMS4xMDQgMi42OCAwIDEuMDUuMzQ1IDEuOTA1IDEuMTA0IDIuNjkzLjgwMS43MDQgMS43MTMgMS4wNzcgMi44MDQgMS4wNzdhNC4xMzIgNC4xMzIgMCAwIDAgMi43OS0xLjA1Yy43NzMtLjc0NiAxLjE3NC0xLjYzIDEuMTc0LTIuNjc5IDAtMS4wOS0uNDAxLTEuOTYxLTEuMTc0LTIuNjY1LS43NzQtLjc3My0xLjY1OC0xLjE0Ny0yLjc5LTEuMTQ3bTcuMzg5IDcuMTU0LTYuOTYgMTIuMzg4aC00LjY5Nmw0LjY5NS04LjQzOGMtMi41OTYuMTM4LTQuNjk1LS40NjgtNi4yOTctMS45ODgtMS41MDYtMS4zNC0yLjIyNC0zLjEyMi0yLjMzNC01LjMxOC0uMDEyLTIuMTY4Ljc0NS00LjAxOCAyLjMzNC01LjUyNCAxLjY0My0xLjUxOSAzLjU3Ni0yLjI2NSA1Ljg2OS0yLjI2NSAyLjI1MSAwIDQuMjI2Ljc0NiA1Ljg1NiAyLjI2NSAxLjYwMiAxLjQ2NCAyLjM0NyAzLjM1NiAyLjMwNiA1LjUyNCAwIDEuMjQzLS4yMzUgMi40MDMtLjc3MyAzLjM1Nk0yMjguMjIzIDM2MS43MTV2LTQuMjEyYzIuNjgtMi4zMDYgNS43NDUtNS4wNTUgOS4xOTgtOC4xMiAxLjUzMy0xLjM4MiAyLjI2NS0yLjkgMi4yNjUtNC40ODkgMC0uODQzLS4yNDgtMS40NjQtLjc0Ni0xLjk3NS0uNTk0LS41NTItMS40MDgtLjgyOC0yLjUxMy0uODI4LTEuMTE5IDAtMi4xNC4zODQtMi43NDkgMS4xNzMtLjY2Mi43Ni0xLjAyMSAxLjYzLTEuMDIxIDIuNzIxaC00LjQzNGMtLjA0Mi0xLjg2NC42MDgtMy41OSAyLjAwMy01LjE5MyAxLjYxNi0xLjc1NCAzLjY2LTIuNjY1IDYuMi0yLjY2NSAyLjI2NiAwIDQuMjQuNTUyIDUuODE1IDEuNzgxIDEuNTA1IDEuMjE2IDIuMzkgMi43OSAyLjM5IDQuNzc5IDAgMi40NTgtMS4zNjggNC45MDItNC4xNDQgNy4zNjFhMzU3LjQwMyAzNTcuNDAzIDAgMCAwLTYuMjI4IDUuNThoMTAuMzcxdjQuMDg3ek0yNjIuNjE0IDM0MS43ODNjLS45MTEgMC0xLjY4NS4yNDYtMi4yOTIuODU2LS43MDUuNjc3LTEuMDM2IDEuMzgxLTEuMDM2IDIuMjY1IDAgLjg1Ni4zMzEgMS41ODggMS4wMzYgMi4yMjMuNjYzLjU2NCAxLjM5NC44NyAyLjI5Mi44Ny44ODQgMCAxLjY4NS0uMzA1IDIuMzktLjg4NC41OTMtLjYyLjk1Mi0xLjM1My45NTItMi4yMDkgMC0uODg0LS4zNi0xLjU4OC0uOTUzLTIuMjY1LS43MDQtLjYwOC0xLjUwNS0uODU2LTIuMzg5LS44NTZtMCA5LjM3N2MtMS4wNzcgMC0yLjAwMi4zNDgtMi43MzQgMS4xMDUtLjc0Ni43ODctMS4xNiAxLjY0My0xLjE2IDIuNjc5IDAgMS4wMzYuNDE0IDEuOTIgMS4xNiAyLjY2Ni43MzIuNzg3IDEuNjU3IDEuMTA0IDIuNzM0IDEuMTA0IDEuMTA1IDAgMi4wNzItLjMxOCAyLjg3My0xLjEwNC43NDUtLjc0NiAxLjEwNS0xLjYzIDEuMTA1LTIuNjY2cy0uMzYtMS44OTItMS4xMDUtMi42OGMtLjgwMS0uNzU5LTEuNzY4LTEuMTA0LTIuODczLTEuMTA0bTAgMTEuMDc2Yy0yLjI2NSAwLTQuMjEyLS43MDQtNS43NDUtMi4xMTMtMS42NDMtMS40MjMtMi40MDMtMy4xNzYtMi40MDMtNS4zMDMgMC0yLjExNCAxLjIzLTMuOTUgMy42NDYtNS4zNTktMi4wNDQtMS4xMzItMy4wNjYtMi43MDctMy4wNjYtNC42OTYgMC0xLjgyMi43Ni0zLjM5NyAyLjMyLTQuNjEyIDEuNTc1LTEuMzQgMy4zMTUtMS45NzUgNS4yNDgtMS45NzUgMS45NDcgMCAzLjc5OC42MzUgNS4zMTcgMS45NzUgMS40NSAxLjIxNSAyLjMyIDIuNzkgMi4zMiA0LjUzIDAgMi4wNzEtMS4wMjIgMy42NDYtMy4wNTIgNC43NzggMi40NTkgMS40MDkgMy42NiAzLjIwNCAzLjY2IDUuMzU5IDAgMi4xMjctLjc0NiAzLjg4LTIuNDU4IDUuMzAzLTEuNDkyIDEuNDA5LTMuNDUzIDIuMTEzLTUuNzg3IDIuMTEzIiBzdHlsZT0ic3Ryb2tlLXdpZHRoOjEzLjgxMDQiLz48cGF0aCBmaWxsPSIjM2EzYTZhIiBkPSJtMjExLjE3NiAxMzkuMjEuOTY2IDEuNzI3Yy41NTMuOTk0IDQuODkgOC4zNyAxMC45MSAxOS4wNzJoMS45MmMzNS44OTQgMCA2NS4wNDggMjkuMDg1IDY1LjA0OCA2NS4wMiAwIDQuMTMtLjM0NiA4LjE5LTEuMTMzIDEyLjA0MyA5LjM2NCAwIDE3Ljk5NS4xMzggMjQuODU5LjE5Mi41MTEtMy45OTEuODE1LTguMTA3LjgxNS0xMi4yMzYgMC00OS41MS00MC4wNzgtODkuNjAzLTg5LjU4OS04OS42MDMtNS4xMjMgMC0xMC4wOTUuNDE0LTE0Ljk3IDEuMjQ0LS4wODMgMC0uMDgzLjEzOC0uMTUyLjE2OC4zMDQuNzA0Ljg3IDEuNTYgMS4zMjYgMi40MDNNMzA1LjEzOCAyNTcuNTNjLTEuMjAyLS4xMzctMTAuNDI3LS4xNS0yMy42NzEtLjI3NS0xMS4yMTQgMTkuNTctMzIuMzMgMzIuNzg2LTU2LjQ5OSAzMi43ODYtMTUuNjA2IDAtMjkuODMtNS41MjQtNDEuMDQ0LTE0LjU4NC00LjcxIDguMDM4LTkuMDc0IDE1LjMwMi0xMi41ODIgMjEuMzIzIDE0LjkwMiAxMS4yMTQgMzMuNTA0IDE3Ljg4NSA1My42MjYgMTcuODg1IDM4LjAzNCAwIDcwLjQyLTIzLjc1NCA4My41MTItNTcuMTA2aC0xLjMyNnpNMTU3LjQ0NSAyODAuMjQyYy42NjMtLjk4MSA1LjQ1NS05LjE1NyAxMi4zNzQtMjAuNzQzLTYuMzExLTEwLjAyNy05Ljg2LTIxLjgyMS05Ljg2LTM0LjQ5OSAwLTI3LjgxNCAxNy40Ny01MS42MjMgNDIuMTA3LTYwLjg2M2ExNjk3MC41NSAxNjk3MC41NSAwIDAgMC0xMi40NDMtMjEuNTE2Yy0zMS45MTYgMTMuNzEzLTU0LjI3NSA0NS40NS01NC4yNzUgODIuMzc5IDAgMjEuODYyIDcuODU4IDQxLjg0NiAyMC43ODUgNTcuNDM3LjA4My0uMTguMTUyLS4zNzIuMjYyLS40Njh6IiBzdHlsZT0ic3Ryb2tlLXdpZHRoOjEzLjgxMDQiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJtNDcuMzggMTI0LjkwMiAzLjg4LTYuNjMgMzIuMzg2IDE5LjE3LTMuODk1IDYuNjAxek01NC44NjUgMTY5Ljc4NmMxLjgwOS4yNTIgMy4zMjguMTM4IDQuNDA1LS4yODggMi4wMDMtLjcxOSAzLjQ2Ny0yLjMzNCA0LjQyLTQuODYyLjg4NC0yLjI1LjgxNC00LjQwNS0uMTgtNi40NzctMS4zMjYtMi44MDMtNC4yNTMtNS04LjYxNy02LjY3LTMuNDQtMS4zMTItNi41NDctMS43NjgtOS4xMTUtMS4yMy0yLjk4My42MDgtNS4wNTUgMi4zNDktNi4xMTggNS4yNjItLjc3NCAxLjk3NS0uODE1IDMuNzk4LS4xMjUgNS40NDIuNjA4IDEuNzQgMS45NjIgMy4yNDUgMy45MzYgNC41MDJsLTIuNzQ4IDcuMjM3Yy0zLjcwMS0yLjMyLTYuMjI4LTUuMTEtNy42MS04LjM5Ny0xLjQ2My0zLjQ4LTEuMzgtNy4zNDcuMTk0LTExLjM5NCAxLjc5NS00LjcxIDQuNzY0LTcuOTI3IDguOTM1LTkuNTAxIDQuNDQ3LTEuNjcxIDkuNjI2LTEuMzgyIDE1LjQ5Ni44NTYgNS44NTUgMi4yMjMgOS44NDYgNS40MjcgMTEuOTg3IDkuNzIyIDIuMDg1IDQuMDMzIDIuMjEgOC4zNy40NDIgMTIuOTU1LTEuNzU0IDQuNjY4LTQuNTE2IDcuNzYxLTguNDUyIDkuNDQ2LTMuMjA0IDEuMzUzLTYuNDA4IDEuNTA2LTkuNjI2LjYyMXpNNTEuOTM4IDIxMy4yOTRsMi44NDUtMTkuMjEtNy44NTgtMS4xNi0yLjYyNCAxNy41OC02LjQ2My0uOTggMi41NTUtMTcuNTY3LTkuNjQtMS4zOTUtMi45ODMgMTkuOTg0LTYuNTE4LTEuMDA4IDQuMDYtMjcuMzQ1IDM3LjE5MSA1LjQ2OS0zLjkyMiAyNi42ek0zOS4zMTQgMjQ4LjkxM2wtMTYuNTcyIDIuNzktMS4yNy03LjU5NiAzNy4xMjItNi4yNDIgMS4zMTIgNy42MzYtMTQuMTI4IDIuMzIgMi40MyAxNC40MDUgMTQuMDczLTIuMzkgMS4yNyA3LjQ0NS0zNy4xNSA2LjItMS4yMjktNy40ODUgMTYuNi0yLjcyek00Mi4zNjIgMjk0LjkwM2MtLjkxMSAyLjI1MS0uODU2IDQuNjI3LjEzOCA3LjAxNiAxLjAwOCAyLjMzNCAyLjYxIDMuOTYzIDQuODc1IDQuOTMgMi45NyAxLjIwMiA2LjY1Ny44ODQgMTAuOTM4LS45NjcgNC4zMjMtMS44MDkgNy4wOTktNC4yMTIgOC4zNDItNy4yMDkuOTI1LTIuMjM3LjkxMS00LjU1Ny0uMDU0LTYuOTE5LTEuMDc4LTIuNDAzLTIuNjkzLTQuMDQ2LTUuMDE0LTQuOTcxLTIuOTQxLTEuMjAyLTYuNTYtLjg0My0xMC45NjUuOTM5LTQuMzA5IDEuODkxLTcuMDMgNC4yNjctOC4yNTkgNy4xODFtMjMuMjk5LTE0LjIxMWMzLjA5MyAxLjg3OCA1LjQ5NiA0Ljc1IDcuMDU3IDguNDM4IDEuNTYgMy42NzQgMS44OTIgNy4zMiAxLjA5IDEwLjkzOC0xLjMzOSA1LjU5NC01LjUxIDkuODQ3LTEyLjYyMiAxMi44MTYtNi45NiAzLjAxMS0xMi44OTkgMy4wMTEtMTcuODAyIDAtMy4yNDUtMS44OTItNS41NTEtNC42NjgtNy4xNjctOC4zMjgtMS41MzMtMy43MjgtMS44NS03LjQwMi0xLjAzNi0xMS4wMzQgMS4zMTItNS41NTIgNS40ODMtOS44MzMgMTIuNDg1LTEyLjczMyA3LjA1Ny0yLjk3IDEzLjA1LTIuOTcgMTcuOTk1LS4xMzhNODUuODE3IDMzNy4zMDVjMS4xMTgtMS40NzcgMS45NDctMi43NDggMi4xNC0zLjk3Ny40ODQtMi4wMy0uMDk2LTQuMTE2LTEuNjE1LTYuMjg0LTEuNDY0LTEuOTc1LTMuMjYtMy4wNjYtNS41NTItMy4zODQtMy4wNjYtLjM4NC02LjUxOS43ODgtMTAuMzQ0IDMuNjA1LTIuOTI4IDIuMTU0LTQuOTU4IDQuNDg4LTUuOTM5IDYuOTMzLTEuMTc0IDIuODQ1LS44MjggNS41MjQuOTggOC4wMSAxLjM0IDEuNzEzIDIuODA0IDIuNzYyIDQuNTcyIDMuMTA4IDEuNzU0LjM3MiAzLjc4NC4xMzggNS44ODMtLjg0M2w0LjU4NSA2LjIxNGMtMy45OSAxLjgxLTcuNjY0IDIuNDMxLTExLjEzIDEuNzY5LTMuNzQzLS42OTEtNi45MzQtMi44MDQtOS40ODktNi4zNTMtMi45ODMtNC4wODktNC4wMTgtOC4zLTMuMDgtMTIuNzIgMS4wMjMtNC41ODUgNC4wNjEtOC43NDIgOS4xNDMtMTIuNDcgNS4xMS0zLjcwMiA5Ljk3MS01LjI5IDE0Ljc1LTQuNzM4IDQuNDYuNDY4IDguMTkgMi43MDcgMTEuMDM0IDYuNzEyIDIuOTgzIDMuOTkxIDQuMDc0IDguMDM4IDMuMzAxIDEyLjIzNi0uNTk0IDMuMzg0LTIuMTk2IDYuMTczLTQuNzIzIDguMzd6TTg1Ljk2NSAzNzQuMzEzbC01Ljc0Ni00Ljk4NSAyNC41NTUtMjguNTQ3IDUuNzA0IDQuOTU4LTkuOTU3IDExLjYyOSAyMC41NzctMi41NDEgNy40MTcgNi40MjItMjEuMzM4IDIuMDU3LTIuNDAzIDI3LjA4My03LjU5NS02LjQ1IDIuMzM0LTE5LjgwNC01LjI5LjQ4NnpNMTU2LjAwMiAzODQuMTg1bC0xNy4xMjUtOS4xMTUtMy43NTcgNi45NzQgMTUuNjc1IDguMzk3LTMuMTIxIDUuNzg2LTE1LjYzNC04LjM1NS00LjU4NSA4LjYwNCAxNy43NzQgOS41MTYtMy4wNjYgNS44NjktMjQuNDQ0LTEzLjEwNiAxNy42NjQtMzMuMTg2IDIzLjc2NyAxMi42NXpNMTcyLjQ5NyA0MjIuMDI4bC03LjQxNi0yLjA5OSA0LjAzMi0xMy42NTgtNi4wNzYtMjYuMTMgOC43IDIuNDg2IDMuMDEgMTcuOTk1IDExLjUzMy0xMy43NjkgOC4zMTMgMi4zMzQtMTguMTc0IDE5LjMyek0yMjcuOTY4IDQxNC42NjVsOS41My0uNDAyLTUuMjIxLTE0LjY5NGgtLjE4em0tNC4xNTcgMTQuNDA0LTguMDM4LjM0OCAxMS43OTQtMzguMTE3IDguODUzLS4zNDIgMTQuNTI4IDM3LjA0LTguMjcyLjMzLTIuNzQ4LTcuNjY2LTEzLjgyNS41ODJ6TTI2Ny4xMzMgNDEyLjgzYy4zMzEgMS40MzcgMS4xMDUgMi41NDIgMi4xODIgMy4yMTggMS42MDIgMS4wNjQgMy45NjQgMS4xNzQgNi44MzYuNDU2IDIuMTI3LS41OTQgMy41OS0xLjMyNiA0LjcxLTIuMjM3IDEuNDA4LTEuMTc0IDEuODkyLTIuNjM4IDEuNDUtNC4zNS0uMzMyLTEuMzY4LTEuMjQzLTIuMTI3LTIuNjgtMi41NTUtLjg3LS4yMzQtMi41NTUtLjQwMi00LjkxNi0uMjA0aC04LjU3NmMtMS41ODktLjEzOC0yLjkyOC0uMzcyLTQuMDYtLjc4OC0xLjM2OC0uNTQtMi40NTktMS4yMjktMy4yODgtMi4zMDYtLjk2Ni0xLjEzMy0xLjcxMi0yLjY2Ni0yLjIyMy00LjU3MS0uNzczLTIuNzc2LS42MzUtNS4zODcuNTM5LTcuNzM0IDEuNjg1LTMuMzk4IDQuOTcxLTUuNzQ1IDEwLjA2OC03LjA0NCA0Ljc5Mi0xLjMxMSA4LjgyNC0uODI4IDEyLjA0MiAxLjI5OSAyLjQwMyAxLjYzIDQuMDQ3IDMuODggNC44NDggNi43MjZsLTYuOTg4IDEuODkxYy0uNDk4LTEuMjk4LTEuMjctMi4zMDYtMi4xODItMi45MTQtMS42MDItMS4xMzItMy43ODQtMS4yMjktNi41Ni0uNTIyLTEuNjU4LjQ1Ni0yLjk3IDEuMTQ2LTMuOTA5IDIuMDQ0LTEuMTE4IDEuMTE5LTEuNTMzIDIuNDU4LTEuMTE4IDMuOTA4LjMwMyAxLjIwMi45NjYgMS45NzUgMS45ODggMi40MDMuNTY3LjIyMiAxLjQ2NC4zODQgMi42OTMuMzg0aC4wODNsOS4yMTItLjEzOGMzLjA4LS4xMzggNS40NjkuMjUyIDcuMTY3IDEuMDc4IDIuMjUxIDEuMTE4IDMuODY3IDMuMjA0IDQuNzI0IDYuMjI4IDEuMjE1IDQuNjU1LjE3OSA4LjQzOC0zLjE2MyAxMS40NjMtMi4xIDEuODkyLTQuNjEzIDMuMjE4LTcuNjIzIDQuMDQ2LTUuNzg3IDEuNDkyLTEwLjMxNyAxLjEwNS0xMy42MTgtMS4xMDQtMi40MTYtMS41ODktNC4wMDUtMy44NjctNC43NjQtNi45NDd6TTMwNi4wODMgMzk5LjUyYy42OSAxLjMyNiAxLjY0MyAyLjIyMyAyLjg3MiAyLjcyIDEuODUuNjUgNC4xMDIuMzYgNi44MDktMS4wNjMgMS44MjMtLjk2NiAzLjIxOC0yLjA0NCA0LjE0My0zLjEwNy45OTQtMS41MDUgMS4yMjktMy4wMS40MjgtNC41NzEtLjYyMi0xLjI1Ny0xLjY4NS0xLjg3OC0zLjEwOC0xLjkzNC0xLjA3NyAwLTIuNjY1LjIzNC00LjkzLjg0M2wtNC4wMTkuOTI1Yy0xLjg3OC40MjYtMy4zODMuNzYtNC4zMzYuOTM5LTEuNTYuMjQ2LTIuOTI4LjMzLTQuMTE2LjEzOC0xLjQ2NC0uMjA0LTIuNjY1LS43MzItMy43NTYtMS40OTItMS4xNi0uOTgtMi4yMzgtMi4yNzgtMy4xNzctNC4wMzItMS4zMjYtMi41NTUtMS42OTgtNS4xMjQtMS4wMjItNy42NzguODU3LTMuNjMzIDMuNjMyLTYuNjQ0IDguMjMxLTkuMDYgNC40NzUtMi4zMDcgOC40OTQtMi43MiAxMi4xMjYtMS4yOTkgMi42OTMgMS4xMDUgNC43NjUgMi45IDYuMTczIDUuNTUybC02LjQzNSAzLjI4N2MtLjc4OC0xLjE2LTEuNzgyLTEuOTYxLTIuNzYzLTIuMzYxLTEuNzgxLS42OS00LjAzMi0uNDAyLTYuNjE1LjkxMS0xLjQwOC44MDEtMi41NjkgMS43MjYtMy4yNiAyLjg0NS0uOTEgMS4zNjctLjk5MyAyLjY4LS4zMTYgNC4wNi41OTQgMS4wNzggMS4zOTQgMS43MjcgMi40NTggMS44NzkuNjQ5LjEzOCAxLjUxOSAwIDIuNzItLjE1aC4xMWw4Ljk3OC0yLjA4NmMzLjAxLS43NzMgNS4zNzItLjkxMSA3LjE5NS0uNDU2IDIuNTU1LjU0IDQuNTQ0IDIuMjUxIDYuMDA3IDUuMDI3IDIuMSA0LjIyNiAxLjkzNCA4LjIwNC0uNjkgMTEuOTA1LTEuNjE2IDIuMjkzLTMuNzU3IDQuMTQzLTYuNjAxIDUuNDY5LTUuMjIgMi44MTctOS44MDYgMy40MjUtMTMuNTM1IDEuOTItMi42MjQtMS4wNS00LjcxLTIuOTQyLTYuMTMyLTUuNzQ2ek0zNDYuMDQ1IDM3OC40OTRjMi40NDQuMTY4IDQuNjQtLjU0IDYuNjI4LTIuMTk2IDEuOTYyLTEuNjcxIDMuMDI1LTMuNzE1IDMuMjc0LTYuMTQ2LjI0OC0zLjIzMi0xLjA5MS02LjU3NC00LjA4OC0xMC4xNjUtMy4xNjMtMy41NzYtNi4yMjktNS41NjUtOS40Ni01LjgyNy0yLjQwNC0uMTY4LTQuNjEzLjUyOC02LjYwMiAyLjE4Mi0xLjk3NSAxLjY0My0zLjAyNCAzLjcyOC0zLjI4NyA2LjE1OS0uMTY1IDMuMTQ5IDEuMTg4IDYuNTYgNC4yNTQgMTAuMjA2IDMuMDUyIDMuNTkgNi4xNDYgNS40OTYgOS4yOCA1Ljc4N20tMjAuNTIyLTE3Ljk5NWMuOTUzLTMuNTY0IDIuOTQyLTYuNjcxIDUuOTUyLTkuMjgxIDMuMDUzLTIuNTU1IDYuNDIyLTQuMDA1IDEwLjE1MS00LjI1NCA1LjcxOC0uNDY4IDExLjA0OCAyLjMzNCAxNS45NjUgOC4xNDggNC45MDMgNS43NzMgNi43MTIgMTEuNDc3IDUuMzQ1IDE3LjA1Ny0uOTUzIDMuNjE4LTIuODYgNi43MTEtNS44ODQgOS4yOC0zLjA2NSAyLjU0MS02LjQ1IDMuOTc3LTEwLjE5MiA0LjI5NS01LjY0OC4zODQtMTAuOTc5LTIuMzQ4LTE1Ljg0LTguMTQ4LTQuOTg2LTUuODQyLTYuNzk1LTExLjUxOC01LjQ5Ny0xNy4wOTdNMzczLjU4NCAzMjQuMzg0Yy0xLjcxMy0uNjYzLTMuMTktLjkzOS00LjMyMy0uODU2LTIuMTU0LjE2OC00LjAwNSAxLjM1My01LjYzNCAzLjQ2Ny0xLjM5NSAxLjg5MS0xLjg5MiAzLjk5LTEuNDkyIDYuMjgzLjQ3IDMuMDM4IDIuNjEgNS45NTIgNi40NzcgOC43MjkgMi45IDIuMjIzIDUuNjkgMy40MjQgOC4zNDIgMy42NTkgMy4wNjYuMjg4IDUuNTI0LS44MjkgNy4zNi0zLjMgMS4yMy0xLjcyNyAxLjgyNC0zLjUyMiAxLjY0NC01LjI2My0uMTUyLTEuODIyLTEuMDIyLTMuNjMxLTIuNTU1LTUuMzU4bDQuNTQ0LTYuMjgzYzIuOTgzIDMuMjczIDQuNjEzIDYuNjcgNS4wNCAxMC4xMzYuNDQzIDMuODEyLS42MzUgNy40NDQtMy4zIDEwLjk4LTIuOTgzIDQuMDMyLTYuNzI2IDYuMjk3LTExLjIxNCA2LjY3LTQuNjk2LjQxNC05LjU3LTEuMjk4LTE0LjcwOC01LjA0MS00Ljk3Mi0zLjcxNS03Ljg4Ni03Ljk0MS04Ljc3LTEyLjYzNy0uOTQtNC40MzIuMTM4LTguNTc1IDMuMTA3LTEyLjU4IDIuOTQyLTMuOTkyIDYuNDc4LTYuMjQzIDEwLjYzNC02LjgyMyAzLjQ1My0uMzcyIDYuNjAyLjMwNiA5LjQ3NCAyLjA1OHpNNDA4LjUyOSAzMTMuNzgzbC0zLjUwOCA2LjgwOS0zMy42MDEtMTcuMDQyIDMuNTIxLTYuODIyek00MDQuNzkzIDI4NS41ODRsMi43NjItOS4xMy0xNS41NzguMTM5LS4wNTQuMTM4em0xMi4yMzYgOC43MTQtMi4zOSA3LjcwNy0zMi4wODEtMjMuNzY4IDIuNjEtOC40OCAzOS44NDMtMS40NjQtMi40MyA3LjkyNy04LjE0OC4xMzgtNC4xNDQgMTMuMzE0ek00MjguMzY3IDIzOC41OTVsLS42NjMgNy42NTEtMzAuODUyLTIuNTk2LS45NTMgMTEuMjY5LTYuNjQzLS41NCAyLjU1NS0zMC4yNzIgNi42MjkuNjM1LS45NjcgMTEuMjd6TTQyNy45NjMgMjA2LjQ4MmwuNTI1IDcuNjM3LTM3LjUzNyAyLjcwNy0uNTM5LTcuNjkzek00MTYuMDgxIDE4My41MDJjMS4yMTYtMi4xMTIgMS41Mi00LjQxOS44OTgtNi45MTktLjYwOC0yLjUxMy0xLjk3NS00LjM2NC00LjA2LTUuNjA3LTIuNzc2LTEuNjMtNi40MzYtMS45Ni0xMC45OTMtLjgxNS00LjU1OCAxLjIzLTcuNzA2IDMuMTQ5LTkuMzA4IDUuODg0LTEuMjU3IDIuMDk5LTEuNTc1IDQuNDQ2LS45NCA2LjkwNS41NCAyLjUyNyAxLjk5IDQuNDIgNC4wNzQgNS42NjIgMi43NjMgMS41NjEgNi40NjQgMS44NSAxMC45NjYuNjkxIDQuNTU3LTEuMTMzIDcuNzItMy4wOCA5LjM2My01LjhtLTI1LjE5IDEwLjQ5NWMtMi44MDMtMi4zNjItNC43NS01LjUzOC01Ljc0NS05LjQxOC0uOTk0LTMuODgxLS43NzMtNy41MTMuNjIyLTEwLjk5MyAyLjE1NC01LjI2MiA2LjkwNS04Ljg5NSAxNC4zNjItMTAuNzQ1IDcuMzM0LTEuODc4IDEzLjI4Ni0uOTI1IDE3LjY1IDIuNzA3IDIuODczIDIuNDAzIDQuNzY1IDUuNTI0IDUuNzMyIDkuNDE4IDEuMDIxIDMuODUzLjc3MyA3LjU0MS0uNjUgMTEuMDA3LTIuMTU0IDUuMjItNi44NSA4LjgxMS0xNC4yNTIgMTAuNjM1LTcuNDMgMS45MDUtMTMuMzI3IDEuMDA4LTE3LjcxOS0yLjYxMU0zNjguOTMxIDE0MS42MzhsLTMuMzQyLTYuMzggMzMuNDQ5LTE3LjQwMSAzLjQ4IDYuNzY3LTE2Ljc4IDI1LjYwNS4wMy4xOCAyMy43ODItMTIuNDAyIDMuMjE4IDYuMzI1LTMzLjM2NiAxNy40MDEtMy43OTgtNy4yNjQgMTYuNjI4LTI0Ljk1NmgtLjAxMnoiIHN0eWxlPSJzdHJva2Utd2lkdGg6MTMuODEwNCIvPjwvc3ZnPg==" alt="대한아이스하키협회">
+    <div class="sb-logo-txt">
+      <h1>DAILY ICE<br>DECISION OS</h1>
+      <p>v2.0 · 연맹 관리자</p>
+    </div>
+  </div></a>
+  <div class="sb-role">
+    <div class="sb-role-badge">🏛 연맹 관리자</div>
+    <div class="sb-team">대한아이스하키협회</div>
+  </div>
+  <nav class="sb-nav">
+    <div class="nav-sec">연맹 관리</div>
+    <a href="v2_Home.html" class="nav-item"><span class="nav-em">📌</span> Home</a>
+    <div class="nav-sec">선수 관리</div>
+    <a href="v2_Skaters.html" class="nav-item"><span class="nav-em">⛸</span> Skaters</a>
+    <a href="v2_Reports.html" class="nav-item"><span class="nav-em">📁</span> Reports</a>
+    <div class="nav-sec">연맹</div>
+    <a href="v2_FedDashboard.html" class="nav-item">
+      <span class="nav-ic"><svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></span>
+      측정 현황 대시보드
+    </a>
+    <a href="#" class="nav-item active">
+      <span class="nav-ic"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span>
+      공식 보고서 관리
+    </a>
+    <div class="sb-divider"></div>
+    <div class="nav-sec">참고</div>
+    <a href="#" class="nav-item">
+      <span class="nav-ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg></span>
+      기준값 & 프로토콜
+    </a>
+  </nav>
+  <div class="sb-switch">⛸ 감독 뷰로 전환</div>
+  <div class="sb-foot">Daily Ice Decision OS v2.0<br>연맹 관리자 모드<br><span style="opacity:.5">대한아이스하키협회 공식 시스템</span></div>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <div class="tb-left">
+      <div class="tb-page">공식 보고서 관리</div>
+      <div class="tb-badge">연맹 관리자</div>
+    </div>
+    <div class="tb-right">
+      <div class="tb-chip ok">제출 완료 3건</div>
+      <div class="tb-chip warn">작성 중 / 대기 3건</div>
+      <div class="tb-date" id="todayDate"></div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- 제출 현황 배너 -->
+    <div class="submit-banner">
+      <div class="sb2-head">
+        <div>
+          <div class="sb2-title">Report Management · 보고서 관리 현황</div>
+          <div class="sb2-sub">2026 U18 대표팀 · 1차 측정 공식 보고서</div>
+        </div>
+        <div class="sb2-note">문서번호 KIHA-2026-U18 · CONFIDENTIAL</div>
+      </div>
+      <div class="sb2-body">
+        <div class="sb2-col">
+          <div class="sb2-label">전체 보고서</div>
+          <div class="sb2-val muted">6</div>
+          <div class="sb2-sub2">1차 측정 기준</div>
+        </div>
+        <div class="sb2-col">
+          <div class="sb2-label">제출 완료</div>
+          <div class="sb2-val ok">3</div>
+          <div class="sb2-sub2">출력 가능</div>
+        </div>
+        <div class="sb2-col">
+          <div class="sb2-label">작성 중</div>
+          <div class="sb2-val warn">1</div>
+          <div class="sb2-sub2">04.18 완료 목표</div>
+        </div>
+        <div class="sb2-col">
+          <div class="sb2-label">대기 / 계획</div>
+          <div class="sb2-val muted">2</div>
+          <div class="sb2-sub2">데이터 부족</div>
+        </div>
+        <div class="sb2-col">
+          <div class="sb2-label">최종 제출 목표</div>
+          <div class="sb2-val warn">04.21</div>
+          <div class="sb2-sub2">전체 완료 목표</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 보고서 카드 그리드 -->
+    <div class="sec-hd">보고서 목록 — 1차 측정 (2026.04.14 기준)</div>
+    <div class="report-grid">
+
+      <!-- 01: 측정 결과 종합 -->
+      <div class="report-card ready">
+        <div class="rc2-head">
+          <div class="rc2-icon">📋</div>
+          <div class="rc2-info">
+            <div class="rc2-title">측정 결과 종합 보고서</div>
+            <div class="rc2-meta">KIHA-2026-U18-001 · 2026.04.15 · 12페이지</div>
+          </div>
+          <span class="rc2-status ready">✓ 제출 가능</span>
+        </div>
+        <div class="rc2-body">
+          <div class="rc2-desc">2026.04.14 오프아이스 측정 결과 전체 · 22명 · Kinvent 전 장비 기반. 팀 종합 결론, PHV 성숙도별 분석, 포지션별 상세, 전원 요약표 포함.</div>
+          <div class="rc2-checks">
+            <div class="rc2-check"><div class="rc2-check-icon">✅</div><div class="rc2-check-text done">AI 자동 분석 완료</div></div>
+            <div class="rc2-check"><div class="rc2-check-icon">✅</div><div class="rc2-check-text done">AT 검수 완료 — 이슬기 AT</div></div>
+            <div class="rc2-check"><div class="rc2-check-icon">✅</div><div class="rc2-check-text done">학술 감수 완료 — 성균관대</div></div>
+            <div class="rc2-check"><div class="rc2-check-icon">✅</div><div class="rc2-check-text done">가상 기준값 사용 명시 완료</div></div>
+          </div>
+          <div class="rc2-footer">
+            <button class="rc2-dl-btn ready" onclick="downloadReport('측정 결과 종합')">📥 PDF 다운로드</button>
+            <button class="rc2-preview-btn">미리보기</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 02: 부상위험 선수 관리 -->
+      <div class="report-card ready">
+        <div class="rc2-head">
+          <div class="rc2-icon">⚠️</div>
+          <div class="rc2-info">
+            <div class="rc2-title">부상위험 선수 관리 보고서</div>
+            <div class="rc2-meta">KIHA-2026-U18-002 · 2026.04.15 · 6페이지</div>
+          </div>
+          <span class="rc2-status ready">✓ 제출 가능</span>
+        </div>
+        <div class="rc2-body">
+          <div class="rc2-desc">Critical 2명 (#13 공시완 · #1 임재훈), High Risk 2명 (#16 #17) 심층 분석. AT 처방, 복귀 타임라인, 복귀 기준값 명시.</div>
+          <div class="rc2-checks">
+            <div class="rc2-check"><div class="rc2-check-icon">✅</div><div class="rc2-check-text done">위험 선수 4명 상세 분석 완료</div></div>
+            <div class="rc2-check"><div class="rc2-check-icon">✅</div><div class="rc2-check-text done">복귀 기준값 수치 명시</div></div>
+            <div class="rc2-check"><div class="rc2-check-icon">✅</div><div class="rc2-check-text done">AT 처방 검수 완료</div></div>
+            <div class="rc2-check"><div class="rc2-check-icon">✅</div><div class="rc2-check-text done">MANDATORY / LIMIT / OK 명시</div></div>
+          </div>
+          <div class="rc2-footer">
+            <button class="rc2-dl-btn ready" onclick="downloadReport('부상위험 선수 관리')">📥 PDF 다운로드</button>
+            <button class="rc2-preview-btn">미리보기</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 03: GK 선발 근거 -->
+      <div class="report-card ready">
+        <div class="rc2-head">
+          <div class="rc2-icon">🥅</div>
+          <div class="rc2-info">
+            <div class="rc2-title">GK 선발 근거 보고서</div>
+            <div class="rc2-meta">KIHA-2026-U18-003 · 2026.04.15 · 4페이지</div>
+          </div>
+          <span class="rc2-status ready">✓ 제출 가능</span>
+        </div>
+        <div class="rc2-body">
+          <div class="rc2-desc">GK1 임재훈 제한 사유 (GLSI 16.3%), GK2 송근우 선발 확정 근거, G3 이동근 미측정 현황. 측정 기반 선발 판단 근거 공식 문서화.</div>
+          <div class="rc2-checks">
+            <div class="rc2-check"><div class="rc2-check-icon">✅</div><div class="rc2-check-text done">GLSI 비교 데이터 완료</div></div>
+            <div class="rc2-check"><div class="rc2-check-icon">✅</div><div class="rc2-check-text done">#25 선발 근거 5개 명시</div></div>
+            <div class="rc2-check"><div class="rc2-check-icon">✅</div><div class="rc2-check-text done">G2 단독 운영 리스크 명시</div></div>
+            <div class="rc2-check"><div class="rc2-check-icon">⏳</div><div class="rc2-check-text pending">#20 미측정 — 04.18 보완 후 업데이트</div></div>
+          </div>
+          <div class="rc2-footer">
+            <button class="rc2-dl-btn ready" onclick="downloadReport('GK 선발 근거')">📥 PDF 다운로드</button>
+            <button class="rc2-preview-btn">미리보기</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 04: 스쿼드 준비도 -->
+      <div class="report-card draft">
+        <div class="rc2-head">
+          <div class="rc2-icon">🏒</div>
+          <div class="rc2-info">
+            <div class="rc2-title">대회 전 스쿼드 준비도 보고서</div>
+            <div class="rc2-meta">KIHA-2026-U18-004 · 작성 중 · 예상 8페이지</div>
+          </div>
+          <span class="rc2-status draft">⏳ 작성 중</span>
+        </div>
+        <div class="rc2-body">
+          <div class="rc2-desc">탈린 원정 D-10 기준 스쿼드 준비도 72%. 04.17~18 재평가 결과 반영 후 최종 확정. 훈련 조정 계획 및 대회 운영 시나리오 포함 예정.</div>
+          <div class="rc2-checks">
+            <div class="rc2-check"><div class="rc2-check-icon">✅</div><div class="rc2-check-text done">측정 결과 입력 완료</div></div>
+            <div class="rc2-check"><div class="rc2-check-icon">⏳</div><div class="rc2-check-text pending">#1 #13 재평가 결과 대기 (04.17~18)</div></div>
+            <div class="rc2-check"><div class="rc2-check-icon">⏳</div><div class="rc2-check-text pending">미측정 3명 보완 측정 대기</div></div>
+            <div class="rc2-check"><div class="rc2-check-icon">⏳</div><div class="rc2-check-text pending">AT 검수 예정 — 04.19</div></div>
+          </div>
+          <div class="rc2-footer">
+            <button class="rc2-dl-btn draft" onclick="alert('작성 중 — 04.18 재평가 완료 후 확정됩니다')">⏳ 작성 중 (04.20 완료 예정)</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 05: 시즌 트렌드 -->
+      <div class="report-card pending">
+        <div class="rc2-head">
+          <div class="rc2-icon">📈</div>
+          <div class="rc2-info">
+            <div class="rc2-title">시즌 피지컬 트렌드 보고서</div>
+            <div class="rc2-meta">KIHA-2026-U18-005 · 계획 단계</div>
+          </div>
+          <span class="rc2-status pending">○ 데이터 부족</span>
+        </div>
+        <div class="rc2-body">
+          <div class="rc2-desc">1차 측정(04.14) vs 2차 측정(10월 예정) 비교 분석. 현재 1회차 데이터만 있어 트렌드 산출 불가. 2차 측정 완료 후 작성 가능.</div>
+          <div class="rc2-checks">
+            <div class="rc2-check"><div class="rc2-check-icon">✅</div><div class="rc2-check-text done">1차 베이스라인 데이터 수립</div></div>
+            <div class="rc2-check"><div class="rc2-check-icon">○</div><div class="rc2-check-text na">2차 측정 대기 (2026.10월)</div></div>
+            <div class="rc2-check"><div class="rc2-check-icon">○</div><div class="rc2-check-text na">비교 분석 — 2차 완료 후 가능</div></div>
+          </div>
+          <div class="rc2-footer">
+            <button class="rc2-dl-btn pending">○ 2차 측정 완료 후 작성 가능</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 06: 온아이스 계획서 -->
+      <div class="report-card pending">
+        <div class="rc2-head">
+          <div class="rc2-icon">🔬</div>
+          <div class="rc2-info">
+            <div class="rc2-title">온아이스 통합 측정 계획서</div>
+            <div class="rc2-meta">KIHA-2026-U18-006 · 계획 단계</div>
+          </div>
+          <span class="rc2-status pending">○ 계획 단계</span>
+        </div>
+        <div class="rc2-body">
+          <div class="rc2-desc">K-Power + BlazePod 온아이스 측정 프로토콜. 연 2회 오프아이스와 동일 방문일 시행 계획. 골리 전용 지표 (크리즈 이동속도, 방향 비대칭) 포함.</div>
+          <div class="rc2-checks">
+            <div class="rc2-check"><div class="rc2-check-icon">✅</div><div class="rc2-check-text done">프로토콜 초안 완료</div></div>
+            <div class="rc2-check"><div class="rc2-check-icon">✅</div><div class="rc2-check-text done">장비 선정 완료 (K-Power · BlazePod)</div></div>
+            <div class="rc2-check"><div class="rc2-check-icon">⏳</div><div class="rc2-check-text pending">협회 승인 절차 진행 중</div></div>
+            <div class="rc2-check"><div class="rc2-check-icon">○</div><div class="rc2-check-text na">시행: 2026.10월 예정</div></div>
+          </div>
+          <div class="rc2-footer">
+            <button class="rc2-dl-btn draft" onclick="downloadReport('온아이스 계획서')">📄 초안 다운로드</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 제출 이력 -->
+    <div class="sec-hd">제출 이력</div>
+    <div class="history-card">
+      <div class="hist-head">
+        <div style="font-size:12px;font-weight:800">보고서 제출 및 검토 이력</div>
+        <div style="font-size:9px;color:var(--t3)">최신순</div>
+      </div>
+      <div class="hist-row-head">
+        <div>문서명</div><div>내용 요약</div><div>제출자</div><div>제출일</div><div>상태</div><div>다운로드</div>
+      </div>
+      <div class="hist-row">
+        <div><div class="hist-doc">측정 결과 종합</div><div class="hist-desc">KIHA-2026-U18-001</div></div>
+        <div style="font-size:10px;color:var(--t2)">19명 측정 결과 · PHV 분석 · 전원 요약표</div>
+        <div class="hist-submitter">이슬기 AT</div>
+        <div class="hist-date">04.15</div>
+        <div><span class="hist-status accepted">✓ 수락</span></div>
+        <div class="hist-dl">📥 다운로드</div>
+      </div>
+      <div class="hist-row">
+        <div><div class="hist-doc">부상위험 선수 관리</div><div class="hist-desc">KIHA-2026-U18-002</div></div>
+        <div style="font-size:10px;color:var(--t2)">Critical 2명 · High 2명 · 처방 및 복귀 계획</div>
+        <div class="hist-submitter">이슬기 AT</div>
+        <div class="hist-date">04.15</div>
+        <div><span class="hist-status accepted">✓ 수락</span></div>
+        <div class="hist-dl">📥 다운로드</div>
+      </div>
+      <div class="hist-row">
+        <div><div class="hist-doc">GK 선발 근거</div><div class="hist-desc">KIHA-2026-U18-003</div></div>
+        <div style="font-size:10px;color:var(--t2)">#25 선발 확정 · #1 제한 사유 · G3 미측정</div>
+        <div class="hist-submitter">이슬기 AT</div>
+        <div class="hist-date">04.15</div>
+        <div><span class="hist-status reviewing">검토 중</span></div>
+        <div class="hist-dl">📥 다운로드</div>
+      </div>
+      <div class="hist-row" style="opacity:.55">
+        <div><div class="hist-doc" style="color:var(--t3)">스쿼드 준비도</div><div class="hist-desc">KIHA-2026-U18-004</div></div>
+        <div style="font-size:10px;color:var(--t3)">작성 중 — 재평가 결과 대기</div>
+        <div class="hist-submitter" style="color:var(--t3)">—</div>
+        <div class="hist-date" style="color:var(--t3)">04.20 예정</div>
+        <div><span class="hist-status pending">대기</span></div>
+        <div style="font-size:10px;color:var(--t3)">미완성</div>
+      </div>
+    </div>
+
+    <!-- 검수 체계 + 보안 -->
+    <div class="sec-hd">검수 체계 및 데이터 보안</div>
+    <div style="background:#fff;border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--sh);overflow:hidden;margin-bottom:14px">
+      <div style="padding:11px 18px;border-bottom:1px solid var(--border);background:var(--inset);font-size:12px;font-weight:800">3중 검수 체계</div>
+      <div style="padding:16px 18px">
+        <div class="verify-flow">
+          <div class="vf-step">
+            <div class="vf-num step1">1</div>
+            <div class="vf-label">AI 자동 분석</div>
+            <div class="vf-desc">측정 데이터 자동 분석<br>이상치 탐지<br>처방 초안 생성</div>
+          </div>
+          <div class="vf-step">
+            <div class="vf-num step2">2</div>
+            <div class="vf-label">AT 검수</div>
+            <div class="vf-desc">이슬기 AT (MFRC)<br>현장 경험 기반 검수<br>처방 적절성 확인</div>
+          </div>
+          <div class="vf-step">
+            <div class="vf-num step3">3</div>
+            <div class="vf-label">학술 감수</div>
+            <div class="vf-desc">성균관대 스포츠과학과<br>학술적 타당성 검증<br>최신 문헌 반영</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="security-grid">
+      <div class="sec-card">
+        <div class="sec-card-head">🔒 데이터 소유권</div>
+        <div class="sec-card-body">
+          <div class="sec-item"><div class="sec-dot ok"></div>소유권 100% 대한아이스하키협회</div>
+          <div class="sec-item"><div class="sec-dot ice"></div>제3자 접근 원천 차단</div>
+          <div class="sec-item"><div class="sec-dot ice"></div>협회 요청 시 30일 내 완전 삭제</div>
+          <div class="sec-item"><div class="sec-dot warn"></div>외부 배포 금지 · CONFIDENTIAL</div>
+        </div>
+      </div>
+      <div class="sec-card">
+        <div class="sec-card-head">💾 저장 및 암호화</div>
+        <div class="sec-card-body">
+          <div class="sec-item"><div class="sec-dot ice"></div>Kinvent Cloud (프랑스) + 국내 이중 백업</div>
+          <div class="sec-item"><div class="sec-dot ok"></div>전송: TLS 1.3 암호화</div>
+          <div class="sec-item"><div class="sec-dot ok"></div>저장: AES-256 암호화</div>
+          <div class="sec-item"><div class="sec-dot purple"></div>전 접근 이력 로그 보관</div>
+        </div>
+      </div>
+      <div class="sec-card">
+        <div class="sec-card-head">👥 접근 권한 관리</div>
+        <div class="sec-card-body">
+          <div class="sec-item"><div class="sec-dot purple"></div>협회 관리자 — 전체 접근</div>
+          <div class="sec-item"><div class="sec-dot ice"></div>코칭스태프 — 팀 데이터만</div>
+          <div class="sec-item"><div class="sec-dot ok"></div>선수 — 본인 데이터만</div>
+          <div class="sec-item"><div class="sec-dot warn"></div>18세 미만 보호자 동의 필수</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 연도별 보고서 계획 -->
+    <div class="sec-hd">연도별 보고서 계획 — Normative DB 연동</div>
+    <div style="background:#fff;border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--sh);overflow:hidden;padding:16px 18px">
+      <div class="plan-grid">
+        <div class="plan-card" style="border-color:rgba(52,199,89,.25);background:rgba(52,199,89,.03)">
+          <div class="plan-year">2026</div>
+          <div class="plan-title">시작 — 베이스라인</div>
+          <div class="plan-items">
+            <div class="plan-item"><div class="plan-dot done"></div>1차 오프아이스 (04.14)</div>
+            <div class="plan-item"><div class="plan-dot plan"></div>2차 오프+온아이스 (10월)</div>
+            <div class="plan-item"><div class="plan-dot plan"></div>가상 기준값 사용 명시</div>
+          </div>
+          <div class="plan-status cur">진행 중</div>
+        </div>
+        <div class="plan-card" style="border-color:rgba(0,150,199,.2)">
+          <div class="plan-year">2027</div>
+          <div class="plan-title">2년차 — 비교 시작</div>
+          <div class="plan-items">
+            <div class="plan-item"><div class="plan-dot plan"></div>연 2회 정착</div>
+            <div class="plan-item"><div class="plan-dot plan"></div>전년 대비 트렌드 보고서</div>
+            <div class="plan-item"><div class="plan-dot plan"></div>누적 4회차 데이터</div>
+          </div>
+          <div class="plan-status future">예정</div>
+        </div>
+        <div class="plan-card" style="border-color:rgba(0,150,199,.15)">
+          <div class="plan-year">2028</div>
+          <div class="plan-title">3년차 — DB 1차 완성</div>
+          <div class="plan-items">
+            <div class="plan-item"><div class="plan-dot future"></div>포지션별 기준값 완성</div>
+            <div class="plan-item"><div class="plan-dot future"></div>PHV별 기준값 완성</div>
+            <div class="plan-item"><div class="plan-dot future"></div>실측 기준값 전환</div>
+          </div>
+          <div class="plan-status future">예정</div>
+        </div>
+        <div class="plan-card">
+          <div class="plan-year">2030+</div>
+          <div class="plan-title">정규화 — 전 연령대</div>
+          <div class="plan-items">
+            <div class="plan-item"><div class="plan-dot future"></div>U16 · U18 · 성인 확장</div>
+            <div class="plan-item"><div class="plan-dot future"></div>선수 발굴 기준 활용</div>
+            <div class="plan-item"><div class="plan-dot future"></div>국가대표 선발 과학화</div>
+          </div>
+          <div class="plan-status future">장기 계획</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const d = new Date();
+const days = ['일','월','화','수','목','금','토'];
+document.getElementById('todayDate').textContent =
+  d.getFullYear()+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+
+  String(d.getDate()).padStart(2,'0')+' ('+days[d.getDay()]+')';
+
+function downloadReport(name) {
+  alert(name + ' 보고서 PDF 다운로드\n(실제 연동 시 자동 생성)');
+}
+</script>
+</body>
+</html>
