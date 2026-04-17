@@ -1,0 +1,2224 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>선수 카드 — Daily Ice Decision OS</title>
+<link rel="stylesheet" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"/>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+
+:root{
+  --bg:#f4f5f7;--card:#fff;--inset:#f4f5f7;
+  --border:rgba(0,0,0,.07);--border-mid:rgba(0,0,0,.11);
+  --t1:#0f1a2e;--t2:rgba(15,26,46,.72);--t3:rgba(15,26,46,.44);
+  /* ── 상태 색 (위험도 전용) ── */
+  --ok:#34c759;--ok-d:rgba(52,199,89,.12);--ok-t:#0d5c29;
+  --warn:#ff9f0a;--warn-d:rgba(255,159,10,.12);--warn-t:#7a4500;
+  --danger:#ff3b30;--danger-d:rgba(255,59,48,.12);--danger-t:#8b1a1a;
+  /* ── 레이어 A: 오프아이스 BASELINE (퍼플) ── */
+  --base:#7c3aed;--base-d:rgba(124,58,237,.10);--base-t:#4c1d95;
+  --base-light:#a78bfa;--base-border:rgba(124,58,237,.25);
+  /* ── 레이어 B: K-Grip TODAY (시안) ── */
+  --today:#0891b2;--today-d:rgba(8,145,178,.10);--today-t:#164e63;
+  --today-light:#22d3ee;--today-border:rgba(8,145,178,.25);
+  /* ── 기존 호환 ── */
+  --ice:#0096c7;--ice-d:rgba(0,150,199,.10);--ice-t:#003f5e;
+  --purple:#7c3aed;--purple-d:rgba(124,58,237,.10);--purple-t:#4c1d95;
+  --deep:#0a1628;--r:13px;--sh:0 2px 10px rgba(0,0,0,.06);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--t1);
+  font-family:"Pretendard",-apple-system,sans-serif;
+  font-size:13.5px;line-height:1.5;-webkit-font-smoothing:antialiased;
+  height:100vh;overflow:hidden;display:flex;}
+a{text-decoration:none;color:inherit}
+
+/* ── 시간 배지 ── */
+.badge-today{display:inline-flex;align-items:center;gap:4px;
+  font-size:8.5px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;
+  padding:2px 8px;border-radius:4px;
+  background:var(--today-d);color:var(--today-t);border:1px solid var(--today-border)}
+.badge-today .dot{width:5px;height:5px;border-radius:50%;
+  background:var(--today);animation:pulse-today 1.5s infinite}
+@keyframes pulse-today{0%,100%{opacity:1}50%{opacity:.35}}
+
+.badge-base{display:inline-flex;align-items:center;gap:4px;
+  font-size:8.5px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;
+  padding:2px 8px;border-radius:4px;
+  background:var(--base-d);color:var(--base-t);border:1px solid var(--base-border)}
+.badge-base .dot{width:5px;height:5px;border-radius:50%;background:var(--base)}
+
+/* ── 스냅샷 고지 배너 ── */
+.snapshot-banner{background:var(--base-d);border:1px solid var(--base-border);
+  border-radius:9px;padding:9px 14px;margin-bottom:14px;
+  display:flex;align-items:center;gap:10px}
+.snapshot-banner-icon{font-size:14px;flex-shrink:0}
+.snapshot-banner-text{font-size:10px;font-weight:600;color:var(--base-t);line-height:1.6}
+.snapshot-banner-text strong{color:var(--base)}
+
+/* ── 재측정 트리거 ── */
+.remeasure-urgent{background:rgba(255,59,48,.06);border:1px solid rgba(255,59,48,.2);
+  border-radius:9px;padding:9px 14px;margin-bottom:8px;
+  display:flex;align-items:flex-start;gap:8px}
+.remeasure-watch{background:rgba(255,159,10,.06);border:1px solid rgba(255,159,10,.2);
+  border-radius:9px;padding:9px 14px;margin-bottom:8px;
+  display:flex;align-items:flex-start;gap:8px}
+.remeasure-title{font-size:9.5px;font-weight:800;margin-bottom:2px}
+.remeasure-urgent .remeasure-title{color:var(--danger-t)}
+.remeasure-watch .remeasure-title{color:var(--warn-t)}
+.remeasure-desc{font-size:10px;color:var(--t2);line-height:1.5}
+
+/* ── SIDEBAR ── */
+
+.sb-logo{padding:16px 18px 12px;border-bottom:1px solid rgba(255,255,255,.07);
+  display:flex;align-items:center;gap:10px;flex-shrink:0;cursor:pointer}
+.sb-logo-img{width:38px;height:38px;border-radius:50%;background:#fff;padding:2px;flex-shrink:0}
+.sb-logo-txt h1{font-family:"Orbitron";font-size:9px;font-weight:700;
+  letter-spacing:2px;color:#fff;line-height:1.4}
+.sb-logo-txt p{font-size:8.5px;color:rgba(255,255,255,.35);margin-top:1px}
+
+
+
+
+
+
+
+
+/* 레이어 구분 표시 */
+.nav-layer-today{font-size:7px;font-weight:700;padding:1px 5px;border-radius:3px;
+  background:var(--today-d);color:var(--today-t);margin-left:auto;flex-shrink:0}
+.nav-layer-base{font-size:7px;font-weight:700;padding:1px 5px;border-radius:3px;
+  background:var(--base-d);color:var(--base-t);margin-left:auto;flex-shrink:0}
+
+
+/* ── TOPBAR ── */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.topbar{height:50px;background:rgba(244,245,247,.97);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 22px;flex-shrink:0}
+.tb-page{font-size:13px;font-weight:700;display:flex;align-items:center;gap:8px}
+.tb-right{display:flex;align-items:center;gap:8px}
+/* 화면 레이어 표시 */
+.tb-layer{display:flex;align-items:center;gap:6px;
+  padding:4px 10px;border-radius:6px;font-size:9px;font-weight:700}
+.tb-layer.today{background:var(--today-d);color:var(--today-t);border:1px solid var(--today-border)}
+.tb-layer.base{background:var(--base-d);color:var(--base-t);border:1px solid var(--base-border)}
+.tb-layer.hybrid{background:linear-gradient(90deg,var(--today-d),var(--base-d));
+  color:var(--t2);border:1px solid var(--border)}
+.tb-date{font-family:"JetBrains Mono";font-size:10.5px;font-weight:600;color:var(--today-t)}
+
+/* ── 선수 슬라이드 패널 ── */
+.player-panel-overlay{display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,.35);z-index:200;backdrop-filter:blur(2px)}
+.player-panel-overlay.open{display:block}
+.player-panel{position:fixed;right:-520px;top:0;bottom:0;width:520px;
+  background:#fff;box-shadow:-8px 0 32px rgba(0,0,0,.15);
+  z-index:201;transition:right .3s cubic-bezier(.4,0,.2,1);
+  display:flex;flex-direction:column;overflow:hidden}
+.player-panel.open{right:0}
+.pp-header{background:var(--deep);padding:16px 20px;flex-shrink:0}
+.pp-close{position:absolute;top:14px;right:16px;width:28px;height:28px;
+  border-radius:50%;background:rgba(255,255,255,.12);border:none;
+  color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.pp-name{font-size:18px;font-weight:900;color:#fff;margin-bottom:2px}
+.pp-pos{font-size:10.5px;color:rgba(255,255,255,.45)}
+.pp-body{flex:1;overflow-y:auto;padding:0}
+
+/* TODAY 블록 */
+.pp-today{padding:14px 18px;background:var(--today-d);
+  border-bottom:2px solid var(--today-border)}
+.pp-today-label{display:flex;align-items:center;gap:6px;
+  font-size:8.5px;font-weight:800;letter-spacing:1.5px;
+  color:var(--today-t);text-transform:uppercase;margin-bottom:8px}
+.pp-today-decision{font-size:15px;font-weight:900;color:var(--t1);margin-bottom:4px}
+.pp-today-sub{font-size:10.5px;color:var(--t2);line-height:1.5}
+.pp-today-grip{font-family:"Orbitron";font-size:22px;font-weight:900;
+  color:var(--today-t);margin-bottom:2px}
+
+/* BASELINE 블록 */
+.pp-base{padding:14px 18px;background:var(--base-d);
+  border-bottom:2px solid var(--base-border)}
+.pp-base-label{display:flex;align-items:center;gap:6px;
+  font-size:8.5px;font-weight:800;letter-spacing:1.5px;
+  color:var(--base-t);text-transform:uppercase;margin-bottom:8px}
+.pp-base-metrics{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.pp-metric{padding:8px 10px;border-radius:8px;background:#fff;border:1px solid var(--border)}
+.pp-metric-label{font-size:8px;font-weight:700;color:var(--t3);margin-bottom:2px}
+.pp-metric-val{font-family:"JetBrains Mono";font-size:14px;font-weight:800}
+.pp-metric-val.ok{color:var(--ok-t)}.pp-metric-val.warn{color:var(--warn-t)}.pp-metric-val.danger{color:var(--danger-t)}
+.pp-principle{font-size:10px;font-weight:600;color:var(--base-t);
+  padding:7px 10px;border-radius:7px;background:#fff;
+  border:1px solid var(--base-border);margin-top:8px;line-height:1.5}
+
+/* 링크 블록 */
+.pp-links{padding:12px 18px;border-bottom:1px solid var(--border)}
+.pp-link-item{display:flex;align-items:center;justify-content:space-between;
+  padding:7px 10px;border-radius:7px;background:var(--inset);
+  border:1px solid var(--border);margin-bottom:5px;
+  cursor:pointer;transition:background .15s;text-decoration:none;color:inherit}
+.pp-link-item:hover{background:#fff;box-shadow:var(--sh)}
+.pp-link-label{font-size:10.5px;font-weight:600}
+.pp-link-arr{font-size:11px;color:var(--t3)}
+
+/* 재측정 트리거 블록 */
+.pp-retrigger{padding:10px 18px;background:rgba(255,59,48,.04);
+  border-top:1px solid rgba(255,59,48,.12)}
+.pp-retrigger-title{font-size:9px;font-weight:800;color:var(--danger-t);
+  margin-bottom:4px;display:flex;align-items:center;gap:5px}
+.pp-retrigger-desc{font-size:10px;color:var(--t2);line-height:1.5}
+
+/* 전체 보기 버튼 */
+.pp-full-btn{padding:12px 18px;border-top:1px solid var(--border);flex-shrink:0}
+.pp-full-btn a{display:block;width:100%;padding:9px;border-radius:8px;
+  background:var(--today);color:#fff;text-align:center;
+  font-size:12px;font-weight:700;text-decoration:none;transition:background .15s}
+.pp-full-btn a:hover{background:var(--today-t)}
+
+/* 카드 공통 */
+.pp-section{padding:14px 18px;border-bottom:1px solid var(--border)}
+.pp-section-title{font-size:9px;font-weight:800;letter-spacing:1px;
+  color:var(--t3);text-transform:uppercase;margin-bottom:8px}
+
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-thumb{background:rgba(0,0,0,.15);border-radius:4px}
+
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.topbar{height:50px;background:rgba(244,245,247,.97);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;padding:0 22px;flex-shrink:0}
+.tb-page{font-size:13px;font-weight:700}
+.tb-right{display:flex;align-items:center;gap:8px}
+.tb-layer.hybrid{display:flex;align-items:center;gap:6px;padding:4px 10px;border-radius:6px;
+  font-size:9px;font-weight:700;background:linear-gradient(90deg,var(--today-d),var(--base-d));
+  color:var(--t2);border:1px solid var(--border)}
+.tb-date{font-family:"JetBrains Mono";font-size:10.5px;font-weight:600;color:var(--today-t)}
+
+.pc-layout{display:flex;flex:1;overflow:hidden}
+
+/* 선수 목록 */
+.pl-list{width:210px;flex-shrink:0;background:#fff;border-right:1px solid var(--border);
+  display:flex;flex-direction:column;overflow:hidden}
+.pl-head{padding:10px 14px;border-bottom:1px solid var(--border);background:var(--inset);flex-shrink:0}
+.pl-head-title{font-size:11px;font-weight:800}
+.pl-head-sub{font-size:9px;color:var(--t3);margin-top:2px}
+.pl-scroll{flex:1;overflow-y:auto}
+.pl-item{display:flex;align-items:center;gap:7px;padding:8px 12px;cursor:pointer;
+  border-bottom:1px solid rgba(0,0,0,.04);border-left:3px solid transparent;
+  transition:all .12s}
+.pl-item:hover{background:rgba(0,0,0,.03)}
+.pl-item.selected{background:var(--today-d);border-left-color:var(--today)}
+.pl-num{width:28px;flex-shrink:0;font-family:"Orbitron";font-size:9px;font-weight:700;color:var(--today-t)}
+.pl-group{padding:6px 12px 3px;font-size:8px;font-weight:800;letter-spacing:1.5px;
+  color:var(--t3);text-transform:uppercase;background:var(--bg);
+  position:sticky;top:0;z-index:1;border-bottom:1px solid var(--border)}
+.sts{display:inline-flex;padding:2px 6px;border-radius:3px;font-size:7.5px;font-weight:700}
+.sts.ok{background:var(--ok-d);color:var(--ok-t)}
+.sts.w{background:var(--warn-d);color:var(--warn-t)}
+.sts.danger{background:var(--danger-d);color:var(--danger-t)}
+
+/* 카드 영역 */
+.pc-area{flex:1;overflow-y:auto;background:var(--bg)}
+.pc-card{max-width:680px;margin:0 auto;padding:20px;display:flex;flex-direction:column;gap:12px}
+
+/* TODAY 블록 */
+.pc-today-block{padding:16px 18px;border-radius:12px;
+  background:var(--today-d);border:2px solid var(--today-border)}
+.pc-today-grip{font-family:"Orbitron";font-size:26px;font-weight:900;
+  color:var(--today-t);margin-bottom:2px}
+.pc-today-decision{font-size:15px;font-weight:900;color:var(--t1);margin-bottom:4px}
+.pc-today-sub{font-size:10.5px;color:var(--t2)}
+
+/* BASELINE 블록 */
+.pc-base-block{padding:16px 18px;border-radius:12px;
+  background:var(--base-d);border:2px solid var(--base-border)}
+.pc-metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px}
+.pc-metric{padding:8px 10px;border-radius:8px;background:#fff;border:1px solid var(--border)}
+.pcm-label{font-size:8.5px;font-weight:700;color:var(--t3);margin-bottom:2px}
+.pcm-val{font-family:"JetBrains Mono";font-size:15px;font-weight:800;line-height:1}
+.pcm-val.ok{color:var(--ok-t)}.pcm-val.warn{color:var(--warn-t)}.pcm-val.danger{color:var(--danger-t)}
+.pc-principle{font-size:11px;font-weight:600;color:var(--base-t);line-height:1.6;
+  padding:8px 10px;border-radius:7px;background:#fff;border:1px solid var(--base-border)}
+
+/* 섹션 */
+.pc-section{padding:14px;border-radius:12px;background:#fff;border:1px solid var(--border)}
+.pc-sec-title{font-size:9px;font-weight:800;letter-spacing:1.5px;color:var(--t3);
+  text-transform:uppercase;margin-bottom:8px}
+
+/* 타임라인 */
+.pc-timeline{display:flex;flex-direction:column;gap:5px}
+.pc-tl-item{display:flex;align-items:center;gap:8px;padding:6px 9px;
+  border-radius:7px;background:var(--inset);border:1px solid var(--border)}
+.tl-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.tl-dot.done{background:var(--ok)}.tl-dot.cur{background:var(--warn)}.tl-dot.up{background:rgba(0,0,0,.2)}
+.tl-date{font-family:"JetBrains Mono";font-size:9px;font-weight:700;color:var(--t3);width:50px;flex-shrink:0}
+.tl-label{font-size:10px;font-weight:700}
+.tl-label.done{color:var(--ok-t)}.tl-label.cur{color:var(--warn-t)}.tl-label.up{color:var(--t3)}
+
+/* 링크 */
+.pc-link{display:flex;align-items:center;justify-content:space-between;padding:7px 10px;
+  border-radius:7px;background:var(--inset);border:1px solid var(--border);
+  margin-bottom:5px;color:var(--t1);text-decoration:none;
+  font-size:11px;font-weight:600;transition:all .15s}
+.pc-link:hover{background:#fff;box-shadow:var(--sh)}
+.pc-link span{color:var(--t3)}
+
+/* 재측정 트리거 */
+.remeasure-urgent{background:rgba(255,59,48,.06);border:1px solid rgba(255,59,48,.2);border-radius:9px;padding:10px 14px}
+.remeasure-watch{background:rgba(255,159,10,.06);border:1px solid rgba(255,159,10,.2);border-radius:9px;padding:10px 14px}
+.remeasure-title{font-size:9.5px;font-weight:800;margin-bottom:3px}
+.remeasure-urgent .remeasure-title{color:var(--danger-t)}
+.remeasure-watch .remeasure-title{color:var(--warn-t)}
+.remeasure-desc{font-size:10px;color:var(--t2);line-height:1.5}
+
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-thumb{background:rgba(0,0,0,.15);border-radius:4px}
+
+/* ── SIDEBAR 브라이트 ── */
+.sidebar{width:220px;flex-shrink:0;background:#f8f8fa;border-right:1px solid rgba(0,0,0,.09);
+  display:flex;flex-direction:column;height:100vh;overflow:hidden}
+.sb-logo{padding:14px 16px 10px;border-bottom:1px solid rgba(0,0,0,.07);
+  display:flex;align-items:center;gap:9px;flex-shrink:0;cursor:pointer}
+.sb-logo-img{width:34px;height:34px;border-radius:50%;flex-shrink:0}
+.sb-logo-txt h1{font-family:"Orbitron";font-size:8px;font-weight:700;
+  letter-spacing:1.5px;color:#0f1a2e;line-height:1.45}
+.sb-logo-txt p{font-size:8px;color:rgba(15,26,46,.4);margin-top:1px}
+.sb-role{padding:7px 14px;border-bottom:1px solid rgba(0,0,0,.07);flex-shrink:0}
+.sb-role-badge{display:inline-flex;align-items:center;gap:5px;font-size:9px;
+  font-weight:700;padding:3px 9px;border-radius:5px;
+  background:rgba(8,145,178,.1);color:#164e63;border:1px solid rgba(8,145,178,.2)}
+.sb-role-sub{font-size:8.5px;color:rgba(15,26,46,.4);margin-top:3px}
+.sb-nav{flex:1;padding:4px 0;overflow-y:auto}
+.nav-sec{padding:10px 14px 2px;font-size:8px;font-weight:800;
+  letter-spacing:2px;color:rgba(15,26,46,.32);text-transform:uppercase}
+.nav-item{display:flex;align-items:center;gap:9px;padding:7px 14px;
+  font-size:12px;font-weight:500;color:rgba(15,26,46,.65);
+  border-left:3px solid transparent;cursor:pointer;
+  transition:all .13s;text-decoration:none;border-radius:0}
+.nav-item:hover{background:rgba(0,0,0,.04);color:#0f1a2e}
+.nav-item.active{background:rgba(8,145,178,.08);color:var(--today);
+  border-left-color:var(--today);font-weight:700}
+.nav-em{font-size:13px;width:18px;text-align:center;flex-shrink:0;opacity:.75}
+.nav-item.active .nav-em{opacity:1}
+.nav-layer-today{font-size:7px;font-weight:700;padding:1px 5px;border-radius:3px;
+  background:rgba(8,145,178,.1);color:#164e63;margin-left:auto;flex-shrink:0}
+.nav-layer-base{font-size:7px;font-weight:700;padding:1px 5px;border-radius:3px;
+  background:rgba(124,58,237,.1);color:#4c1d95;margin-left:auto;flex-shrink:0}
+.sb-foot{padding:10px 14px;border-top:1px solid rgba(0,0,0,.07);
+  font-size:8px;color:rgba(15,26,46,.35);line-height:1.7;flex-shrink:0}
+
+</style>
+</head>
+<body>
+<aside class="sidebar">
+  <a href="index.html" style="text-decoration:none"><div class="sb-logo">
+    <img class="sb-logo-img" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0NTBwdCIgaGVpZ2h0PSI0NTBwdCIgdmlld0JveD0iMCAwIDQ0OS45OTk5OCA0NDkuOTk5OTkiPjxkZWZzPjxjbGlwUGF0aCBpZD0iYSI+PHBhdGggZD0iTTAgMTcwMC43OWgxMjA3LjU2VjBIMFoiLz48L2NsaXBQYXRoPjxjbGlwUGF0aCBpZD0iYiI+PHBhdGggZD0iTTAgMTcwMC43OWgxMjA3LjU2VjBIMFoiLz48L2NsaXBQYXRoPjxjbGlwUGF0aCBpZD0iYyI+PHBhdGggZD0iTTEyMDcuNTU5IDE3MDAuNzlIMFYuMDAzaDEyMDcuNTU5eiIvPjwvY2xpcFBhdGg+PGltYWdlIGlkPSJkIiB3aWR0aD0iNDI2IiBoZWlnaHQ9IjI4NSIvPjxpbWFnZSBpZD0iZSIgd2lkdGg9IjQyNiIgaGVpZ2h0PSIyODUiLz48aW1hZ2UgaWQ9ImYiIHdpZHRoPSIxMDExIiBoZWlnaHQ9IjE0NDAiLz48L2RlZnM+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTAgMjI1QzAgMTAwLjczMyAxMDAuNzA2IDAgMjI0Ljk3MiAwIDM0OS4yMTIgMCA0NTAgMTAwLjczMyA0NTAgMjI1YzAgMTI0LjI5NC0xMDAuNzg5IDIyNS0yMjUuMDI4IDIyNUMxMDAuNzA2IDQ1MCAwIDM0OS4yOTQgMCAyMjUiIHN0eWxlPSJzdHJva2Utd2lkdGg6MTMuODEwNCIvPjxwYXRoIGZpbGw9IiMzYTNhNmEiIGQ9Ik0yMjQuOTc0IDM4Mi41OGMtODcuMDc1IDAtMTU3LjU2NC03MC41MDItMTU3LjU2NC0xNTcuNTc3IDAtODcuMDYxIDcwLjQ4OS0xNTcuNTY0IDE1Ny41NjQtMTU3LjU2NCA4Ny4wMiAwIDE1Ny41NzcgNzAuNTAzIDE1Ny41NzcgMTU3LjU2NCAwIDg3LjA3NS03MC41NTggMTU3LjU3Ny0xNTcuNTc3IDE1Ny41NzdtMC0zNjguNjE1Yy0xMTYuNjE2IDAtMjExLjAzOCA5NC40NjMtMjExLjAzOCAyMTEuMDM4IDAgMTE2LjU2IDk0LjQyMiAyMTEuMDM3IDIxMS4wMzggMjExLjAzNyAxMTYuNTMyIDAgMjExLjAxLTk0LjQ3NyAyMTEuMDEtMjExLjAzNyAwLTExNi41NzUtOTQuNDc4LTIxMS4wMzgtMjExLjAxLTIxMS4wMzgiIHN0eWxlPSJzdHJva2Utd2lkdGg6MTMuODEwNCIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Im0xMTEuMzYgNzUuMzIzLTIuNTU0IDE0Ljg0NyAxMy42ODYgNy4yNS0xNS43NTggMS44NzktMi42NjUgMTQuOTU3LTYuNjAyLTEzLjc1Ni0xNC41NTYgMS42NTcgMTAuNzg2LTEwLjE5Mi02LjExOC0xMy4xNDcgMTIuOTQgNi43NTN6TTE0Ni43NSA3OS42MjdsLTYuODY0IDMuMjczLTE2LjItMzMuOTc0IDYuOTA2LTMuMjQ1IDYuNTQ2IDEzLjgyNCA2LjAwNy0xOS44NiA4LjkwOC00LjIyNS02LjgyMiAyMC4zNTcgMjMuNzY4IDEzLjIwMi04LjkyMiA0LjI5NS0xNy4yMDgtMTAuMTIzLTEuNTg4IDUuMDR6TTE4My4wMyA1Ni42NzJjMi4wMTYgMS4zOTUgNC4zMDkgMS43NTUgNi44NzggMS4zMjYgMi41NTUtLjU4MiA0LjQ3NC0xLjg5MSA1Ljc3Mi0zLjkzNiAxLjc4Mi0yLjY3OSAyLjE2OS02LjMxMSAxLjIwMi0xMC44ODItLjk0LTQuNjI3LTIuNzItNy44MzEtNS41MS05LjU1Ny0xLjkzNC0xLjM2Ny00LjI4Mi0xLjc4Mi02LjgyMy0xLjI4NC0yLjQ0NC41NTItNC40MzMgMS44NjQtNS44MTQgMy45MjItMS42NzEgMi42NjUtMi4wNTggNi4yOTgtMS4wNzcgMTAuOTY1Ljk1MyA0LjU1OCAyLjcwNyA3LjczNCA1LjM3MiA5LjQ0Nm0tOS40NzQtMjUuNTA3YzIuNDg2LTIuNzQ4IDUuNzE4LTQuNTMgOS42NC01LjMzMSAzLjg5NC0uODI5IDcuNTgyLS41MSAxMC45NjUgMS4wNSA1LjIzNCAyLjM2MSA4LjU3NyA3LjMwNSAxMC4xMjMgMTQuNzc2IDEuNjAyIDcuNDE3LjQ1NiAxMy4yNzItMy40MSAxNy41MjYtMi40NzMgMi43NzYtNS42NjMgNC41NzEtOS41NzIgNS4zNzItMy45NjMuODQzLTcuNTgxLjQ0NC0xMC45NzktMS4wOS01LjE3OS0yLjMyLTguNTc2LTcuMjM3LTEwLjExLTE0LjY5NS0xLjYxNS03LjQ4NS0uNTI0LTEzLjM1NCAzLjM0My0xNy42MDhNMjMxLjI5OSAzOS4yMzRjMS45ODkgMCAzLjQ2Ni0uMzA2IDQuNDItMS4wMzYuOTgtLjg1NiAxLjQzNi0yLjE0IDEuNTQ2LTQuMDA1IDAtMS4zNC0uMzA0LTIuNDAzLS44NDItMy4yODYtLjg5OC0xLjEyLTIuMzQ4LTEuNzEzLTQuMzIzLTEuNzRsLTkuNjQtLjMwNi0uMTkzIDEwLjE3OHptLTE2LjEzLTE2Ljk4NyAxOC41MzMuNDg2YzQuMjU0IDAgNy4zMDYgMS40NSA5LjI2NyA0LjI1NCAxLjMxMiAxLjkwNiAxLjk2IDQuMTQzIDEuOTMzIDYuNTg4LS4wODMgMi4xMTMtLjYzNSAzLjk5MS0xLjU2IDUuNTM4LTEuMTA1IDEuNjMtMi41NTUgMi43Mi00LjI4MiAzLjMxNCAxLjYxNi43NiAyLjc2MiAxLjY4NSAzLjMyOSAyLjcwNy44IDEuMzk1IDEuMTg3IDMuNzE1IDEuMDkgNi45ODgtLjEyMyAyLjk0Mi0uMTIzIDQuNzkzIDAgNS40OTcuMjA4IDEuMDM2LjYwOCAxLjcxMyAxLjQ1IDIuMDE2bC0uMDMuODg0LTguNDc5LS4xOGMtLjI0OC0uOTgtLjQ5Ny0xLjk2MS0uNTI1LTMuMDI1YTUwLjk3MyA1MC45NzMgMCAwIDEtLjA4My00LjU1N2MuMDgzLTIuODg2LS4xNTEtNC42OTYtLjcwNC01LjUyNC0uNjYzLTEuMTMzLTIuNDAzLTEuNjk5LTUuMDEzLTEuNzU0bC03Ljk1NS0uMjA0LS40NDIgMTQuNzIxLTcuNDcyLS4xOTJ6TTI4NC45MDggMzguMDZsLTE4LjgxLTQuNTcxLTEuOTIgNy43MzQgMTcuMjkyIDQuMTQzLTEuNTg5IDYuNDA4LTE3LjI2My00LjE3LTIuMjY1IDkuNDczIDE5LjYzOSA0Ljc3OS0xLjYwMiA2LjM2Ni0yNi45MDMtNi40NzcgOC44OTQtMzYuNTcgMjYuMDg4IDYuMzUzek0yOTkuMTUxIDYxLjkwNmw4LjUyMSA0LjI2NyAyLjM3Ni0xNS40ODJoLS4xNTJ6TTI4OC41NzIgNzIuNjlsLTcuMTY3LTMuNTQ5IDI4LjM5NC0yNy45OCA3Ljk4MiAzLjg4LTQuODA2IDM5LjU4MS03LjMyLTMuNjE4IDEuMjMtOC4wNjUtMTIuNTI2LTYuMDc3ek0zNjUuMzAzIDk5Ljk3OGwtMTUuMDY3LTEuNDA5LTYuMTE4IDE0LjIzOS0zLjEwNy0xNS41NjQtMTUuMTIzLTEuNDkyIDEzLjE0OC03LjY2NS0yLjY5My0xNC4zOSAxMC44ODIgOS45NTcgMTIuNzM0LTcuMDg0LTUuNzg3IDEzLjM1NHoiIHN0eWxlPSJzdHJva2Utd2lkdGg6MTMuODEwNCIvPjxwYXRoIGZpbGw9IiNiYTMwMzUiIGQ9Ik0xNjIuMzI3IDI4My4zNTdjLTIuMzYyIDMuNzg0LTMuNTc3IDYuODIzLTYuODkyIDYuNjg1LTIuMzc1LS4xMzgtMjkuMDAyLTIuMzQ4LTMzLjQ2Mi0yLjcyMS02LjU0Ny0uNTEtMTAuODE0IDguNTIxLTEzLjkyMSAxMy40MjQtMy4wOTQgNC44Mi01Ljk5NCAxMi4zMDUgNS45NTIgMTIuNjY0IDYuNjQzLjE2OCAyNS44MTIuNDY4IDMwLjc0Mi40NjggNC44NzUgMCA4LjEyLjM4NCAxMi40NDMtNS4yMiA0LjMxLTUuNTk0IDY5LjcwMi0xMTguNjA1IDY5LjcwMi0xMTguNjA1bC00LjQ2MS03Ljc3NXMtNTcuNzE0IDk3LjI2Ny02MC4xMDMgMTAxLjA3OCIgc3R5bGU9InN0cm9rZS13aWR0aDoxMy44MTA0Ii8+PHBhdGggZmlsbD0iI2JhMzAzNSIgZD0iTTIwNy4wNzcgMTQzLjY4OGMtMi4xOTYtMy45MjItNC4yMjYtNi40NjMtMi40NTgtOS4yOTQgMS4yMjktMi4wODYgMTYuMTg1LTI0LjE5NiAxOC42OTktMjcuODk4IDMuNjE4LTUuNDEzLTIuMTEzLTEzLjU3NS00LjkxNy0xOC42NzEtMi42OTMtNS4wOTYtNy43NDctMTEuMjI4LTEzLjkwNy0uOTgtMy40NTIgNS43NTgtMTMuMTIgMjIuMjktMTUuNDk1IDI2LjUwMi0yLjQwMyA0LjI2Ny00LjI4MSA2Ljk4OC0xLjUyIDEzLjUwNiAyLjcyMSA2LjQ3NyA2OS4zMTUgMTE4Ljc4NCA2OS4zMTUgMTE4Ljc4NGw5LjAwNS0uMTM4cy01Ni41OTUtOTcuODg5LTU4LjcyMi0xMDEuODExIiBzdHlsZT0ic3Ryb2tlLXdpZHRoOjEzLjgxMDQiLz48cGF0aCBmaWxsPSIjYmEzMDM1IiBkPSJNMzA1LjM0MSAyNTEuNzA0YzQuMzc4LjE1IDcuNzItLjI4OCA5LjIyNSAyLjU5NiAxLjIwMiAyLjEgMTIuNjM3IDI2LjI2OCAxNC41MTUgMzAuMjE4IDIuODQ1IDUuOTY1IDEyLjg1OCA1LjEyMyAxOC41ODkgNS4zNTggNS43ODcuMTY4IDEzLjY1OS0xLjA3NyA3Ljk2OS0xMS41NDYtMy4yODctNS44NjktMTIuNjEtMjIuNTkzLTE0Ljk4NS0yNi44MDYtMi41MTMtNC4yMjYtMy44MTEtNy4xODEtMTAuOTEtOC4xMzQtNi45NDctLjg5OC0xMzcuNDk3LS41MjgtMTM3LjQ5Ny0uNTI4bC00LjQzMyA3Ljg3MnMxMTMuMDM5LjgyOSAxMTcuNTI3Ljk2NyIgc3R5bGU9InN0cm9rZS13aWR0aDoxMy44MTA0Ii8+PHBhdGggZmlsbD0iIzJjMjUyMyIgZD0iTTE4Mi44OTUgMzYxLjcxNXYtMTkuMDE3aC0zLjc3di0zLjk1aDguNDc5djIyLjk2N3pNMjEwLjE1MSAzNDIuMTczYy0xLjA5MSAwLTIuMDAzLjM3Mi0yLjgwNCAxLjA5MS0uNzYuNzMyLTEuMTA0IDEuNjMtMS4xMDQgMi42OCAwIDEuMDUuMzQ1IDEuOTA1IDEuMTA0IDIuNjkzLjgwMS43MDQgMS43MTMgMS4wNzcgMi44MDQgMS4wNzdhNC4xMzIgNC4xMzIgMCAwIDAgMi43OS0xLjA1Yy43NzMtLjc0NiAxLjE3NC0xLjYzIDEuMTc0LTIuNjc5IDAtMS4wOS0uNDAxLTEuOTYxLTEuMTc0LTIuNjY1LS43NzQtLjc3My0xLjY1OC0xLjE0Ny0yLjc5LTEuMTQ3bTcuMzg5IDcuMTU0LTYuOTYgMTIuMzg4aC00LjY5Nmw0LjY5NS04LjQzOGMtMi41OTYuMTM4LTQuNjk1LS40NjgtNi4yOTctMS45ODgtMS41MDYtMS4zNC0yLjIyNC0zLjEyMi0yLjMzNC01LjMxOC0uMDEyLTIuMTY4Ljc0NS00LjAxOCAyLjMzNC01LjUyNCAxLjY0My0xLjUxOSAzLjU3Ni0yLjI2NSA1Ljg2OS0yLjI2NSAyLjI1MSAwIDQuMjI2Ljc0NiA1Ljg1NiAyLjI2NSAxLjYwMiAxLjQ2NCAyLjM0NyAzLjM1NiAyLjMwNiA1LjUyNCAwIDEuMjQzLS4yMzUgMi40MDMtLjc3MyAzLjM1Nk0yMjguMjIzIDM2MS43MTV2LTQuMjEyYzIuNjgtMi4zMDYgNS43NDUtNS4wNTUgOS4xOTgtOC4xMiAxLjUzMy0xLjM4MiAyLjI2NS0yLjkgMi4yNjUtNC40ODkgMC0uODQzLS4yNDgtMS40NjQtLjc0Ni0xLjk3NS0uNTk0LS41NTItMS40MDgtLjgyOC0yLjUxMy0uODI4LTEuMTE5IDAtMi4xNC4zODQtMi43NDkgMS4xNzMtLjY2Mi43Ni0xLjAyMSAxLjYzLTEuMDIxIDIuNzIxaC00LjQzNGMtLjA0Mi0xLjg2NC42MDgtMy41OSAyLjAwMy01LjE5MyAxLjYxNi0xLjc1NCAzLjY2LTIuNjY1IDYuMi0yLjY2NSAyLjI2NiAwIDQuMjQuNTUyIDUuODE1IDEuNzgxIDEuNTA1IDEuMjE2IDIuMzkgMi43OSAyLjM5IDQuNzc5IDAgMi40NTgtMS4zNjggNC45MDItNC4xNDQgNy4zNjFhMzU3LjQwMyAzNTcuNDAzIDAgMCAwLTYuMjI4IDUuNThoMTAuMzcxdjQuMDg3ek0yNjIuNjE0IDM0MS43ODNjLS45MTEgMC0xLjY4NS4yNDYtMi4yOTIuODU2LS43MDUuNjc3LTEuMDM2IDEuMzgxLTEuMDM2IDIuMjY1IDAgLjg1Ni4zMzEgMS41ODggMS4wMzYgMi4yMjMuNjYzLjU2NCAxLjM5NC44NyAyLjI5Mi44Ny44ODQgMCAxLjY4NS0uMzA1IDIuMzktLjg4NC41OTMtLjYyLjk1Mi0xLjM1My45NTItMi4yMDkgMC0uODg0LS4zNi0xLjU4OC0uOTUzLTIuMjY1LS43MDQtLjYwOC0xLjUwNS0uODU2LTIuMzg5LS44NTZtMCA5LjM3N2MtMS4wNzcgMC0yLjAwMi4zNDgtMi43MzQgMS4xMDUtLjc0Ni43ODctMS4xNiAxLjY0My0xLjE2IDIuNjc5IDAgMS4wMzYuNDE0IDEuOTIgMS4xNiAyLjY2Ni43MzIuNzg3IDEuNjU3IDEuMTA0IDIuNzM0IDEuMTA0IDEuMTA1IDAgMi4wNzItLjMxOCAyLjg3My0xLjEwNC43NDUtLjc0NiAxLjEwNS0xLjYzIDEuMTA1LTIuNjY2cy0uMzYtMS44OTItMS4xMDUtMi42OGMtLjgwMS0uNzU5LTEuNzY4LTEuMTA0LTIuODczLTEuMTA0bTAgMTEuMDc2Yy0yLjI2NSAwLTQuMjEyLS43MDQtNS43NDUtMi4xMTMtMS42NDMtMS40MjMtMi40MDMtMy4xNzYtMi40MDMtNS4zMDMgMC0yLjExNCAxLjIzLTMuOTUgMy42NDYtNS4zNTktMi4wNDQtMS4xMzItMy4wNjYtMi43MDctMy4wNjYtNC42OTYgMC0xLjgyMi43Ni0zLjM5NyAyLjMyLTQuNjEyIDEuNTc1LTEuMzQgMy4zMTUtMS45NzUgNS4yNDgtMS45NzUgMS45NDcgMCAzLjc5OC42MzUgNS4zMTcgMS45NzUgMS40NSAxLjIxNSAyLjMyIDIuNzkgMi4zMiA0LjUzIDAgMi4wNzEtMS4wMjIgMy42NDYtMy4wNTIgNC43NzggMi40NTkgMS40MDkgMy42NiAzLjIwNCAzLjY2IDUuMzU5IDAgMi4xMjctLjc0NiAzLjg4LTIuNDU4IDUuMzAzLTEuNDkyIDEuNDA5LTMuNDUzIDIuMTEzLTUuNzg3IDIuMTEzIiBzdHlsZT0ic3Ryb2tlLXdpZHRoOjEzLjgxMDQiLz48cGF0aCBmaWxsPSIjM2EzYTZhIiBkPSJtMjExLjE3NiAxMzkuMjEuOTY2IDEuNzI3Yy41NTMuOTk0IDQuODkgOC4zNyAxMC45MSAxOS4wNzJoMS45MmMzNS44OTQgMCA2NS4wNDggMjkuMDg1IDY1LjA0OCA2NS4wMiAwIDQuMTMtLjM0NiA4LjE5LTEuMTMzIDEyLjA0MyA5LjM2NCAwIDE3Ljk5NS4xMzggMjQuODU5LjE5Mi41MTEtMy45OTEuODE1LTguMTA3LjgxNS0xMi4yMzYgMC00OS41MS00MC4wNzgtODkuNjAzLTg5LjU4OS04OS42MDMtNS4xMjMgMC0xMC4wOTUuNDE0LTE0Ljk3IDEuMjQ0LS4wODMgMC0uMDgzLjEzOC0uMTUyLjE2OC4zMDQuNzA0Ljg3IDEuNTYgMS4zMjYgMi40MDNNMzA1LjEzOCAyNTcuNTNjLTEuMjAyLS4xMzctMTAuNDI3LS4xNS0yMy42NzEtLjI3NS0xMS4yMTQgMTkuNTctMzIuMzMgMzIuNzg2LTU2LjQ5OSAzMi43ODYtMTUuNjA2IDAtMjkuODMtNS41MjQtNDEuMDQ0LTE0LjU4NC00LjcxIDguMDM4LTkuMDc0IDE1LjMwMi0xMi41ODIgMjEuMzIzIDE0LjkwMiAxMS4yMTQgMzMuNTA0IDE3Ljg4NSA1My42MjYgMTcuODg1IDM4LjAzNCAwIDcwLjQyLTIzLjc1NCA4My41MTItNTcuMTA2aC0xLjMyNnpNMTU3LjQ0NSAyODAuMjQyYy42NjMtLjk4MSA1LjQ1NS05LjE1NyAxMi4zNzQtMjAuNzQzLTYuMzExLTEwLjAyNy05Ljg2LTIxLjgyMS05Ljg2LTM0LjQ5OSAwLTI3LjgxNCAxNy40Ny01MS42MjMgNDIuMTA3LTYwLjg2M2ExNjk3MC41NSAxNjk3MC41NSAwIDAgMC0xMi40NDMtMjEuNTE2Yy0zMS45MTYgMTMuNzEzLTU0LjI3NSA0NS40NS01NC4yNzUgODIuMzc5IDAgMjEuODYyIDcuODU4IDQxLjg0NiAyMC43ODUgNTcuNDM3LjA4My0uMTguMTUyLS4zNzIuMjYyLS40Njh6IiBzdHlsZT0ic3Ryb2tlLXdpZHRoOjEzLjgxMDQiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJtNDcuMzggMTI0LjkwMiAzLjg4LTYuNjMgMzIuMzg2IDE5LjE3LTMuODk1IDYuNjAxek01NC44NjUgMTY5Ljc4NmMxLjgwOS4yNTIgMy4zMjguMTM4IDQuNDA1LS4yODggMi4wMDMtLjcxOSAzLjQ2Ny0yLjMzNCA0LjQyLTQuODYyLjg4NC0yLjI1LjgxNC00LjQwNS0uMTgtNi40NzctMS4zMjYtMi44MDMtNC4yNTMtNS04LjYxNy02LjY3LTMuNDQtMS4zMTItNi41NDctMS43NjgtOS4xMTUtMS4yMy0yLjk4My42MDgtNS4wNTUgMi4zNDktNi4xMTggNS4yNjItLjc3NCAxLjk3NS0uODE1IDMuNzk4LS4xMjUgNS40NDIuNjA4IDEuNzQgMS45NjIgMy4yNDUgMy45MzYgNC41MDJsLTIuNzQ4IDcuMjM3Yy0zLjcwMS0yLjMyLTYuMjI4LTUuMTEtNy42MS04LjM5Ny0xLjQ2My0zLjQ4LTEuMzgtNy4zNDcuMTk0LTExLjM5NCAxLjc5NS00LjcxIDQuNzY0LTcuOTI3IDguOTM1LTkuNTAxIDQuNDQ3LTEuNjcxIDkuNjI2LTEuMzgyIDE1LjQ5Ni44NTYgNS44NTUgMi4yMjMgOS44NDYgNS40MjcgMTEuOTg3IDkuNzIyIDIuMDg1IDQuMDMzIDIuMjEgOC4zNy40NDIgMTIuOTU1LTEuNzU0IDQuNjY4LTQuNTE2IDcuNzYxLTguNDUyIDkuNDQ2LTMuMjA0IDEuMzUzLTYuNDA4IDEuNTA2LTkuNjI2LjYyMXpNNTEuOTM4IDIxMy4yOTRsMi44NDUtMTkuMjEtNy44NTgtMS4xNi0yLjYyNCAxNy41OC02LjQ2My0uOTggMi41NTUtMTcuNTY3LTkuNjQtMS4zOTUtMi45ODMgMTkuOTg0LTYuNTE4LTEuMDA4IDQuMDYtMjcuMzQ1IDM3LjE5MSA1LjQ2OS0zLjkyMiAyNi42ek0zOS4zMTQgMjQ4LjkxM2wtMTYuNTcyIDIuNzktMS4yNy03LjU5NiAzNy4xMjItNi4yNDIgMS4zMTIgNy42MzYtMTQuMTI4IDIuMzIgMi40MyAxNC40MDUgMTQuMDczLTIuMzkgMS4yNyA3LjQ0NS0zNy4xNSA2LjItMS4yMjktNy40ODUgMTYuNi0yLjcyek00Mi4zNjIgMjk0LjkwM2MtLjkxMSAyLjI1MS0uODU2IDQuNjI3LjEzOCA3LjAxNiAxLjAwOCAyLjMzNCAyLjYxIDMuOTYzIDQuODc1IDQuOTMgMi45NyAxLjIwMiA2LjY1Ny44ODQgMTAuOTM4LS45NjcgNC4zMjMtMS44MDkgNy4wOTktNC4yMTIgOC4zNDItNy4yMDkuOTI1LTIuMjM3LjkxMS00LjU1Ny0uMDU0LTYuOTE5LTEuMDc4LTIuNDAzLTIuNjkzLTQuMDQ2LTUuMDE0LTQuOTcxLTIuOTQxLTEuMjAyLTYuNTYtLjg0My0xMC45NjUuOTM5LTQuMzA5IDEuODkxLTcuMDMgNC4yNjctOC4yNTkgNy4xODFtMjMuMjk5LTE0LjIxMWMzLjA5MyAxLjg3OCA1LjQ5NiA0Ljc1IDcuMDU3IDguNDM4IDEuNTYgMy42NzQgMS44OTIgNy4zMiAxLjA5IDEwLjkzOC0xLjMzOSA1LjU5NC01LjUxIDkuODQ3LTEyLjYyMiAxMi44MTYtNi45NiAzLjAxMS0xMi44OTkgMy4wMTEtMTcuODAyIDAtMy4yNDUtMS44OTItNS41NTEtNC42NjgtNy4xNjctOC4zMjgtMS41MzMtMy43MjgtMS44NS03LjQwMi0xLjAzNi0xMS4wMzQgMS4zMTItNS41NTIgNS40ODMtOS44MzMgMTIuNDg1LTEyLjczMyA3LjA1Ny0yLjk3IDEzLjA1LTIuOTcgMTcuOTk1LS4xMzhNODUuODE3IDMzNy4zMDVjMS4xMTgtMS40NzcgMS45NDctMi43NDggMi4xNC0zLjk3Ny40ODQtMi4wMy0uMDk2LTQuMTE2LTEuNjE1LTYuMjg0LTEuNDY0LTEuOTc1LTMuMjYtMy4wNjYtNS41NTItMy4zODQtMy4wNjYtLjM4NC02LjUxOS43ODgtMTAuMzQ0IDMuNjA1LTIuOTI4IDIuMTU0LTQuOTU4IDQuNDg4LTUuOTM5IDYuOTMzLTEuMTc0IDIuODQ1LS44MjggNS41MjQuOTggOC4wMSAxLjM0IDEuNzEzIDIuODA0IDIuNzYyIDQuNTcyIDMuMTA4IDEuNzU0LjM3MiAzLjc4NC4xMzggNS44ODMtLjg0M2w0LjU4NSA2LjIxNGMtMy45OSAxLjgxLTcuNjY0IDIuNDMxLTExLjEzIDEuNzY5LTMuNzQzLS42OTEtNi45MzQtMi44MDQtOS40ODktNi4zNTMtMi45ODMtNC4wODktNC4wMTgtOC4zLTMuMDgtMTIuNzIgMS4wMjMtNC41ODUgNC4wNjEtOC43NDIgOS4xNDMtMTIuNDcgNS4xMS0zLjcwMiA5Ljk3MS01LjI5IDE0Ljc1LTQuNzM4IDQuNDYuNDY4IDguMTkgMi43MDcgMTEuMDM0IDYuNzEyIDIuOTgzIDMuOTkxIDQuMDc0IDguMDM4IDMuMzAxIDEyLjIzNi0uNTk0IDMuMzg0LTIuMTk2IDYuMTczLTQuNzIzIDguMzd6TTg1Ljk2NSAzNzQuMzEzbC01Ljc0Ni00Ljk4NSAyNC41NTUtMjguNTQ3IDUuNzA0IDQuOTU4LTkuOTU3IDExLjYyOSAyMC41NzctMi41NDEgNy40MTcgNi40MjItMjEuMzM4IDIuMDU3LTIuNDAzIDI3LjA4My03LjU5NS02LjQ1IDIuMzM0LTE5LjgwNC01LjI5LjQ4NnpNMTU2LjAwMiAzODQuMTg1bC0xNy4xMjUtOS4xMTUtMy43NTcgNi45NzQgMTUuNjc1IDguMzk3LTMuMTIxIDUuNzg2LTE1LjYzNC04LjM1NS00LjU4NSA4LjYwNCAxNy43NzQgOS41MTYtMy4wNjYgNS44NjktMjQuNDQ0LTEzLjEwNiAxNy42NjQtMzMuMTg2IDIzLjc2NyAxMi42NXpNMTcyLjQ5NyA0MjIuMDI4bC03LjQxNi0yLjA5OSA0LjAzMi0xMy42NTgtNi4wNzYtMjYuMTMgOC43IDIuNDg2IDMuMDEgMTcuOTk1IDExLjUzMy0xMy43NjkgOC4zMTMgMi4zMzQtMTguMTc0IDE5LjMyek0yMjcuOTY4IDQxNC42NjVsOS41My0uNDAyLTUuMjIxLTE0LjY5NGgtLjE4em0tNC4xNTcgMTQuNDA0LTguMDM4LjM0OCAxMS43OTQtMzguMTE3IDguODUzLS4zNDIgMTQuNTI4IDM3LjA0LTguMjcyLjMzLTIuNzQ4LTcuNjY2LTEzLjgyNS41ODJ6TTI2Ny4xMzMgNDEyLjgzYy4zMzEgMS40MzcgMS4xMDUgMi41NDIgMi4xODIgMy4yMTggMS42MDIgMS4wNjQgMy45NjQgMS4xNzQgNi44MzYuNDU2IDIuMTI3LS41OTQgMy41OS0xLjMyNiA0LjcxLTIuMjM3IDEuNDA4LTEuMTc0IDEuODkyLTIuNjM4IDEuNDUtNC4zNS0uMzMyLTEuMzY4LTEuMjQzLTIuMTI3LTIuNjgtMi41NTUtLjg3LS4yMzQtMi41NTUtLjQwMi00LjkxNi0uMjA0aC04LjU3NmMtMS41ODktLjEzOC0yLjkyOC0uMzcyLTQuMDYtLjc4OC0xLjM2OC0uNTQtMi40NTktMS4yMjktMy4yODgtMi4zMDYtLjk2Ni0xLjEzMy0xLjcxMi0yLjY2Ni0yLjIyMy00LjU3MS0uNzczLTIuNzc2LS42MzUtNS4zODcuNTM5LTcuNzM0IDEuNjg1LTMuMzk4IDQuOTcxLTUuNzQ1IDEwLjA2OC03LjA0NCA0Ljc5Mi0xLjMxMSA4LjgyNC0uODI4IDEyLjA0MiAxLjI5OSAyLjQwMyAxLjYzIDQuMDQ3IDMuODggNC44NDggNi43MjZsLTYuOTg4IDEuODkxYy0uNDk4LTEuMjk4LTEuMjctMi4zMDYtMi4xODItMi45MTQtMS42MDItMS4xMzItMy43ODQtMS4yMjktNi41Ni0uNTIyLTEuNjU4LjQ1Ni0yLjk3IDEuMTQ2LTMuOTA5IDIuMDQ0LTEuMTE4IDEuMTE5LTEuNTMzIDIuNDU4LTEuMTE4IDMuOTA4LjMwMyAxLjIwMi45NjYgMS45NzUgMS45ODggMi40MDMuNTY3LjIyMiAxLjQ2NC4zODQgMi42OTMuMzg0aC4wODNsOS4yMTItLjEzOGMzLjA4LS4xMzggNS40NjkuMjUyIDcuMTY3IDEuMDc4IDIuMjUxIDEuMTE4IDMuODY3IDMuMjA0IDQuNzI0IDYuMjI4IDEuMjE1IDQuNjU1LjE3OSA4LjQzOC0zLjE2MyAxMS40NjMtMi4xIDEuODkyLTQuNjEzIDMuMjE4LTcuNjIzIDQuMDQ2LTUuNzg3IDEuNDkyLTEwLjMxNyAxLjEwNS0xMy42MTgtMS4xMDQtMi40MTYtMS41ODktNC4wMDUtMy44NjctNC43NjQtNi45NDd6TTMwNi4wODMgMzk5LjUyYy42OSAxLjMyNiAxLjY0MyAyLjIyMyAyLjg3MiAyLjcyIDEuODUuNjUgNC4xMDIuMzYgNi44MDktMS4wNjMgMS44MjMtLjk2NiAzLjIxOC0yLjA0NCA0LjE0My0zLjEwNy45OTQtMS41MDUgMS4yMjktMy4wMS40MjgtNC41NzEtLjYyMi0xLjI1Ny0xLjY4NS0xLjg3OC0zLjEwOC0xLjkzNC0xLjA3NyAwLTIuNjY1LjIzNC00LjkzLjg0M2wtNC4wMTkuOTI1Yy0xLjg3OC40MjYtMy4zODMuNzYtNC4zMzYuOTM5LTEuNTYuMjQ2LTIuOTI4LjMzLTQuMTE2LjEzOC0xLjQ2NC0uMjA0LTIuNjY1LS43MzItMy43NTYtMS40OTItMS4xNi0uOTgtMi4yMzgtMi4yNzgtMy4xNzctNC4wMzItMS4zMjYtMi41NTUtMS42OTgtNS4xMjQtMS4wMjItNy42NzguODU3LTMuNjMzIDMuNjMyLTYuNjQ0IDguMjMxLTkuMDYgNC40NzUtMi4zMDcgOC40OTQtMi43MiAxMi4xMjYtMS4yOTkgMi42OTMgMS4xMDUgNC43NjUgMi45IDYuMTczIDUuNTUybC02LjQzNSAzLjI4N2MtLjc4OC0xLjE2LTEuNzgyLTEuOTYxLTIuNzYzLTIuMzYxLTEuNzgxLS42OS00LjAzMi0uNDAyLTYuNjE1LjkxMS0xLjQwOC44MDEtMi41NjkgMS43MjYtMy4yNiAyLjg0NS0uOTEgMS4zNjctLjk5MyAyLjY4LS4zMTYgNC4wNi41OTQgMS4wNzggMS4zOTQgMS43MjcgMi40NTggMS44NzkuNjQ5LjEzOCAxLjUxOSAwIDIuNzItLjE1aC4xMWw4Ljk3OC0yLjA4NmMzLjAxLS43NzMgNS4zNzItLjkxMSA3LjE5NS0uNDU2IDIuNTU1LjU0IDQuNTQ0IDIuMjUxIDYuMDA3IDUuMDI3IDIuMSA0LjIyNiAxLjkzNCA4LjIwNC0uNjkgMTEuOTA1LTEuNjE2IDIuMjkzLTMuNzU3IDQuMTQzLTYuNjAxIDUuNDY5LTUuMjIgMi44MTctOS44MDYgMy40MjUtMTMuNTM1IDEuOTItMi42MjQtMS4wNS00LjcxLTIuOTQyLTYuMTMyLTUuNzQ2ek0zNDYuMDQ1IDM3OC40OTRjMi40NDQuMTY4IDQuNjQtLjU0IDYuNjI4LTIuMTk2IDEuOTYyLTEuNjcxIDMuMDI1LTMuNzE1IDMuMjc0LTYuMTQ2LjI0OC0zLjIzMi0xLjA5MS02LjU3NC00LjA4OC0xMC4xNjUtMy4xNjMtMy41NzYtNi4yMjktNS41NjUtOS40Ni01LjgyNy0yLjQwNC0uMTY4LTQuNjEzLjUyOC02LjYwMiAyLjE4Mi0xLjk3NSAxLjY0My0zLjAyNCAzLjcyOC0zLjI4NyA2LjE1OS0uMTY1IDMuMTQ5IDEuMTg4IDYuNTYgNC4yNTQgMTAuMjA2IDMuMDUyIDMuNTkgNi4xNDYgNS40OTYgOS4yOCA1Ljc4N20tMjAuNTIyLTE3Ljk5NWMuOTUzLTMuNTY0IDIuOTQyLTYuNjcxIDUuOTUyLTkuMjgxIDMuMDUzLTIuNTU1IDYuNDIyLTQuMDA1IDEwLjE1MS00LjI1NCA1LjcxOC0uNDY4IDExLjA0OCAyLjMzNCAxNS45NjUgOC4xNDggNC45MDMgNS43NzMgNi43MTIgMTEuNDc3IDUuMzQ1IDE3LjA1Ny0uOTUzIDMuNjE4LTIuODYgNi43MTEtNS44ODQgOS4yOC0zLjA2NSAyLjU0MS02LjQ1IDMuOTc3LTEwLjE5MiA0LjI5NS01LjY0OC4zODQtMTAuOTc5LTIuMzQ4LTE1Ljg0LTguMTQ4LTQuOTg2LTUuODQyLTYuNzk1LTExLjUxOC01LjQ5Ny0xNy4wOTdNMzczLjU4NCAzMjQuMzg0Yy0xLjcxMy0uNjYzLTMuMTktLjkzOS00LjMyMy0uODU2LTIuMTU0LjE2OC00LjAwNSAxLjM1My01LjYzNCAzLjQ2Ny0xLjM5NSAxLjg5MS0xLjg5MiAzLjk5LTEuNDkyIDYuMjgzLjQ3IDMuMDM4IDIuNjEgNS45NTIgNi40NzcgOC43MjkgMi45IDIuMjIzIDUuNjkgMy40MjQgOC4zNDIgMy42NTkgMy4wNjYuMjg4IDUuNTI0LS44MjkgNy4zNi0zLjMgMS4yMy0xLjcyNyAxLjgyNC0zLjUyMiAxLjY0NC01LjI2My0uMTUyLTEuODIyLTEuMDIyLTMuNjMxLTIuNTU1LTUuMzU4bDQuNTQ0LTYuMjgzYzIuOTgzIDMuMjczIDQuNjEzIDYuNjcgNS4wNCAxMC4xMzYuNDQzIDMuODEyLS42MzUgNy40NDQtMy4zIDEwLjk4LTIuOTgzIDQuMDMyLTYuNzI2IDYuMjk3LTExLjIxNCA2LjY3LTQuNjk2LjQxNC05LjU3LTEuMjk4LTE0LjcwOC01LjA0MS00Ljk3Mi0zLjcxNS03Ljg4Ni03Ljk0MS04Ljc3LTEyLjYzNy0uOTQtNC40MzIuMTM4LTguNTc1IDMuMTA3LTEyLjU4IDIuOTQyLTMuOTkyIDYuNDc4LTYuMjQzIDEwLjYzNC02LjgyMyAzLjQ1My0uMzcyIDYuNjAyLjMwNiA5LjQ3NCAyLjA1OHpNNDA4LjUyOSAzMTMuNzgzbC0zLjUwOCA2LjgwOS0zMy42MDEtMTcuMDQyIDMuNTIxLTYuODIyek00MDQuNzkzIDI4NS41ODRsMi43NjItOS4xMy0xNS41NzguMTM5LS4wNTQuMTM4em0xMi4yMzYgOC43MTQtMi4zOSA3LjcwNy0zMi4wODEtMjMuNzY4IDIuNjEtOC40OCAzOS44NDMtMS40NjQtMi40MyA3LjkyNy04LjE0OC4xMzgtNC4xNDQgMTMuMzE0ek00MjguMzY3IDIzOC41OTVsLS42NjMgNy42NTEtMzAuODUyLTIuNTk2LS45NTMgMTEuMjY5LTYuNjQzLS41NCAyLjU1NS0zMC4yNzIgNi42MjkuNjM1LS45NjcgMTEuMjd6TTQyNy45NjMgMjA2LjQ4MmwuNTI1IDcuNjM3LTM3LjUzNyAyLjcwNy0uNTM5LTcuNjkzek00MTYuMDgxIDE4My41MDJjMS4yMTYtMi4xMTIgMS41Mi00LjQxOS44OTgtNi45MTktLjYwOC0yLjUxMy0xLjk3NS00LjM2NC00LjA2LTUuNjA3LTIuNzc2LTEuNjMtNi40MzYtMS45Ni0xMC45OTMtLjgxNS00LjU1OCAxLjIzLTcuNzA2IDMuMTQ5LTkuMzA4IDUuODg0LTEuMjU3IDIuMDk5LTEuNTc1IDQuNDQ2LS45NCA2LjkwNS41NCAyLjUyNyAxLjk5IDQuNDIgNC4wNzQgNS42NjIgMi43NjMgMS41NjEgNi40NjQgMS44NSAxMC45NjYuNjkxIDQuNTU3LTEuMTMzIDcuNzItMy4wOCA5LjM2My01LjhtLTI1LjE5IDEwLjQ5NWMtMi44MDMtMi4zNjItNC43NS01LjUzOC01Ljc0NS05LjQxOC0uOTk0LTMuODgxLS43NzMtNy41MTMuNjIyLTEwLjk5MyAyLjE1NC01LjI2MiA2LjkwNS04Ljg5NSAxNC4zNjItMTAuNzQ1IDcuMzM0LTEuODc4IDEzLjI4Ni0uOTI1IDE3LjY1IDIuNzA3IDIuODczIDIuNDAzIDQuNzY1IDUuNTI0IDUuNzMyIDkuNDE4IDEuMDIxIDMuODUzLjc3MyA3LjU0MS0uNjUgMTEuMDA3LTIuMTU0IDUuMjItNi44NSA4LjgxMS0xNC4yNTIgMTAuNjM1LTcuNDMgMS45MDUtMTMuMzI3IDEuMDA4LTE3LjcxOS0yLjYxMU0zNjguOTMxIDE0MS42MzhsLTMuMzQyLTYuMzggMzMuNDQ5LTE3LjQwMSAzLjQ4IDYuNzY3LTE2Ljc4IDI1LjYwNS4wMy4xOCAyMy43ODItMTIuNDAyIDMuMjE4IDYuMzI1LTMzLjM2NiAxNy40MDEtMy43OTgtNy4yNjQgMTYuNjI4LTI0Ljk1NmgtLjAxMnoiIHN0eWxlPSJzdHJva2Utd2lkdGg6MTMuODEwNCIvPjwvc3ZnPg==" alt="협회">
+    <div class="sb-logo-txt"><h1>DAILY ICE<br>DECISION OS</h1><p>v2.0 · 한국 아이스하키</p></div>
+  </div></a>
+  <div class="sb-role">
+    <div class="sb-role-badge">⛸ 감독 / 코칭스태프</div>
+    <div class="sb-role-sub">대한민국 U18 · 2026 IIHF D1B</div>
+  </div>
+  <nav class="sb-nav">
+    <div class="nav-sec">메인</div>
+    <a href="v2_Home.html" class="nav-item"><span class="nav-em">📌</span>Home<span class="nav-layer-today">K-Grip 컨디션 모니터링</span></a>
+    <div class="nav-sec">오늘 판단</div>
+    <a href="v2_Planner.html" class="nav-item"><span class="nav-em">📅</span>Planner<span class="nav-layer-today">K-Grip 컨디션 모니터링</span></a>
+    <div class="nav-sec">운용 결정</div>
+    <a href="v2_Lines.html" class="nav-item"><span class="nav-em">👥</span>Lines & D-Pairs<span class="nav-layer-base">정밀 측정 기록</span></a>
+    <a href="v2_Goalies.html" class="nav-item"><span class="nav-em">🥅</span>Goalies<span class="nav-layer-base">정밀 측정 기록</span></a>
+    <div class="nav-sec">선수 관리</div>
+    <a href="v2_Risk.html" class="nav-item"><span class="nav-em">⚠</span>Risk & Return<span class="nav-layer-base">정밀 측정 기록</span></a>
+    <a href="v2_Skaters.html" class="nav-item"><span class="nav-em">⛸</span>Skaters<span class="nav-layer-base">정밀 측정 기록</span></a>
+    <a href="v2_PlayerCard.html" class="nav-item active"><span class="nav-em">👤</span>선수 카드</a>
+    <div class="nav-sec">문서</div>
+    <a href="v2_Reports.html" class="nav-item"><span class="nav-em">📁</span>Reports<span class="nav-layer-base">정밀 측정 기록</span></a>
+    <a href="v2_Measurement.html" class="nav-item"><span class="nav-em">🔬</span>측정 기준<span class="nav-layer-base">정밀 측정 기록</span></a>
+    <div class="nav-sec">연맹</div>
+    <a href="v2_FedDashboard.html" class="nav-item"><span class="nav-em">📊</span>연맹 대시보드<span class="nav-layer-base">정밀 측정 기록</span></a>
+    <a href="v2_FedReports.html" class="nav-item"><span class="nav-em">📋</span>연맹 보고서<span class="nav-layer-base">정밀 측정 기록</span></a>
+  </nav>
+  <div class="sb-foot">Daily Ice Decision OS v2.0<br>
+    🟣 정밀 측정 기록=오프아이스 &nbsp;·&nbsp; 🔵 K-Grip 컨디션 모니터링=K-Grip
+  </div>
+</aside>
+<div class="main">
+  <div class="topbar">
+    <div class="tb-page">👤 선수 카드</div>
+    <div class="tb-right">
+      <div class="tb-layer hybrid">🔵 K-Grip 컨디션 + 🟣 정밀 측정 기록</div>
+      <div class="tb-date"></div>
+    </div>
+  </div>
+  <div class="pc-layout">
+
+    <!-- 선수 목록 -->
+    <div class="pl-list">
+      <div class="pl-head">
+        <div class="pl-head-title">선수 목록</div>
+        <div class="pl-head-sub">전체 21명 · 정밀 측정 기록 (최근 측정: 2026.04.14)</div>
+      </div>
+      <div class="pl-scroll">
+        <div class="pl-group">🥅 골리</div><div class="pl-item" onclick="selPlayer(0)" data-idx="0">
+          <div class="pl-num">#1</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:11px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">임재훈</div>
+            <div style="font-size:9px;color:var(--t3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">골리 1번</div>
+          </div>
+          <div class="sts danger" style="font-size:7.5px;font-weight:700;padding:2px 5px;border-radius:3px;white-space:nowrap">⛔ 제한</div>
+        </div><div class="pl-item" onclick="selPlayer(1)" data-idx="1">
+          <div class="pl-num">#25</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:11px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">송근우</div>
+            <div style="font-size:9px;color:var(--t3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">골리 2번 → 선발</div>
+          </div>
+          <div class="sts ok" style="font-size:7.5px;font-weight:700;padding:2px 5px;border-radius:3px;white-space:nowrap">✅ Full Go</div>
+        </div><div class="pl-item" onclick="selPlayer(2)" data-idx="2">
+          <div class="pl-num">#20</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:11px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">이동근</div>
+            <div style="font-size:9px;color:var(--t3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">골리 3번</div>
+          </div>
+          <div class="sts ok" style="font-size:7.5px;font-weight:700;padding:2px 5px;border-radius:3px;white-space:nowrap">✅ Full Go</div>
+        </div><div class="pl-group">⛸ 포워드</div><div class="pl-item" onclick="selPlayer(3)" data-idx="3">
+          <div class="pl-num">#13</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:11px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">공시완</div>
+            <div style="font-size:9px;color:var(--t3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">센터 · 1라인</div>
+          </div>
+          <div class="sts danger" style="font-size:7.5px;font-weight:700;padding:2px 5px;border-radius:3px;white-space:nowrap">⛔ 제한</div>
+        </div><div class="pl-item" onclick="selPlayer(4)" data-idx="4">
+          <div class="pl-num">#16</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:11px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">류한결</div>
+            <div style="font-size:9px;color:var(--t3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">레프트윙 · 1라인</div>
+          </div>
+          <div class="sts w" style="font-size:7.5px;font-weight:700;padding:2px 5px;border-radius:3px;white-space:nowrap">⚠ 조건부</div>
+        </div><div class="pl-item" onclick="selPlayer(5)" data-idx="5">
+          <div class="pl-num">#9</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:11px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">곽우진</div>
+            <div style="font-size:9px;color:var(--t3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">라이트윙 · 1라인</div>
+          </div>
+          <div class="sts ok" style="font-size:7.5px;font-weight:700;padding:2px 5px;border-radius:3px;white-space:nowrap">✅ Full Go</div>
+        </div><div class="pl-item" onclick="selPlayer(6)" data-idx="6">
+          <div class="pl-num">#7</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:11px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">여준수</div>
+            <div style="font-size:9px;color:var(--t3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">센터 · 2라인</div>
+          </div>
+          <div class="sts ok" style="font-size:7.5px;font-weight:700;padding:2px 5px;border-radius:3px;white-space:nowrap">✅ Full Go</div>
+        </div><div class="pl-item" onclick="selPlayer(7)" data-idx="7">
+          <div class="pl-num">#11</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:11px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">곽경민</div>
+            <div style="font-size:9px;color:var(--t3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">레프트윙 · 2라인</div>
+          </div>
+          <div class="sts ok" style="font-size:7.5px;font-weight:700;padding:2px 5px;border-radius:3px;white-space:nowrap">✅ Full Go</div>
+        </div><div class="pl-item" onclick="selPlayer(8)" data-idx="8">
+          <div class="pl-num">#19</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:11px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">송서현</div>
+            <div style="font-size:9px;color:var(--t3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">라이트윙 · 2라인</div>
+          </div>
+          <div class="sts w" style="font-size:7.5px;font-weight:700;padding:2px 5px;border-radius:3px;white-space:nowrap">⚠ 조건부</div>
+        </div><div class="pl-item" onclick="selPlayer(9)" data-idx="9">
+          <div class="pl-num">#18</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:11px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">이승재</div>
+            <div style="font-size:9px;color:var(--t3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">센터 · 3라인</div>
+          </div>
+          <div class="sts ok" style="font-size:7.5px;font-weight:700;padding:2px 5px;border-radius:3px;white-space:nowrap">✅ Full Go</div>
+        </div><div class="pl-item" onclick="selPlayer(10)" data-idx="10">
+          <div class="pl-num">#23</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:11px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">조승현</div>
+            <div style="font-size:9px;color:var(--t3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">레프트윙 · 3라인</div>
+          </div>
+          <div class="sts ok" style="font-size:7.5px;font-weight:700;padding:2px 5px;border-radius:3px;white-space:nowrap">✅ Full Go</div>
+        </div><div class="pl-item" onclick="selPlayer(11)" data-idx="11">
+          <div class="pl-num">#26</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:11px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">한상윤</div>
+            <div style="font-size:9px;color:var(--t3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">라이트윙 · 3라인</div>
+          </div>
+          <div class="sts ok" style="font-size:7.5px;font-weight:700;padding:2px 5px;border-radius:3px;white-space:nowrap">✅ Full Go</div>
+        </div><div class="pl-item" onclick="selPlayer(12)" data-idx="12">
+          <div class="pl-num">#22</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:11px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">이영민</div>
+            <div style="font-size:9px;color:var(--t3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">센터 · 4라인</div>
+          </div>
+          <div class="sts ok" style="font-size:7.5px;font-weight:700;padding:2px 5px;border-radius:3px;white-space:nowrap">✅ Full Go</div>
+        </div><div class="pl-item" onclick="selPlayer(13)" data-idx="13">
+          <div class="pl-num">#15</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:11px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">이동근</div>
+            <div style="font-size:9px;color:var(--t3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">레프트윙 · 4라인</div>
+          </div>
+          <div class="sts ok" style="font-size:7.5px;font-weight:700;padding:2px 5px;border-radius:3px;white-space:nowrap">✅ Full Go</div>
+        </div><div class="pl-item" onclick="selPlayer(14)" data-idx="14">
+          <div class="pl-num">#24</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:11px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">민동욱</div>
+            <div style="font-size:9px;color:var(--t3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">라이트윙 · 4라인</div>
+          </div>
+          <div class="sts ok" style="font-size:7.5px;font-weight:700;padding:2px 5px;border-radius:3px;white-space:nowrap">✅ Full Go</div>
+        </div><div class="pl-group">🛡 수비</div><div class="pl-item" onclick="selPlayer(15)" data-idx="15">
+          <div class="pl-num">#6</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:11px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">안건우</div>
+            <div style="font-size:9px;color:var(--t3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">레프트수비 · 수비조 1</div>
+          </div>
+          <div class="sts ok" style="font-size:7.5px;font-weight:700;padding:2px 5px;border-radius:3px;white-space:nowrap">✅ Full Go</div>
+        </div><div class="pl-item" onclick="selPlayer(16)" data-idx="16">
+          <div class="pl-num">#17</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:11px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">이형진</div>
+            <div style="font-size:9px;color:var(--t3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">라이트수비 · 수비조 1</div>
+          </div>
+          <div class="sts w" style="font-size:7.5px;font-weight:700;padding:2px 5px;border-radius:3px;white-space:nowrap">⚠ 조건부</div>
+        </div><div class="pl-item" onclick="selPlayer(17)" data-idx="17">
+          <div class="pl-num">#8</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:11px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">이지안</div>
+            <div style="font-size:9px;color:var(--t3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">레프트수비 · 수비조 2</div>
+          </div>
+          <div class="sts ok" style="font-size:7.5px;font-weight:700;padding:2px 5px;border-radius:3px;white-space:nowrap">✅ Full Go</div>
+        </div><div class="pl-item" onclick="selPlayer(18)" data-idx="18">
+          <div class="pl-num">#21</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:11px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">이형진(D)</div>
+            <div style="font-size:9px;color:var(--t3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">라이트수비 · 수비조 2</div>
+          </div>
+          <div class="sts ok" style="font-size:7.5px;font-weight:700;padding:2px 5px;border-radius:3px;white-space:nowrap">✅ Full Go</div>
+        </div><div class="pl-item" onclick="selPlayer(19)" data-idx="19">
+          <div class="pl-num">#14</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:11px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">박무진</div>
+            <div style="font-size:9px;color:var(--t3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">레프트수비 · 수비조 3</div>
+          </div>
+          <div class="sts ok" style="font-size:7.5px;font-weight:700;padding:2px 5px;border-radius:3px;white-space:nowrap">✅ Full Go</div>
+        </div><div class="pl-item" onclick="selPlayer(20)" data-idx="20">
+          <div class="pl-num">#12</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:11px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">김산</div>
+            <div style="font-size:9px;color:var(--t3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">라이트수비 · 수비조 3</div>
+          </div>
+          <div class="sts ok" style="font-size:7.5px;font-weight:700;padding:2px 5px;border-radius:3px;white-space:nowrap">✅ Full Go</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 카드 영역 -->
+    <div class="pc-area">
+      <div class="pc-card" id="pc-0" style="display:block">
+
+          <!-- TODAY 블록 -->
+          <div 
+          <!-- 선수 카드 헤더 -->
+          <div style="display:flex;align-items:center;gap:16px;padding:18px 20px 14px;
+            border-bottom:1px solid rgba(0,0,0,.07);background:#fff;border-radius:12px 12px 0 0;
+            margin-bottom:12px;border:1px solid rgba(0,0,0,.08);box-shadow:0 1px 6px rgba(0,0,0,.05)">
+            <div style="font-family:'Orbitron';font-size:28px;font-weight:900;
+              color:var(--today);line-height:1">#1</div>
+            <div style="flex:1">
+              <div style="font-size:20px;font-weight:900;color:#0f1a2e;margin-bottom:3px">임재훈</div>
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                <span style="font-size:11px;color:rgba(15,26,46,.55)">골리 1번</span>
+                <span style="font-size:10px;color:rgba(15,26,46,.35)">·</span>
+                <span style="font-size:11px;color:rgba(15,26,46,.55)">경성고</span>
+                <span style="font-size:9px;font-weight:700;padding:2px 7px;border-radius:4px;
+                  background:rgba(13,92,41,.1);
+                  color:#0d5c29">Post-PHV</span>
+              </div>
+            </div>
+            <div style="text-align:right">
+              <div style="display:inline-flex;padding:4px 10px;border-radius:6px;
+                background:rgba(255,59,48,.08);border:1px solid rgba(255,59,48,.18);
+                font-size:11px;font-weight:700;color:#8b1a1a">제한</div>
+              <div style="font-size:8.5px;color:rgba(15,26,46,.35);margin-top:4px">정밀 측정 기록 (최근 측정: 2026.04.14)</div>
+            </div>
+          </div>
+          <div class="pc-today-block">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+              <span class="badge-today"><span class="dot"></span>K-Grip 컨디션 모니터링 (최근 측정: 26.04.17)</span>
+              <span style="font-size:9px;color:var(--today-t);font-weight:600">Post-PHV</span>
+            </div>
+            <div class="pc-today-grip" id="grip-0">-12%</div>
+            <div style="font-size:9px;color:var(--t3);margin-bottom:8px">K-Grip 전날 대비 · 개인 베이스라인 기준</div>
+            <div class="pc-today-decision">Sliding 자제 권고 · 선발 재고 권고</div>
+            <div class="pc-today-sub">CNS 피로 — 오프아이스 전환</div>
+          <div style="margin-top:10px;padding:7px 10px;border-radius:7px;background:rgba(8,145,178,.08);border:1px solid rgba(8,145,178,.2);font-size:9.5px;color:var(--today-t);line-height:1.6">
+  <strong>ℹ 참고사항</strong> — 오늘 K-Grip 측정 기반 권고입니다. 당일 상태에 따라 변동될 수 있으며,
+  최종 출전·훈련 결정은 <strong>담당 AT·의료진 소견과 감독 판단을 종합</strong>하십시오.
+</div>
+</div>
+
+          <!-- BASELINE 블록 -->
+          <div class="pc-base-block">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+              <span class="badge-base"><span class="dot"></span>정밀 측정 기록 (최근 측정: 2026.04.14)</span>
+            </div>
+            <div class="pc-metrics"><div class="pc-metric">
+          <div class="pcm-label">GLSI</div>
+          <div class="pcm-val danger">16.3%</div>
+        </div><div class="pc-metric">
+          <div class="pcm-label">K-Grip기준</div>
+          <div class="pcm-val warn">-10%↓</div>
+        </div><div class="pc-metric">
+          <div class="pcm-label">Hip IR차</div>
+          <div class="pcm-val warn">10°</div>
+        </div><div class="pc-metric">
+          <div class="pcm-label">Recovery</div>
+          <div class="pcm-val warn">+9.2%</div>
+        </div></div>
+            <div class="pc-principle" data-has-disc="1">좌우 측면 이동 비대칭 심각. Sliding 반복 시 편측 실점 위험. GLSI 8% 이하 회복 전까지 선발 재고 권고.</div><div style="margin-top:10px;padding:7px 10px;border-radius:7px;background:rgba(124,58,237,.06);border:1px solid rgba(124,58,237,.18);font-size:9.5px;color:var(--base-t);line-height:1.6">
+  <strong>ℹ 측정 기준</strong> — 2026.04.14 오프아이스 측정 기준입니다. 이 수치가 의미하는 바와 측정 방법은
+  <a href="v2_Measurement.html" style="color:var(--base);font-weight:700">→ 측정 기준 화면</a>에서 확인하십시오.
+  최종 결정은 담당 AT·의료진 소견과 감독 판단을 종합하십시오.
+</div>
+          </div>
+
+          <div class="remeasure-urgent" style="margin-bottom:12px;border-radius:9px">
+              <div class="remeasure-title">🔴 재측정 권고</div>
+              <div class="remeasure-desc">GLSI 16.3% — 기준 2배 초과. 즉시 재평가 권고</div>
+            </div>
+          <div class="pc-section">
+              <div class="pc-sec-title">복귀 타임라인</div>
+              <div class="pc-timeline"><div class="pc-tl-item">
+          <div class="tl-dot done"></div>
+          <div class="tl-date">04.14</div>
+          <div class="tl-label done">플래그 감지</div>
+        </div><div class="pc-tl-item">
+          <div class="tl-dot cur"></div>
+          <div class="tl-date">현재</div>
+          <div class="tl-label cur">Off-ice 전환</div>
+        </div><div class="pc-tl-item">
+          <div class="tl-dot up"></div>
+          <div class="tl-date">04.17</div>
+          <div class="tl-label up">재평가</div>
+        </div></div>
+            </div>
+
+          <!-- 연결 화면 -->
+          <div class="pc-section">
+            <div class="pc-sec-title">연결 화면</div>
+            <a href="v2_Lines.html" class="pc-link">👥 Lines에서 이 선수 라인 위치 <span>→</span></a>
+            <a href="v2_Planner.html" class="pc-link">📅 오늘 훈련 계획 <span>→</span></a>
+            <a href="v2_Risk.html" class="pc-link">⚠ Risk & Return — 장기 운용 원칙 <span>→</span></a>
+            <a href="v2_Measurement.html" class="pc-link">🔬 이 지표의 측정 기준 <span>→</span></a>
+          </div>
+
+        </div><div class="pc-card" id="pc-1" style="display:none">
+
+          <!-- TODAY 블록 -->
+          <div 
+          <!-- 선수 카드 헤더 -->
+          <div style="display:flex;align-items:center;gap:16px;padding:18px 20px 14px;
+            border-bottom:1px solid rgba(0,0,0,.07);background:#fff;border-radius:12px 12px 0 0;
+            margin-bottom:12px;border:1px solid rgba(0,0,0,.08);box-shadow:0 1px 6px rgba(0,0,0,.05)">
+            <div style="font-family:'Orbitron';font-size:28px;font-weight:900;
+              color:var(--today);line-height:1">#25</div>
+            <div style="flex:1">
+              <div style="font-size:20px;font-weight:900;color:#0f1a2e;margin-bottom:3px">송근우</div>
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                <span style="font-size:11px;color:rgba(15,26,46,.55)">골리 2번 → 선발</span>
+                <span style="font-size:10px;color:rgba(15,26,46,.35)">·</span>
+                <span style="font-size:11px;color:rgba(15,26,46,.55)">경기고</span>
+                <span style="font-size:9px;font-weight:700;padding:2px 7px;border-radius:4px;
+                  background:rgba(13,92,41,.1);
+                  color:#0d5c29">Post-PHV</span>
+              </div>
+            </div>
+            <div style="text-align:right">
+              <div style="display:inline-flex;padding:4px 10px;border-radius:6px;
+                background:rgba(52,199,89,.08);border:1px solid rgba(52,199,89,.2);
+                font-size:11px;font-weight:700;color:#0d5c29">정상</div>
+              <div style="font-size:8.5px;color:rgba(15,26,46,.35);margin-top:4px">정밀 측정 기록 (최근 측정: 2026.04.14)</div>
+            </div>
+          </div>
+          <div class="pc-today-block">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+              <span class="badge-today"><span class="dot"></span>K-Grip 컨디션 모니터링 (최근 측정: 26.04.17)</span>
+              <span style="font-size:9px;color:var(--today-t);font-weight:600">Post-PHV</span>
+            </div>
+            <div class="pc-today-grip" id="grip-1">-3%</div>
+            <div style="font-size:9px;color:var(--t3);margin-bottom:8px">K-Grip 전날 대비 · 개인 베이스라인 기준</div>
+            <div class="pc-today-decision">선발 적합 (감독 최종 결정) — 모든 동작 허용</div>
+            <div class="pc-today-sub">K-Grip 최상 · 컨디션 최적</div>
+          <div style="margin-top:10px;padding:7px 10px;border-radius:7px;background:rgba(8,145,178,.08);border:1px solid rgba(8,145,178,.2);font-size:9.5px;color:var(--today-t);line-height:1.6">
+  <strong>ℹ 참고사항</strong> — 오늘 K-Grip 측정 기반 권고입니다. 당일 상태에 따라 변동될 수 있으며,
+  최종 출전·훈련 결정은 <strong>담당 AT·의료진 소견과 감독 판단을 종합</strong>하십시오.
+</div>
+</div>
+
+          <!-- BASELINE 블록 -->
+          <div class="pc-base-block">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+              <span class="badge-base"><span class="dot"></span>정밀 측정 기록 (최근 측정: 2026.04.14)</span>
+            </div>
+            <div class="pc-metrics"><div class="pc-metric">
+          <div class="pcm-label">GLSI</div>
+          <div class="pcm-val ok">5.2%</div>
+        </div><div class="pc-metric">
+          <div class="pcm-label">Hip IR차</div>
+          <div class="pcm-val ok">2°</div>
+        </div><div class="pc-metric">
+          <div class="pcm-label">Recovery</div>
+          <div class="pcm-val ok">+4.1%</div>
+        </div><div class="pc-metric">
+          <div class="pcm-label">Add/Abd</div>
+          <div class="pcm-val ok">0.93</div>
+        </div></div>
+            <div class="pc-principle" data-has-disc="1">전 지표 정상 — 선발 조건 충족. GLSI·컨디션·균형 3가지 동시 충족. 현행 유지.</div>
+          </div>
+
+          
+          
+
+          <!-- 연결 화면 -->
+          <div class="pc-section">
+            <div class="pc-sec-title">연결 화면</div>
+            <a href="v2_Lines.html" class="pc-link">👥 Lines에서 이 선수 라인 위치 <span>→</span></a>
+            <a href="v2_Planner.html" class="pc-link">📅 오늘 훈련 계획 <span>→</span></a>
+            <a href="v2_Risk.html" class="pc-link">⚠ Risk & Return — 장기 운용 원칙 <span>→</span></a>
+            <a href="v2_Measurement.html" class="pc-link">🔬 이 지표의 측정 기준 <span>→</span></a>
+          </div>
+
+        </div><div class="pc-card" id="pc-2" style="display:none">
+
+          <!-- TODAY 블록 -->
+          <div 
+          <!-- 선수 카드 헤더 -->
+          <div style="display:flex;align-items:center;gap:16px;padding:18px 20px 14px;
+            border-bottom:1px solid rgba(0,0,0,.07);background:#fff;border-radius:12px 12px 0 0;
+            margin-bottom:12px;border:1px solid rgba(0,0,0,.08);box-shadow:0 1px 6px rgba(0,0,0,.05)">
+            <div style="font-family:'Orbitron';font-size:28px;font-weight:900;
+              color:var(--today);line-height:1">#20</div>
+            <div style="flex:1">
+              <div style="font-size:20px;font-weight:900;color:#0f1a2e;margin-bottom:3px">이동근</div>
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                <span style="font-size:11px;color:rgba(15,26,46,.55)">골리 3번</span>
+                <span style="font-size:10px;color:rgba(15,26,46,.35)">·</span>
+                <span style="font-size:11px;color:rgba(15,26,46,.55)">중동고</span>
+                <span style="font-size:9px;font-weight:700;padding:2px 7px;border-radius:4px;
+                  background:rgba(22,78,99,.1);
+                  color:#164e63">Pre-PHV</span>
+              </div>
+            </div>
+            <div style="text-align:right">
+              <div style="display:inline-flex;padding:4px 10px;border-radius:6px;
+                background:rgba(52,199,89,.08);border:1px solid rgba(52,199,89,.2);
+                font-size:11px;font-weight:700;color:#0d5c29">정상</div>
+              <div style="font-size:8.5px;color:rgba(15,26,46,.35);margin-top:4px">정밀 측정 기록 (최근 측정: 2026.04.14)</div>
+            </div>
+          </div>
+          <div class="pc-today-block">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+              <span class="badge-today"><span class="dot"></span>K-Grip 컨디션 모니터링 (최근 측정: 26.04.17)</span>
+              <span style="font-size:9px;color:var(--today-t);font-weight:600">Pre-PHV</span>
+            </div>
+            <div class="pc-today-grip" id="grip-2">—</div>
+            <div style="font-size:9px;color:var(--t3);margin-bottom:8px">K-Grip 전날 대비 · 개인 베이스라인 기준</div>
+            <div class="pc-today-decision">미측정 — 2차 측정 편입</div>
+            <div class="pc-today-sub">K-Grip 측정 필요</div>
+          <div style="margin-top:10px;padding:7px 10px;border-radius:7px;background:rgba(8,145,178,.08);border:1px solid rgba(8,145,178,.2);font-size:9.5px;color:var(--today-t);line-height:1.6">
+  <strong>ℹ 참고사항</strong> — 오늘 K-Grip 측정 기반 권고입니다. 당일 상태에 따라 변동될 수 있으며,
+  최종 출전·훈련 결정은 <strong>담당 AT·의료진 소견과 감독 판단을 종합</strong>하십시오.
+</div>
+</div>
+
+          <!-- BASELINE 블록 -->
+          <div class="pc-base-block">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+              <span class="badge-base"><span class="dot"></span>정밀 측정 기록 (최근 측정: 2026.04.14)</span>
+            </div>
+            <div class="pc-metrics"><div class="pc-metric">
+          <div class="pcm-label">측정상태</div>
+          <div class="pcm-val warn">미측정</div>
+        </div></div>
+            <div class="pc-principle" data-has-disc="1">미측정. 2차 측정(2026.10) 시 우선 편입. Pre-PHV 절대값 비교 금지.</div>
+          </div>
+
+          
+          
+
+          <!-- 연결 화면 -->
+          <div class="pc-section">
+            <div class="pc-sec-title">연결 화면</div>
+            <a href="v2_Lines.html" class="pc-link">👥 Lines에서 이 선수 라인 위치 <span>→</span></a>
+            <a href="v2_Planner.html" class="pc-link">📅 오늘 훈련 계획 <span>→</span></a>
+            <a href="v2_Risk.html" class="pc-link">⚠ Risk & Return — 장기 운용 원칙 <span>→</span></a>
+            <a href="v2_Measurement.html" class="pc-link">🔬 이 지표의 측정 기준 <span>→</span></a>
+          </div>
+
+        </div><div class="pc-card" id="pc-3" style="display:none">
+
+          <!-- TODAY 블록 -->
+          <div 
+          <!-- 선수 카드 헤더 -->
+          <div style="display:flex;align-items:center;gap:16px;padding:18px 20px 14px;
+            border-bottom:1px solid rgba(0,0,0,.07);background:#fff;border-radius:12px 12px 0 0;
+            margin-bottom:12px;border:1px solid rgba(0,0,0,.08);box-shadow:0 1px 6px rgba(0,0,0,.05)">
+            <div style="font-family:'Orbitron';font-size:28px;font-weight:900;
+              color:var(--today);line-height:1">#13</div>
+            <div style="flex:1">
+              <div style="font-size:20px;font-weight:900;color:#0f1a2e;margin-bottom:3px">공시완</div>
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                <span style="font-size:11px;color:rgba(15,26,46,.55)">센터 · 1라인</span>
+                <span style="font-size:10px;color:rgba(15,26,46,.35)">·</span>
+                <span style="font-size:11px;color:rgba(15,26,46,.55)">경기고</span>
+                <span style="font-size:9px;font-weight:700;padding:2px 7px;border-radius:4px;
+                  background:rgba(13,92,41,.1);
+                  color:#0d5c29">Post-PHV</span>
+              </div>
+            </div>
+            <div style="text-align:right">
+              <div style="display:inline-flex;padding:4px 10px;border-radius:6px;
+                background:rgba(255,59,48,.08);border:1px solid rgba(255,59,48,.18);
+                font-size:11px;font-weight:700;color:#8b1a1a">제한</div>
+              <div style="font-size:8.5px;color:rgba(15,26,46,.35);margin-top:4px">정밀 측정 기록 (최근 측정: 2026.04.14)</div>
+            </div>
+          </div>
+          <div class="pc-today-block">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+              <span class="badge-today"><span class="dot"></span>K-Grip 컨디션 모니터링 (최근 측정: 26.04.17)</span>
+              <span style="font-size:9px;color:var(--today-t);font-weight:600">Post-PHV</span>
+            </div>
+            <div class="pc-today-grip" id="grip-3">-4%</div>
+            <div style="font-size:9px;color:var(--t3);margin-bottom:8px">K-Grip 전날 대비 · 개인 베이스라인 기준</div>
+            <div class="pc-today-decision">Contact 제한 권고 권고 — 복귀 D+5~7</div>
+            <div class="pc-today-sub">오프아이스 측정 결과 기반 조정 권고</div>
+          <div style="margin-top:10px;padding:7px 10px;border-radius:7px;background:rgba(8,145,178,.08);border:1px solid rgba(8,145,178,.2);font-size:9.5px;color:var(--today-t);line-height:1.6">
+  <strong>ℹ 참고사항</strong> — 오늘 K-Grip 측정 기반 권고입니다. 당일 상태에 따라 변동될 수 있으며,
+  최종 출전·훈련 결정은 <strong>담당 AT·의료진 소견과 감독 판단을 종합</strong>하십시오.
+</div>
+</div>
+
+          <!-- BASELINE 블록 -->
+          <div class="pc-base-block">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+              <span class="badge-base"><span class="dot"></span>정밀 측정 기록 (최근 측정: 2026.04.14)</span>
+            </div>
+            <div class="pc-metrics"><div class="pc-metric">
+          <div class="pcm-label">Add/Abd</div>
+          <div class="pcm-val danger">0.72</div>
+        </div><div class="pc-metric">
+          <div class="pcm-label">Nordic LSI</div>
+          <div class="pcm-val danger">78%</div>
+        </div><div class="pc-metric">
+          <div class="pcm-label">RSA</div>
+          <div class="pcm-val ok">+2.3%</div>
+        </div><div class="pc-metric">
+          <div class="pcm-label">5m Split</div>
+          <div class="pcm-val ok">-2.1%</div>
+        </div></div>
+            <div class="pc-principle" data-has-disc="1">사타구니(내전근) 불균형 심각. 방향전환·몸싸움 시 파열 위험. Add/Abd 0.80 회복 후 단계적 복귀.</div>
+          </div>
+
+          <div class="remeasure-urgent" style="margin-bottom:12px;border-radius:9px">
+              <div class="remeasure-title">🔴 재측정 권고</div>
+              <div class="remeasure-desc">10일 이상 Contact 제한 권고 — Add/Abd 재측정 필요</div>
+            </div>
+          <div class="pc-section">
+              <div class="pc-sec-title">복귀 타임라인</div>
+              <div class="pc-timeline"><div class="pc-tl-item">
+          <div class="tl-dot done"></div>
+          <div class="tl-date">04.14</div>
+          <div class="tl-label done">플래그 감지</div>
+        </div><div class="pc-tl-item">
+          <div class="tl-dot cur"></div>
+          <div class="tl-date">현재</div>
+          <div class="tl-label cur">No-Contact</div>
+        </div><div class="pc-tl-item">
+          <div class="tl-dot up"></div>
+          <div class="tl-date">04.18</div>
+          <div class="tl-label up">재평가</div>
+        </div><div class="pc-tl-item">
+          <div class="tl-dot up"></div>
+          <div class="tl-date">D+5~7</div>
+          <div class="tl-label up">Full 복귀</div>
+        </div></div>
+            </div>
+
+          <!-- 연결 화면 -->
+          <div class="pc-section">
+            <div class="pc-sec-title">연결 화면</div>
+            <a href="v2_Lines.html" class="pc-link">👥 Lines에서 이 선수 라인 위치 <span>→</span></a>
+            <a href="v2_Planner.html" class="pc-link">📅 오늘 훈련 계획 <span>→</span></a>
+            <a href="v2_Risk.html" class="pc-link">⚠ Risk & Return — 장기 운용 원칙 <span>→</span></a>
+            <a href="v2_Measurement.html" class="pc-link">🔬 이 지표의 측정 기준 <span>→</span></a>
+          </div>
+
+        </div><div class="pc-card" id="pc-4" style="display:none">
+
+          <!-- TODAY 블록 -->
+          <div 
+          <!-- 선수 카드 헤더 -->
+          <div style="display:flex;align-items:center;gap:16px;padding:18px 20px 14px;
+            border-bottom:1px solid rgba(0,0,0,.07);background:#fff;border-radius:12px 12px 0 0;
+            margin-bottom:12px;border:1px solid rgba(0,0,0,.08);box-shadow:0 1px 6px rgba(0,0,0,.05)">
+            <div style="font-family:'Orbitron';font-size:28px;font-weight:900;
+              color:var(--today);line-height:1">#16</div>
+            <div style="flex:1">
+              <div style="font-size:20px;font-weight:900;color:#0f1a2e;margin-bottom:3px">류한결</div>
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                <span style="font-size:11px;color:rgba(15,26,46,.55)">레프트윙 · 1라인</span>
+                <span style="font-size:10px;color:rgba(15,26,46,.35)">·</span>
+                <span style="font-size:11px;color:rgba(15,26,46,.55)">Anaheim Jr.</span>
+                <span style="font-size:9px;font-weight:700;padding:2px 7px;border-radius:4px;
+                  background:rgba(13,92,41,.1);
+                  color:#0d5c29">Post-PHV</span>
+              </div>
+            </div>
+            <div style="text-align:right">
+              <div style="display:inline-flex;padding:4px 10px;border-radius:6px;
+                background:rgba(255,159,10,.08);border:1px solid rgba(255,159,10,.2);
+                font-size:11px;font-weight:700;color:#7a4500">조건부</div>
+              <div style="font-size:8.5px;color:rgba(15,26,46,.35);margin-top:4px">정밀 측정 기록 (최근 측정: 2026.04.14)</div>
+            </div>
+          </div>
+          <div class="pc-today-block">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+              <span class="badge-today"><span class="dot"></span>K-Grip 컨디션 모니터링 (최근 측정: 26.04.17)</span>
+              <span style="font-size:9px;color:var(--today-t);font-weight:600">Post-PHV</span>
+            </div>
+            <div class="pc-today-grip" id="grip-4">-11%</div>
+            <div style="font-size:9px;color:var(--t3);margin-bottom:8px">K-Grip 전날 대비 · 개인 베이스라인 기준</div>
+            <div class="pc-today-decision">오늘만 세트 감소 · Shift 조정 권고</div>
+            <div class="pc-today-sub">K-Grip -11% — 오늘 CNS 과부하</div>
+          <div style="margin-top:10px;padding:7px 10px;border-radius:7px;background:rgba(8,145,178,.08);border:1px solid rgba(8,145,178,.2);font-size:9.5px;color:var(--today-t);line-height:1.6">
+  <strong>ℹ 참고사항</strong> — 오늘 K-Grip 측정 기반 권고입니다. 당일 상태에 따라 변동될 수 있으며,
+  최종 출전·훈련 결정은 <strong>담당 AT·의료진 소견과 감독 판단을 종합</strong>하십시오.
+</div>
+</div>
+
+          <!-- BASELINE 블록 -->
+          <div class="pc-base-block">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+              <span class="badge-base"><span class="dot"></span>정밀 측정 기록 (최근 측정: 2026.04.14)</span>
+            </div>
+            <div class="pc-metrics"><div class="pc-metric">
+          <div class="pcm-label">RSA</div>
+          <div class="pcm-val warn">+7.1%</div>
+        </div><div class="pc-metric">
+          <div class="pcm-label">5m Split</div>
+          <div class="pcm-val warn">-6.2%</div>
+        </div><div class="pc-metric">
+          <div class="pcm-label">Add/Abd</div>
+          <div class="pcm-val ok">0.91</div>
+        </div><div class="pc-metric">
+          <div class="pcm-label">Nordic</div>
+          <div class="pcm-val ok">88%</div>
+        </div></div>
+            <div class="pc-principle" data-has-disc="1">반복 스프린트 피로 누적 패턴. 고강도 연속 Shift 시 후반 퍼포먼스 저하. Shift 간격 관리 필요.</div>
+          </div>
+
+          <div class="remeasure-watch" style="margin-bottom:12px;border-radius:9px">
+              <div class="remeasure-title">🟡 다음 측정 시 확인</div>
+              <div class="remeasure-desc">14일 K-Grip 평균 하락 추세 — RSA 재측정 고려</div>
+            </div>
+          <div class="pc-section">
+              <div class="pc-sec-title">복귀 타임라인</div>
+              <div class="pc-timeline"><div class="pc-tl-item">
+          <div class="tl-dot done"></div>
+          <div class="tl-date">04.14</div>
+          <div class="tl-label done">플래그 감지</div>
+        </div><div class="pc-tl-item">
+          <div class="tl-dot cur"></div>
+          <div class="tl-date">현재</div>
+          <div class="tl-label cur">Modified</div>
+        </div><div class="pc-tl-item">
+          <div class="tl-dot up"></div>
+          <div class="tl-date">04.17</div>
+          <div class="tl-label up">재평가</div>
+        </div></div>
+            </div>
+
+          <!-- 연결 화면 -->
+          <div class="pc-section">
+            <div class="pc-sec-title">연결 화면</div>
+            <a href="v2_Lines.html" class="pc-link">👥 Lines에서 이 선수 라인 위치 <span>→</span></a>
+            <a href="v2_Planner.html" class="pc-link">📅 오늘 훈련 계획 <span>→</span></a>
+            <a href="v2_Risk.html" class="pc-link">⚠ Risk & Return — 장기 운용 원칙 <span>→</span></a>
+            <a href="v2_Measurement.html" class="pc-link">🔬 이 지표의 측정 기준 <span>→</span></a>
+          </div>
+
+        </div><div class="pc-card" id="pc-5" style="display:none">
+
+          <!-- TODAY 블록 -->
+          <div 
+          <!-- 선수 카드 헤더 -->
+          <div style="display:flex;align-items:center;gap:16px;padding:18px 20px 14px;
+            border-bottom:1px solid rgba(0,0,0,.07);background:#fff;border-radius:12px 12px 0 0;
+            margin-bottom:12px;border:1px solid rgba(0,0,0,.08);box-shadow:0 1px 6px rgba(0,0,0,.05)">
+            <div style="font-family:'Orbitron';font-size:28px;font-weight:900;
+              color:var(--today);line-height:1">#9</div>
+            <div style="flex:1">
+              <div style="font-size:20px;font-weight:900;color:#0f1a2e;margin-bottom:3px">곽우진</div>
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                <span style="font-size:11px;color:rgba(15,26,46,.55)">라이트윙 · 1라인</span>
+                <span style="font-size:10px;color:rgba(15,26,46,.35)">·</span>
+                <span style="font-size:11px;color:rgba(15,26,46,.55)">경기고</span>
+                <span style="font-size:9px;font-weight:700;padding:2px 7px;border-radius:4px;
+                  background:rgba(13,92,41,.1);
+                  color:#0d5c29">Post-PHV</span>
+              </div>
+            </div>
+            <div style="text-align:right">
+              <div style="display:inline-flex;padding:4px 10px;border-radius:6px;
+                background:rgba(52,199,89,.08);border:1px solid rgba(52,199,89,.2);
+                font-size:11px;font-weight:700;color:#0d5c29">정상</div>
+              <div style="font-size:8.5px;color:rgba(15,26,46,.35);margin-top:4px">정밀 측정 기록 (최근 측정: 2026.04.14)</div>
+            </div>
+          </div>
+          <div class="pc-today-block">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+              <span class="badge-today"><span class="dot"></span>K-Grip 컨디션 모니터링 (최근 측정: 26.04.17)</span>
+              <span style="font-size:9px;color:var(--today-t);font-weight:600">Post-PHV</span>
+            </div>
+            <div class="pc-today-grip" id="grip-5">-3%</div>
+            <div style="font-size:9px;color:var(--t3);margin-bottom:8px">K-Grip 전날 대비 · 개인 베이스라인 기준</div>
+            <div class="pc-today-decision">Full Go — 정상 참여</div>
+            <div class="pc-today-sub">정상 범위</div>
+          <div style="margin-top:10px;padding:7px 10px;border-radius:7px;background:rgba(8,145,178,.08);border:1px solid rgba(8,145,178,.2);font-size:9.5px;color:var(--today-t);line-height:1.6">
+  <strong>ℹ 참고사항</strong> — 오늘 K-Grip 측정 기반 권고입니다. 당일 상태에 따라 변동될 수 있으며,
+  최종 출전·훈련 결정은 <strong>담당 AT·의료진 소견과 감독 판단을 종합</strong>하십시오.
+</div>
+</div>
+
+          <!-- BASELINE 블록 -->
+          <div class="pc-base-block">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+              <span class="badge-base"><span class="dot"></span>정밀 측정 기록 (최근 측정: 2026.04.14)</span>
+            </div>
+            <div class="pc-metrics"><div class="pc-metric">
+          <div class="pcm-label">Add/Abd</div>
+          <div class="pcm-val ok">0.90</div>
+        </div><div class="pc-metric">
+          <div class="pcm-label">Nordic</div>
+          <div class="pcm-val ok">89%</div>
+        </div><div class="pc-metric">
+          <div class="pcm-label">RSA</div>
+          <div class="pcm-val ok">+2.1%</div>
+        </div><div class="pc-metric">
+          <div class="pcm-label">5m Split</div>
+          <div class="pcm-val ok">-2.8%</div>
+        </div></div>
+            <div class="pc-principle" data-has-disc="1">전 지표 정상. 1라인 정상 운용 가능.</div>
+          </div>
+
+          
+          
+
+          <!-- 연결 화면 -->
+          <div class="pc-section">
+            <div class="pc-sec-title">연결 화면</div>
+            <a href="v2_Lines.html" class="pc-link">👥 Lines에서 이 선수 라인 위치 <span>→</span></a>
+            <a href="v2_Planner.html" class="pc-link">📅 오늘 훈련 계획 <span>→</span></a>
+            <a href="v2_Risk.html" class="pc-link">⚠ Risk & Return — 장기 운용 원칙 <span>→</span></a>
+            <a href="v2_Measurement.html" class="pc-link">🔬 이 지표의 측정 기준 <span>→</span></a>
+          </div>
+
+        </div><div class="pc-card" id="pc-6" style="display:none">
+
+          <!-- TODAY 블록 -->
+          <div 
+          <!-- 선수 카드 헤더 -->
+          <div style="display:flex;align-items:center;gap:16px;padding:18px 20px 14px;
+            border-bottom:1px solid rgba(0,0,0,.07);background:#fff;border-radius:12px 12px 0 0;
+            margin-bottom:12px;border:1px solid rgba(0,0,0,.08);box-shadow:0 1px 6px rgba(0,0,0,.05)">
+            <div style="font-family:'Orbitron';font-size:28px;font-weight:900;
+              color:var(--today);line-height:1">#7</div>
+            <div style="flex:1">
+              <div style="font-size:20px;font-weight:900;color:#0f1a2e;margin-bottom:3px">여준수</div>
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                <span style="font-size:11px;color:rgba(15,26,46,.55)">센터 · 2라인</span>
+                <span style="font-size:10px;color:rgba(15,26,46,.35)">·</span>
+                <span style="font-size:11px;color:rgba(15,26,46,.55)">경기고</span>
+                <span style="font-size:9px;font-weight:700;padding:2px 7px;border-radius:4px;
+                  background:rgba(13,92,41,.1);
+                  color:#0d5c29">Post-PHV</span>
+              </div>
+            </div>
+            <div style="text-align:right">
+              <div style="display:inline-flex;padding:4px 10px;border-radius:6px;
+                background:rgba(52,199,89,.08);border:1px solid rgba(52,199,89,.2);
+                font-size:11px;font-weight:700;color:#0d5c29">정상</div>
+              <div style="font-size:8.5px;color:rgba(15,26,46,.35);margin-top:4px">정밀 측정 기록 (최근 측정: 2026.04.14)</div>
+            </div>
+          </div>
+          <div class="pc-today-block">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+              <span class="badge-today"><span class="dot"></span>K-Grip 컨디션 모니터링 (최근 측정: 26.04.17)</span>
+              <span style="font-size:9px;color:var(--today-t);font-weight:600">Post-PHV</span>
+            </div>
+            <div class="pc-today-grip" id="grip-6">-4%</div>
+            <div style="font-size:9px;color:var(--t3);margin-bottom:8px">K-Grip 전날 대비 · 개인 베이스라인 기준</div>
+            <div class="pc-today-decision">Full Go — 정상 참여</div>
+            <div class="pc-today-sub">정상 범위</div>
+          <div style="margin-top:10px;padding:7px 10px;border-radius:7px;background:rgba(8,145,178,.08);border:1px solid rgba(8,145,178,.2);font-size:9.5px;color:var(--today-t);line-height:1.6">
+  <strong>ℹ 참고사항</strong> — 오늘 K-Grip 측정 기반 권고입니다. 당일 상태에 따라 변동될 수 있으며,
+  최종 출전·훈련 결정은 <strong>담당 AT·의료진 소견과 감독 판단을 종합</strong>하십시오.
+</div>
+</div>
+
+          <!-- BASELINE 블록 -->
+          <div class="pc-base-block">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+              <span class="badge-base"><span class="dot"></span>정밀 측정 기록 (최근 측정: 2026.04.14)</span>
+            </div>
+            <div class="pc-metrics"><div class="pc-metric">
+          <div class="pcm-label">Add/Abd</div>
+          <div class="pcm-val ok">0.88</div>
+        </div><div class="pc-metric">
+          <div class="pcm-label">Nordic</div>
+          <div class="pcm-val ok">87%</div>
+        </div><div class="pc-metric">
+          <div class="pcm-label">RSA</div>
+          <div class="pcm-val ok">+3.1%</div>
+        </div><div class="pc-metric">
+          <div class="pcm-label">5m Split</div>
+          <div class="pcm-val ok">-3.2%</div>
+        </div></div>
+            <div class="pc-principle" data-has-disc="1">전 지표 정상. 2라인 정상 운용.</div>
+          </div>
+
+          
+          
+
+          <!-- 연결 화면 -->
+          <div class="pc-section">
+            <div class="pc-sec-title">연결 화면</div>
+            <a href="v2_Lines.html" class="pc-link">👥 Lines에서 이 선수 라인 위치 <span>→</span></a>
+            <a href="v2_Planner.html" class="pc-link">📅 오늘 훈련 계획 <span>→</span></a>
+            <a href="v2_Risk.html" class="pc-link">⚠ Risk & Return — 장기 운용 원칙 <span>→</span></a>
+            <a href="v2_Measurement.html" class="pc-link">🔬 이 지표의 측정 기준 <span>→</span></a>
+          </div>
+
+        </div><div class="pc-card" id="pc-7" style="display:none">
+
+          <!-- TODAY 블록 -->
+          <div 
+          <!-- 선수 카드 헤더 -->
+          <div style="display:flex;align-items:center;gap:16px;padding:18px 20px 14px;
+            border-bottom:1px solid rgba(0,0,0,.07);background:#fff;border-radius:12px 12px 0 0;
+            margin-bottom:12px;border:1px solid rgba(0,0,0,.08);box-shadow:0 1px 6px rgba(0,0,0,.05)">
+            <div style="font-family:'Orbitron';font-size:28px;font-weight:900;
+              color:var(--today);line-height:1">#11</div>
+            <div style="flex:1">
+              <div style="font-size:20px;font-weight:900;color:#0f1a2e;margin-bottom:3px">곽경민</div>
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                <span style="font-size:11px;color:rgba(15,26,46,.55)">레프트윙 · 2라인</span>
+                <span style="font-size:10px;color:rgba(15,26,46,.35)">·</span>
+                <span style="font-size:11px;color:rgba(15,26,46,.55)">경기고</span>
+                <span style="font-size:9px;font-weight:700;padding:2px 7px;border-radius:4px;
+                  background:rgba(13,92,41,.1);
+                  color:#0d5c29">Post-PHV</span>
+              </div>
+            </div>
+            <div style="text-align:right">
+              <div style="display:inline-flex;padding:4px 10px;border-radius:6px;
+                background:rgba(52,199,89,.08);border:1px solid rgba(52,199,89,.2);
+                font-size:11px;font-weight:700;color:#0d5c29">정상</div>
+              <div style="font-size:8.5px;color:rgba(15,26,46,.35);margin-top:4px">정밀 측정 기록 (최근 측정: 2026.04.14)</div>
+            </div>
+          </div>
+          <div class="pc-today-block">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+              <span class="badge-today"><span class="dot"></span>K-Grip 컨디션 모니터링 (최근 측정: 26.04.17)</span>
+              <span style="font-size:9px;color:var(--today-t);font-weight:600">Post-PHV</span>
+            </div>
+            <div class="pc-today-grip" id="grip-7">-5%</div>
+            <div style="font-size:9px;color:var(--t3);margin-bottom:8px">K-Grip 전날 대비 · 개인 베이스라인 기준</div>
+            <div class="pc-today-decision">Full Go — 정상 참여</div>
+            <div class="pc-today-sub">정상 범위</div>
+          <div style="margin-top:10px;padding:7px 10px;border-radius:7px;background:rgba(8,145,178,.08);border:1px solid rgba(8,145,178,.2);font-size:9.5px;color:var(--today-t);line-height:1.6">
+  <strong>ℹ 참고사항</strong> — 오늘 K-Grip 측정 기반 권고입니다. 당일 상태에 따라 변동될 수 있으며,
+  최종 출전·훈련 결정은 <strong>담당 AT·의료진 소견과 감독 판단을 종합</strong>하십시오.
+</div>
+</div>
+
+          <!-- BASELINE 블록 -->
+          <div class="pc-base-block">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+              <span class="badge-base"><span class="dot"></span>정밀 측정 기록 (최근 측정: 2026.04.14)</span>
+            </div>
+            <div class="pc-metrics"><div class="pc-metric">
+          <div class="pcm-label">Add/Abd</div>
+          <div class="pcm-val ok">0.87</div>
+        </div><div class="pc-metric">
+          <div class="pcm-label">Nordic</div>
+          <div class="pcm-val ok">90%</div>
+        </div><div class="pc-metric">
+          <div class="pcm-label">RSA</div>
+          <div class="pcm-val ok">+2.4%</div>
+        </div><div class="pc-metric">
+          <div class="pcm-label">5m Split</div>
+          <div class="pcm-val ok">-2.5%</div>
+        </div></div>
+            <div class="pc-principle" data-has-disc="1">전 지표 정상. 2라인 정상 운용.</div>
+          </div>
+
+          
+          
+
+          <!-- 연결 화면 -->
+          <div class="pc-section">
+            <div class="pc-sec-title">연결 화면</div>
+            <a href="v2_Lines.html" class="pc-link">👥 Lines에서 이 선수 라인 위치 <span>→</span></a>
+            <a href="v2_Planner.html" class="pc-link">📅 오늘 훈련 계획 <span>→</span></a>
+            <a href="v2_Risk.html" class="pc-link">⚠ Risk & Return — 장기 운용 원칙 <span>→</span></a>
+            <a href="v2_Measurement.html" class="pc-link">🔬 이 지표의 측정 기준 <span>→</span></a>
+          </div>
+
+        </div><div class="pc-card" id="pc-8" style="display:none">
+
+          <!-- TODAY 블록 -->
+          <div 
+          <!-- 선수 카드 헤더 -->
+          <div style="display:flex;align-items:center;gap:16px;padding:18px 20px 14px;
+            border-bottom:1px solid rgba(0,0,0,.07);background:#fff;border-radius:12px 12px 0 0;
+            margin-bottom:12px;border:1px solid rgba(0,0,0,.08);box-shadow:0 1px 6px rgba(0,0,0,.05)">
+            <div style="font-family:'Orbitron';font-size:28px;font-weight:900;
+              color:var(--today);line-height:1">#19</div>
+            <div style="flex:1">
+              <div style="font-size:20px;font-weight:900;color:#0f1a2e;margin-bottom:3px">송서현</div>
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                <span style="font-size:11px;color:rgba(15,26,46,.55)">라이트윙 · 2라인</span>
+                <span style="font-size:10px;color:rgba(15,26,46,.35)">·</span>
+                <span style="font-size:11px;color:rgba(15,26,46,.55)">경기고</span>
+                <span style="font-size:9px;font-weight:700;padding:2px 7px;border-radius:4px;
+                  background:rgba(122,69,0,.1);
+                  color:#7a4500">Mid-PHV</span>
+              </div>
+            </div>
+            <div style="text-align:right">
+              <div style="display:inline-flex;padding:4px 10px;border-radius:6px;
+                background:rgba(255,159,10,.08);border:1px solid rgba(255,159,10,.2);
+                font-size:11px;font-weight:700;color:#7a4500">조건부</div>
+              <div style="font-size:8.5px;color:rgba(15,26,46,.35);margin-top:4px">정밀 측정 기록 (최근 측정: 2026.04.14)</div>
+            </div>
+          </div>
+          <div class="pc-today-block">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+              <span class="badge-today"><span class="dot"></span>K-Grip 컨디션 모니터링 (최근 측정: 26.04.17)</span>
+              <span style="font-size:9px;color:var(--today-t);font-weight:600">Mid-PHV</span>
+            </div>
+            <div class="pc-today-grip" id="grip-8">-6%</div>
+            <div style="font-size:9px;color:var(--t3);margin-bottom:8px">K-Grip 전날 대비 · 개인 베이스라인 기준</div>
+            <div class="pc-today-decision">Hip 루틴 10분 선행 후 참여</div>
+            <div class="pc-today-sub">Mid-PHV 보정 적용</div>
+          <div style="margin-top:10px;padding:7px 10px;border-radius:7px;background:rgba(8,145,178,.08);border:1px solid rgba(8,145,178,.2);font-size:9.5px;color:var(--today-t);line-height:1.6">
+  <strong>ℹ 참고사항</strong> — 오늘 K-Grip 측정 기반 권고입니다. 당일 상태에 따라 변동될 수 있으며,
+  최종 출전·훈련 결정은 <strong>담당 AT·의료진 소견과 감독 판단을 종합</strong>하십시오.
+</div>
+</div>
+
+          <!-- BASELINE 블록 -->
+          <div class="pc-base-block">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+              <span class="badge-base"><span class="dot"></span>정밀 측정 기록 (최근 측정: 2026.04.14)</span>
+            </div>
+            <div class="pc-metrics"><div class="pc-metric">
+          <div class="pcm-label">Hip IR차</div>
+          <div class="pcm-val warn">12°</div>
+        </div><div class="pc-metric">
+          <div class="pcm-label">Add/Abd</div>
+          <div class="pcm-val ok">0.86</div>
+        </div><div class="pc-metric">
+          <div class="pcm-label">Nordic</div>
+          <div class="pcm-val ok">85%</div>
+        </div><div class="pc-metric">
+          <div class="pcm-label">RSA</div>
+          <div class="pcm-val ok">+2.9%</div>
+        </div></div>
+            <div class="pc-principle" data-has-disc="1">고관절 내회전 비대칭(Mid-PHV 보정 적용). 훈련 전 Hip 루틴 필수. 성장판 모니터링 병행.</div>
+          </div>
+
+          
+          <div class="pc-section">
+              <div class="pc-sec-title">복귀 타임라인</div>
+              <div class="pc-timeline"><div class="pc-tl-item">
+          <div class="tl-dot done"></div>
+          <div class="tl-date">04.14</div>
+          <div class="tl-label done">플래그 감지</div>
+        </div><div class="pc-tl-item">
+          <div class="tl-dot cur"></div>
+          <div class="tl-date">현재</div>
+          <div class="tl-label cur">루틴 선행</div>
+        </div></div>
+            </div>
+
+          <!-- 연결 화면 -->
+          <div class="pc-section">
+            <div class="pc-sec-title">연결 화면</div>
+            <a href="v2_Lines.html" class="pc-link">👥 Lines에서 이 선수 라인 위치 <span>→</span></a>
+            <a href="v2_Planner.html" class="pc-link">📅 오늘 훈련 계획 <span>→</span></a>
+            <a href="v2_Risk.html" class="pc-link">⚠ Risk & Return — 장기 운용 원칙 <span>→</span></a>
+            <a href="v2_Measurement.html" class="pc-link">🔬 이 지표의 측정 기준 <span>→</span></a>
+          </div>
+
+        </div><div class="pc-card" id="pc-9" style="display:none">
+
+          <!-- TODAY 블록 -->
+          <div 
+          <!-- 선수 카드 헤더 -->
+          <div style="display:flex;align-items:center;gap:16px;padding:18px 20px 14px;
+            border-bottom:1px solid rgba(0,0,0,.07);background:#fff;border-radius:12px 12px 0 0;
+            margin-bottom:12px;border:1px solid rgba(0,0,0,.08);box-shadow:0 1px 6px rgba(0,0,0,.05)">
+            <div style="font-family:'Orbitron';font-size:28px;font-weight:900;
+              color:var(--today);line-height:1">#18</div>
+            <div style="flex:1">
+              <div style="font-size:20px;font-weight:900;color:#0f1a2e;margin-bottom:3px">이승재</div>
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                <span style="font-size:11px;color:rgba(15,26,46,.55)">센터 · 3라인</span>
+                <span style="font-size:10px;color:rgba(15,26,46,.35)">·</span>
+                <span style="font-size:11px;color:rgba(15,26,46,.55)">경기고</span>
+                <span style="font-size:9px;font-weight:700;padding:2px 7px;border-radius:4px;
+                  background:rgba(13,92,41,.1);
+                  color:#0d5c29">Post-PHV</span>
+              </div>
+            </div>
+            <div style="text-align:right">
+              <div style="display:inline-flex;padding:4px 10px;border-radius:6px;
+                background:rgba(52,199,89,.08);border:1px solid rgba(52,199,89,.2);
+                font-size:11px;font-weight:700;color:#0d5c29">정상</div>
+              <div style="font-size:8.5px;color:rgba(15,26,46,.35);margin-top:4px">정밀 측정 기록 (최근 측정: 2026.04.14)</div>
+            </div>
+          </div>
+          <div class="pc-today-block">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+              <span class="badge-today"><span class="dot"></span>K-Grip 컨디션 모니터링 (최근 측정: 26.04.17)</span>
+              <span style="font-size:9px;color:var(--today-t);font-weight:600">Post-PHV</span>
+            </div>
+            <div class="pc-today-grip" id="grip-9">-3%</div>
+            <div style="font-size:9px;color:var(--t3);margin-bottom:8px">K-Grip 전날 대비 · 개인 베이스라인 기준</div>
+            <div class="pc-today-decision">Full Go — 정상 참여</div>
+            <div class="pc-today-sub">정상 범위</div>
+          <div style="margin-top:10px;padding:7px 10px;border-radius:7px;background:rgba(8,145,178,.08);border:1px solid rgba(8,145,178,.2);font-size:9.5px;color:var(--today-t);line-height:1.6">
+  <strong>ℹ 참고사항</strong> — 오늘 K-Grip 측정 기반 권고입니다. 당일 상태에 따라 변동될 수 있으며,
+  최종 출전·훈련 결정은 <strong>담당 AT·의료진 소견과 감독 판단을 종합</strong>하십시오.
+</div>
+</div>
+
+          <!-- BASELINE 블록 -->
+          <div class="pc-base-block">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+              <span class="badge-base"><span class="dot"></span>정밀 측정 기록 (최근 측정: 2026.04.14)</span>
+            </div>
+            <div class="pc-metrics"><div class="pc-metric">
+          <div class="pcm-label">Add/Abd</div>
+          <div class="pcm-val ok">0.91</div>
+        </div><div class="pc-metric">
+          <div class="pcm-label">Nordic</div>
+          <div class="pcm-val ok">88%</div>
+        </div><div class="pc-metric">
+          <div class="pcm-label">RSA</div>
+          <div class="pcm-val ok">+2.6%</div>
+        </div><div class="pc-metric">
+          <div class="pcm-label">5m Split</div>
+          <div class="pcm-val ok">-3.0%</div>
+        </div></div>
+            <div class="pc-principle" data-has-disc="1">전 지표 정상.</div>
+          </div>
+
+          
+          
+
+          <!-- 연결 화면 -->
+          <div class="pc-section">
+            <div class="pc-sec-title">연결 화면</div>
+            <a href="v2_Lines.html" class="pc-link">👥 Lines에서 이 선수 라인 위치 <span>→</span></a>
+            <a href="v2_Planner.html" class="pc-link">📅 오늘 훈련 계획 <span>→</span></a>
+            <a href="v2_Risk.html" class="pc-link">⚠ Risk & Return — 장기 운용 원칙 <span>→</span></a>
+            <a href="v2_Measurement.html" class="pc-link">🔬 이 지표의 측정 기준 <span>→</span></a>
+          </div>
+
+        </div><div class="pc-card" id="pc-10" style="display:none">
+
+          <!-- TODAY 블록 -->
+          <div 
+          <!-- 선수 카드 헤더 -->
+          <div style="display:flex;align-items:center;gap:16px;padding:18px 20px 14px;
+            border-bottom:1px solid rgba(0,0,0,.07);background:#fff;border-radius:12px 12px 0 0;
+            margin-bottom:12px;border:1px solid rgba(0,0,0,.08);box-shadow:0 1px 6px rgba(0,0,0,.05)">
+            <div style="font-family:'Orbitron';font-size:28px;font-weight:900;
+              color:var(--today);line-height:1">#23</div>
+            <div style="flex:1">
+              <div style="font-size:20px;font-weight:900;color:#0f1a2e;margin-bottom:3px">조승현</div>
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                <span style="font-size:11px;color:rgba(15,26,46,.55)">레프트윙 · 3라인</span>
+                <span style="font-size:10px;color:rgba(15,26,46,.35)">·</span>
+                <span style="font-size:11px;color:rgba(15,26,46,.55)">경기고</span>
+                <span style="font-size:9px;font-weight:700;padding:2px 7px;border-radius:4px;
+                  background:rgba(13,92,41,.1);
+                  color:#0d5c29">Post-PHV</span>
+              </div>
+            </div>
+            <div style="text-align:right">
+              <div style="display:inline-flex;padding:4px 10px;border-radius:6px;
+                background:rgba(52,199,89,.08);border:1px solid rgba(52,199,89,.2);
+                font-size:11px;font-weight:700;color:#0d5c29">정상</div>
+              <div style="font-size:8.5px;color:rgba(15,26,46,.35);margin-top:4px">정밀 측정 기록 (최근 측정: 2026.04.14)</div>
+            </div>
+          </div>
+          <div class="pc-today-block">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+              <span class="badge-today"><span class="dot"></span>K-Grip 컨디션 모니터링 (최근 측정: 26.04.17)</span>
+              <span style="font-size:9px;color:var(--today-t);font-weight:600">Post-PHV</span>
+            </div>
+            <div class="pc-today-grip" id="grip-10">-4%</div>
+            <div style="font-size:9px;color:var(--t3);margin-bottom:8px">K-Grip 전날 대비 · 개인 베이스라인 기준</div>
+            <div class="pc-today-decision">Full Go — 정상 참여</div>
+            <div class="pc-today-sub">정상 범위</div>
+          <div style="margin-top:10px;padding:7px 10px;border-radius:7px;background:rgba(8,145,178,.08);border:1px solid rgba(8,145,178,.2);font-size:9.5px;color:var(--today-t);line-height:1.6">
+  <strong>ℹ 참고사항</strong> — 오늘 K-Grip 측정 기반 권고입니다. 당일 상태에 따라 변동될 수 있으며,
+  최종 출전·훈련 결정은 <strong>담당 AT·의료진 소견과 감독 판단을 종합</strong>하십시오.
+</div>
+</div>
+
+          <!-- BASELINE 블록 -->
+          <div class="pc-base-block">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+              <span class="badge-base"><span class="dot"></span>정밀 측정 기록 (최근 측정: 2026.04.14)</span>
+            </div>
+            <div class="pc-metrics"><div class="pc-metric">
+          <div class="pcm-label">Add/Abd</div>
+          <div class="pcm-val ok">0.89</div>
+        </div><div class="pc-metric">
+          <div class="pcm-label">Nordic</div>
+          <div class="pcm-val ok">91%</div>
+        </div><div class="pc-metric">
+          <div class="pcm-label">RSA</div>
+          <div class="pcm-val ok">+2.2%</div>
+        </div><div class="pc-metric">
+          <div class="pcm-label">5m Split</div>
+          <div class="pcm-val ok">-2.7%</div>
+        </div></div>
+            <div class="pc-principle" data-has-disc="1">전 지표 정상.</div>
+          </div>
+
+          
+          
+
+          <!-- 연결 화면 -->
+          <div class="pc-section">
+            <div class="pc-sec-title">연결 화면</div>
+            <a href="v2_Lines.html" class="pc-link">👥 Lines에서 이 선수 라인 위치 <span>→</span></a>
+            <a href="v2_Planner.html" class="pc-link">📅 오늘 훈련 계획 <span>→</span></a>
+            <a href="v2_Risk.html" class="pc-link">⚠ Risk & Return — 장기 운용 원칙 <span>→</span></a>
+            <a href="v2_Measurement.html" class="pc-link">🔬 이 지표의 측정 기준 <span>→</span></a>
+          </div>
+
+        </div><div class="pc-card" id="pc-11" style="display:none">
+
+          <!-- TODAY 블록 -->
+          <div 
+          <!-- 선수 카드 헤더 -->
+          <div style="display:flex;align-items:center;gap:16px;padding:18px 20px 14px;
+            border-bottom:1px solid rgba(0,0,0,.07);background:#fff;border-radius:12px 12px 0 0;
+            margin-bottom:12px;border:1px solid rgba(0,0,0,.08);box-shadow:0 1px 6px rgba(0,0,0,.05)">
+            <div style="font-family:'Orbitron';font-size:28px;font-weight:900;
+              color:var(--today);line-height:1">#26</div>
+            <div style="flex:1">
+              <div style="font-size:20px;font-weight:900;color:#0f1a2e;margin-bottom:3px">한상윤</div>
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                <span style="font-size:11px;color:rgba(15,26,46,.55)">라이트윙 · 3라인</span>
+                <span style="font-size:10px;color:rgba(15,26,46,.35)">·</span>
+                <span style="font-size:11px;color:rgba(15,26,46,.55)">경기고</span>
+                <span style="font-size:9px;font-weight:700;padding:2px 7px;border-radius:4px;
+                  background:rgba(13,92,41,.1);
+                  color:#0d5c29">Post-PHV</span>
+              </div>
+            </div>
+            <div style="text-align:right">
+              <div style="display:inline-flex;padding:4px 10px;border-radius:6px;
+                background:rgba(52,199,89,.08);border:1px solid rgba(52,199,89,.2);
+                font-size:11px;font-weight:700;color:#0d5c29">정상</div>
+              <div style="font-size:8.5px;color:rgba(15,26,46,.35);margin-top:4px">정밀 측정 기록 (최근 측정: 2026.04.14)</div>
+            </div>
+          </div>
+          <div class="pc-today-block">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+              <span class="badge-today"><span class="dot"></span>K-Grip 컨디션 모니터링 (최근 측정: 26.04.17)</span>
+              <span style="font-size:9px;color:var(--today-t);font-weight:600">Post-PHV</span>
+            </div>
+            <div class="pc-today-grip" id="grip-11">-2%</div>
+            <div style="font-size:9px;color:var(--t3);margin-bottom:8px">K-Grip 전날 대비 · 개인 베이스라인 기준</div>
+            <div class="pc-today-decision">Full Go — 정상 참여</div>
+            <div class="pc-today-sub">정상 범위</div>
+          <div style="margin-top:10px;padding:7px 10px;border-radius:7px;background:rgba(8,145,178,.08);border:1px solid rgba(8,145,178,.2);font-size:9.5px;color:var(--today-t);line-height:1.6">
+  <strong>ℹ 참고사항</strong> — 오늘 K-Grip 측정 기반 권고입니다. 당일 상태에 따라 변동될 수 있으며,
+  최종 출전·훈련 결정은 <strong>담당 AT·의료진 소견과 감독 판단을 종합</strong>하십시오.
+</div>
+</div>
+
+          <!-- BASELINE 블록 -->
+          <div class="pc-base-block">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+              <span class="badge-base"><span class="dot"></span>정밀 측정 기록 (최근 측정: 2026.04.14)</span>
+            </div>
+            <div class="pc-metrics"><div class="pc-metric">
+          <div class="pcm-label">Add/Abd</div>
+          <div class="pcm-val ok">0.92</div>
+        </div><div class="pc-metric">
+          <div class="pcm-label">Nordic</div>
+          <div class="pcm-val ok">93%</div>
+        </div><div class="pc-metric">
+          <div class="pcm-label">RSA</div>
+          <div class="pcm-val ok">+1.8%</div>
+        </div><div class="pc-metric">
+          <div class="pcm-label">5m Split</div>
+          <div class="pcm-val ok">-2.3%</div>
+        </div></div>
+            <div class="pc-principle" data-has-disc="1">전 지표 정상.</div>
+          </div>
+
+          
+          
+
+          <!-- 연결 화면 -->
+          <div class="pc-section">
+            <div class="pc-sec-title">연결 화면</div>
+            <a href="v2_Lines.html" class="pc-link">👥 Lines에서 이 선수 라인 위치 <span>→</span></a>
+            <a href="v2_Planner.html" class="pc-link">📅 오늘 훈련 계획 <span>→</span></a>
+            <a href="v2_Risk.html" class="pc-link">⚠ Risk & Return — 장기 운용 원칙 <span>→</span></a>
+            <a href="v2_Measurement.html" class="pc-link">🔬 이 지표의 측정 기준 <span>→</span></a>
+          </div>
+
+        </div><div class="pc-card" id="pc-12" style="display:none">
+
+          <!-- TODAY 블록 -->
+          <div 
+          <!-- 선수 카드 헤더 -->
+          <div style="display:flex;align-items:center;gap:16px;padding:18px 20px 14px;
+            border-bottom:1px solid rgba(0,0,0,.07);background:#fff;border-radius:12px 12px 0 0;
+            margin-bottom:12px;border:1px solid rgba(0,0,0,.08);box-shadow:0 1px 6px rgba(0,0,0,.05)">
+            <div style="font-family:'Orbitron';font-size:28px;font-weight:900;
+              color:var(--today);line-height:1">#22</div>
+            <div style="flex:1">
+              <div style="font-size:20px;font-weight:900;color:#0f1a2e;margin-bottom:3px">이영민</div>
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                <span style="font-size:11px;color:rgba(15,26,46,.55)">센터 · 4라인</span>
+                <span style="font-size:10px;color:rgba(15,26,46,.35)">·</span>
+                <span style="font-size:11px;color:rgba(15,26,46,.55)">경기고</span>
+                <span style="font-size:9px;font-weight:700;padding:2px 7px;border-radius:4px;
+                  background:rgba(13,92,41,.1);
+                  color:#0d5c29">Post-PHV</span>
+              </div>
+            </div>
+            <div style="text-align:right">
+              <div style="display:inline-flex;padding:4px 10px;border-radius:6px;
+                background:rgba(52,199,89,.08);border:1px solid rgba(52,199,89,.2);
+                font-size:11px;font-weight:700;color:#0d5c29">정상</div>
+              <div style="font-size:8.5px;color:rgba(15,26,46,.35);margin-top:4px">정밀 측정 기록 (최근 측정: 2026.04.14)</div>
+            </div>
+          </div>
+          <div class="pc-today-block">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+              <span class="badge-today"><span class="dot"></span>K-Grip 컨디션 모니터링 (최근 측정: 26.04.17)</span>
+              <span style="font-size:9px;color:var(--today-t);font-weight:600">Post-PHV</span>
+            </div>
+            <div class="pc-today-grip" id="grip-12">-5%</div>
+            <div style="font-size:9px;color:var(--t3);margin-bottom:8px">K-Grip 전날 대비 · 개인 베이스라인 기준</div>
+            <div class="pc-today-decision">Full Go — 정상 참여</div>
+            <div class="pc-today-sub">정상 범위</div>
+          <div style="margin-top:10px;padding:7px 10px;border-radius:7px;background:rgba(8,145,178,.08);border:1px solid rgba(8,145,178,.2);font-size:9.5px;color:var(--today-t);line-height:1.6">
+  <strong>ℹ 참고사항</strong> — 오늘 K-Grip 측정 기반 권고입니다. 당일 상태에 따라 변동될 수 있으며,
+  최종 출전·훈련 결정은 <strong>담당 AT·의료진 소견과 감독 판단을 종합</strong>하십시오.
+</div>
+</div>
+
+          <!-- BASELINE 블록 -->
+          <div class="pc-base-block">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+              <span class="badge-base"><span class="dot"></span>정밀 측정 기록 (최근 측정: 2026.04.14)</span>
+            </div>
+            <div class="pc-metrics"><div class="pc-metric">
+          <div class="pcm-label">Add/Abd</div>
+          <div class="pcm-val ok">0.88</div>
+        </div><div class="pc-metric">
+          <div class="pcm-label">Nordic</div>
+          <div class="pcm-val ok">86%</div>
+        </div><div class="pc-metric">
+          <div class="pcm-label">RSA</div>
+          <div class="pcm-val ok">+3.3%</div>
+        </div><div class="pc-metric">
+          <div class="pcm-label">5m Split</div>
+          <div class="pcm-val ok">-3.1%</div>
+        </div></div>
+            <div class="pc-principle" data-has-disc="1">전 지표 정상.</div>
+          </div>
+
+          
+          
+
+          <!-- 연결 화면 -->
+          <div class="pc-section">
+            <div class="pc-sec-title">연결 화면</div>
+            <a href="v2_Lines.html" class="pc-link">👥 Lines에서 이 선수 라인 위치 <span>→</span></a>
+            <a href="v2_Planner.html" class="pc-link">📅 오늘 훈련 계획 <span>→</span></a>
+            <a href="v2_Risk.html" class="pc-link">⚠ Risk & Return — 장기 운용 원칙 <span>→</span></a>
+            <a href="v2_Measurement.html" class="pc-link">🔬 이 지표의 측정 기준 <span>→</span></a>
+          </div>
+
+        </div><div class="pc-card" id="pc-13" style="display:none">
+
+          <!-- TODAY 블록 -->
+          <div 
+          <!-- 선수 카드 헤더 -->
+          <div style="display:flex;align-items:center;gap:16px;padding:18px 20px 14px;
+            border-bottom:1px solid rgba(0,0,0,.07);background:#fff;border-radius:12px 12px 0 0;
+            margin-bottom:12px;border:1px solid rgba(0,0,0,.08);box-shadow:0 1px 6px rgba(0,0,0,.05)">
+            <div style="font-family:'Orbitron';font-size:28px;font-weight:900;
+              color:var(--today);line-height:1">#15</div>
+            <div style="flex:1">
+              <div style="font-size:20px;font-weight:900;color:#0f1a2e;margin-bottom:3px">이동근</div>
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                <span style="font-size:11px;color:rgba(15,26,46,.55)">레프트윙 · 4라인</span>
+                <span style="font-size:10px;color:rgba(15,26,46,.35)">·</span>
+                <span style="font-size:11px;color:rgba(15,26,46,.55)">경기고</span>
+                <span style="font-size:9px;font-weight:700;padding:2px 7px;border-radius:4px;
+                  background:rgba(122,69,0,.1);
+                  color:#7a4500">Mid-PHV</span>
+              </div>
+            </div>
+            <div style="text-align:right">
+              <div style="display:inline-flex;padding:4px 10px;border-radius:6px;
+                background:rgba(52,199,89,.08);border:1px solid rgba(52,199,89,.2);
+                font-size:11px;font-weight:700;color:#0d5c29">정상</div>
+              <div style="font-size:8.5px;color:rgba(15,26,46,.35);margin-top:4px">정밀 측정 기록 (최근 측정: 2026.04.14)</div>
+            </div>
+          </div>
+          <div class="pc-today-block">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+              <span class="badge-today"><span class="dot"></span>K-Grip 컨디션 모니터링 (최근 측정: 26.04.17)</span>
+              <span style="font-size:9px;color:var(--today-t);font-weight:600">Mid-PHV</span>
+            </div>
+            <div class="pc-today-grip" id="grip-13">-4%</div>
+            <div style="font-size:9px;color:var(--t3);margin-bottom:8px">K-Grip 전날 대비 · 개인 베이스라인 기준</div>
+            <div class="pc-today-decision">Full Go — 정상 참여</div>
+            <div class="pc-today-sub">Mid-PHV 보정 적용</div>
+          <div style="margin-top:10px;padding:7px 10px;border-radius:7px;background:rgba(8,145,178,.08);border:1px solid rgba(8,145,178,.2);font-size:9.5px;color:var(--today-t);line-height:1.6">
+  <strong>ℹ 참고사항</strong> — 오늘 K-Grip 측정 기반 권고입니다. 당일 상태에 따라 변동될 수 있으며,
+  최종 출전·훈련 결정은 <strong>담당 AT·의료진 소견과 감독 판단을 종합</strong>하십시오.
+</div>
+</div>
+
+          <!-- BASELINE 블록 -->
+          <div class="pc-base-block">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+              <span class="badge-base"><span class="dot"></span>정밀 측정 기록 (최근 측정: 2026.04.14)</span>
+            </div>
+            <div class="pc-metrics"><div class="pc-metric">
+          <div class="pcm-label">Add/Abd</div>
+          <div class="pcm-val ok">0.87</div>
+        </div><div class="pc-metric">
+          <div class="pcm-label">Nordic</div>
+          <div class="pcm-val ok">84%</div>
+        </div><div class="pc-metric">
+          <div class="pcm-label">RSA</div>
+          <div class="pcm-val ok">+3.0%</div>
+        </div><div class="pc-metric">
+          <div class="pcm-label">5m Split</div>
+          <div class="pcm-val ok">-3.5%</div>
+        </div></div>
+            <div class="pc-principle" data-has-disc="1">Mid-PHV 보정 적용. 절대값 비교 주의.</div>
+          </div>
+
+          
+          
+
+          <!-- 연결 화면 -->
+          <div class="pc-section">
+            <div class="pc-sec-title">연결 화면</div>
+            <a href="v2_Lines.html" class="pc-link">👥 Lines에서 이 선수 라인 위치 <span>→</span></a>
+            <a href="v2_Planner.html" class="pc-link">📅 오늘 훈련 계획 <span>→</span></a>
+            <a href="v2_Risk.html" class="pc-link">⚠ Risk & Return — 장기 운용 원칙 <span>→</span></a>
+            <a href="v2_Measurement.html" class="pc-link">🔬 이 지표의 측정 기준 <span>→</span></a>
+          </div>
+
+        </div><div class="pc-card" id="pc-14" style="display:none">
+
+          <!-- TODAY 블록 -->
+          <div 
+          <!-- 선수 카드 헤더 -->
+          <div style="display:flex;align-items:center;gap:16px;padding:18px 20px 14px;
+            border-bottom:1px solid rgba(0,0,0,.07);background:#fff;border-radius:12px 12px 0 0;
+            margin-bottom:12px;border:1px solid rgba(0,0,0,.08);box-shadow:0 1px 6px rgba(0,0,0,.05)">
+            <div style="font-family:'Orbitron';font-size:28px;font-weight:900;
+              color:var(--today);line-height:1">#24</div>
+            <div style="flex:1">
+              <div style="font-size:20px;font-weight:900;color:#0f1a2e;margin-bottom:3px">민동욱</div>
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                <span style="font-size:11px;color:rgba(15,26,46,.55)">라이트윙 · 4라인</span>
+                <span style="font-size:10px;color:rgba(15,26,46,.35)">·</span>
+                <span style="font-size:11px;color:rgba(15,26,46,.55)">경기고</span>
+                <span style="font-size:9px;font-weight:700;padding:2px 7px;border-radius:4px;
+                  background:rgba(22,78,99,.1);
+                  color:#164e63">Pre-PHV</span>
+              </div>
+            </div>
+            <div style="text-align:right">
+              <div style="display:inline-flex;padding:4px 10px;border-radius:6px;
+                background:rgba(52,199,89,.08);border:1px solid rgba(52,199,89,.2);
+                font-size:11px;font-weight:700;color:#0d5c29">정상</div>
+              <div style="font-size:8.5px;color:rgba(15,26,46,.35);margin-top:4px">정밀 측정 기록 (최근 측정: 2026.04.14)</div>
+            </div>
+          </div>
+          <div class="pc-today-block">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+              <span class="badge-today"><span class="dot"></span>K-Grip 컨디션 모니터링 (최근 측정: 26.04.17)</span>
+              <span style="font-size:9px;color:var(--today-t);font-weight:600">Pre-PHV</span>
+            </div>
+            <div class="pc-today-grip" id="grip-14">—</div>
+            <div style="font-size:9px;color:var(--t3);margin-bottom:8px">K-Grip 전날 대비 · 개인 베이스라인 기준</div>
+            <div class="pc-today-decision">미측정 — 2차 측정 편입</div>
+            <div class="pc-today-sub">K-Grip 측정 필요</div>
+          <div style="margin-top:10px;padding:7px 10px;border-radius:7px;background:rgba(8,145,178,.08);border:1px solid rgba(8,145,178,.2);font-size:9.5px;color:var(--today-t);line-height:1.6">
+  <strong>ℹ 참고사항</strong> — 오늘 K-Grip 측정 기반 권고입니다. 당일 상태에 따라 변동될 수 있으며,
+  최종 출전·훈련 결정은 <strong>담당 AT·의료진 소견과 감독 판단을 종합</strong>하십시오.
+</div>
+</div>
+
+          <!-- BASELINE 블록 -->
+          <div class="pc-base-block">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+              <span class="badge-base"><span class="dot"></span>정밀 측정 기록 (최근 측정: 2026.04.14)</span>
+            </div>
+            <div class="pc-metrics"><div class="pc-metric">
+          <div class="pcm-label">측정상태</div>
+          <div class="pcm-val warn">미측정</div>
+        </div></div>
+            <div class="pc-principle" data-has-disc="1">미측정. Pre-PHV 절대값 비교 금지.</div>
+          </div>
+
+          
+          
+
+          <!-- 연결 화면 -->
+          <div class="pc-section">
+            <div class="pc-sec-title">연결 화면</div>
+            <a href="v2_Lines.html" class="pc-link">👥 Lines에서 이 선수 라인 위치 <span>→</span></a>
+            <a href="v2_Planner.html" class="pc-link">📅 오늘 훈련 계획 <span>→</span></a>
+            <a href="v2_Risk.html" class="pc-link">⚠ Risk & Return — 장기 운용 원칙 <span>→</span></a>
+            <a href="v2_Measurement.html" class="pc-link">🔬 이 지표의 측정 기준 <span>→</span></a>
+          </div>
+
+        </div><div class="pc-card" id="pc-15" style="display:none">
+
+          <!-- TODAY 블록 -->
+          <div 
+          <!-- 선수 카드 헤더 -->
+          <div style="display:flex;align-items:center;gap:16px;padding:18px 20px 14px;
+            border-bottom:1px solid rgba(0,0,0,.07);background:#fff;border-radius:12px 12px 0 0;
+            margin-bottom:12px;border:1px solid rgba(0,0,0,.08);box-shadow:0 1px 6px rgba(0,0,0,.05)">
+            <div style="font-family:'Orbitron';font-size:28px;font-weight:900;
+              color:var(--today);line-height:1">#6</div>
+            <div style="flex:1">
+              <div style="font-size:20px;font-weight:900;color:#0f1a2e;margin-bottom:3px">안건우</div>
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                <span style="font-size:11px;color:rgba(15,26,46,.55)">레프트수비 · 수비조 1</span>
+                <span style="font-size:10px;color:rgba(15,26,46,.35)">·</span>
+                <span style="font-size:11px;color:rgba(15,26,46,.55)">Anaheim Jr.</span>
+                <span style="font-size:9px;font-weight:700;padding:2px 7px;border-radius:4px;
+                  background:rgba(13,92,41,.1);
+                  color:#0d5c29">Post-PHV</span>
+              </div>
+            </div>
+            <div style="text-align:right">
+              <div style="display:inline-flex;padding:4px 10px;border-radius:6px;
+                background:rgba(52,199,89,.08);border:1px solid rgba(52,199,89,.2);
+                font-size:11px;font-weight:700;color:#0d5c29">정상</div>
+              <div style="font-size:8.5px;color:rgba(15,26,46,.35);margin-top:4px">정밀 측정 기록 (최근 측정: 2026.04.14)</div>
+            </div>
+          </div>
+          <div class="pc-today-block">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+              <span class="badge-today"><span class="dot"></span>K-Grip 컨디션 모니터링 (최근 측정: 26.04.17)</span>
+              <span style="font-size:9px;color:var(--today-t);font-weight:600">Post-PHV</span>
+            </div>
+            <div class="pc-today-grip" id="grip-15">-2%</div>
+            <div style="font-size:9px;color:var(--t3);margin-bottom:8px">K-Grip 전날 대비 · 개인 베이스라인 기준</div>
+            <div class="pc-today-decision">Full Go — D Pair 핵심</div>
+            <div class="pc-today-sub">컨디션 최상</div>
+          <div style="margin-top:10px;padding:7px 10px;border-radius:7px;background:rgba(8,145,178,.08);border:1px solid rgba(8,145,178,.2);font-size:9.5px;color:var(--today-t);line-height:1.6">
+  <strong>ℹ 참고사항</strong> — 오늘 K-Grip 측정 기반 권고입니다. 당일 상태에 따라 변동될 수 있으며,
+  최종 출전·훈련 결정은 <strong>담당 AT·의료진 소견과 감독 판단을 종합</strong>하십시오.
+</div>
+</div>
+
+          <!-- BASELINE 블록 -->
+          <div class="pc-base-block">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+              <span class="badge-base"><span class="dot"></span>정밀 측정 기록 (최근 측정: 2026.04.14)</span>
+            </div>
+            <div class="pc-metrics"><div class="pc-metric">
+          <div class="pcm-label">Add/Abd</div>
+          <div class="pcm-val ok">0.95</div>
+        </div><div class="pc-metric">
+          <div class="pcm-label">Nordic</div>
+          <div class="pcm-val ok">94%</div>
+        </div><div class="pc-metric">
+          <div class="pcm-label">RSA</div>
+          <div class="pcm-val ok">+2.4%</div>
+        </div><div class="pc-metric">
+          <div class="pcm-label">5m Split</div>
+          <div class="pcm-val ok">-2.1%</div>
+        </div></div>
+            <div class="pc-principle" data-has-disc="1">전 지표 최상 — D Pair 핵심 자원. 현행 유지.</div>
+          </div>
+
+          
+          
+
+          <!-- 연결 화면 -->
+          <div class="pc-section">
+            <div class="pc-sec-title">연결 화면</div>
+            <a href="v2_Lines.html" class="pc-link">👥 Lines에서 이 선수 라인 위치 <span>→</span></a>
+            <a href="v2_Planner.html" class="pc-link">📅 오늘 훈련 계획 <span>→</span></a>
+            <a href="v2_Risk.html" class="pc-link">⚠ Risk & Return — 장기 운용 원칙 <span>→</span></a>
+            <a href="v2_Measurement.html" class="pc-link">🔬 이 지표의 측정 기준 <span>→</span></a>
+          </div>
+
+        </div><div class="pc-card" id="pc-16" style="display:none">
+
+          <!-- TODAY 블록 -->
+          <div 
+          <!-- 선수 카드 헤더 -->
+          <div style="display:flex;align-items:center;gap:16px;padding:18px 20px 14px;
+            border-bottom:1px solid rgba(0,0,0,.07);background:#fff;border-radius:12px 12px 0 0;
+            margin-bottom:12px;border:1px solid rgba(0,0,0,.08);box-shadow:0 1px 6px rgba(0,0,0,.05)">
+            <div style="font-family:'Orbitron';font-size:28px;font-weight:900;
+              color:var(--today);line-height:1">#17</div>
+            <div style="flex:1">
+              <div style="font-size:20px;font-weight:900;color:#0f1a2e;margin-bottom:3px">이형진</div>
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                <span style="font-size:11px;color:rgba(15,26,46,.55)">라이트수비 · 수비조 1</span>
+                <span style="font-size:10px;color:rgba(15,26,46,.35)">·</span>
+                <span style="font-size:11px;color:rgba(15,26,46,.55)">경기고</span>
+                <span style="font-size:9px;font-weight:700;padding:2px 7px;border-radius:4px;
+                  background:rgba(13,92,41,.1);
+                  color:#0d5c29">Post-PHV</span>
+              </div>
+            </div>
+            <div style="text-align:right">
+              <div style="display:inline-flex;padding:4px 10px;border-radius:6px;
+                background:rgba(255,159,10,.08);border:1px solid rgba(255,159,10,.2);
+                font-size:11px;font-weight:700;color:#7a4500">조건부</div>
+              <div style="font-size:8.5px;color:rgba(15,26,46,.35);margin-top:4px">정밀 측정 기록 (최근 측정: 2026.04.14)</div>
+            </div>
+          </div>
+          <div class="pc-today-block">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+              <span class="badge-today"><span class="dot"></span>K-Grip 컨디션 모니터링 (최근 측정: 26.04.17)</span>
+              <span style="font-size:9px;color:var(--today-t);font-weight:600">Post-PHV</span>
+            </div>
+            <div class="pc-today-grip" id="grip-16">-5%</div>
+            <div style="font-size:9px;color:var(--t3);margin-bottom:8px">K-Grip 전날 대비 · 개인 베이스라인 기준</div>
+            <div class="pc-today-decision">인터벌 +30초 · 정상 참여</div>
+            <div class="pc-today-sub">K-Grip 정상 범위</div>
+          <div style="margin-top:10px;padding:7px 10px;border-radius:7px;background:rgba(8,145,178,.08);border:1px solid rgba(8,145,178,.2);font-size:9.5px;color:var(--today-t);line-height:1.6">
+  <strong>ℹ 참고사항</strong> — 오늘 K-Grip 측정 기반 권고입니다. 당일 상태에 따라 변동될 수 있으며,
+  최종 출전·훈련 결정은 <strong>담당 AT·의료진 소견과 감독 판단을 종합</strong>하십시오.
+</div>
+</div>
+
+          <!-- BASELINE 블록 -->
+          <div class="pc-base-block">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+              <span class="badge-base"><span class="dot"></span>정밀 측정 기록 (최근 측정: 2026.04.14)</span>
+            </div>
+            <div class="pc-metrics"><div class="pc-metric">
+          <div class="pcm-label">RSA</div>
+          <div class="pcm-val warn">+7.8%</div>
+        </div><div class="pc-metric">
+          <div class="pcm-label">Add/Abd</div>
+          <div class="pcm-val ok">0.93</div>
+        </div><div class="pc-metric">
+          <div class="pcm-label">Nordic</div>
+          <div class="pcm-val ok">92%</div>
+        </div><div class="pc-metric">
+          <div class="pcm-label">5m Split</div>
+          <div class="pcm-val ok">-2.4%</div>
+        </div></div>
+            <div class="pc-principle" data-has-disc="1">전환 드릴 피로 누적. 연속 2세트 초과 자제. 인터벌 여유 확보 권고.</div>
+          </div>
+
+          
+          <div class="pc-section">
+              <div class="pc-sec-title">복귀 타임라인</div>
+              <div class="pc-timeline"><div class="pc-tl-item">
+          <div class="tl-dot done"></div>
+          <div class="tl-date">04.14</div>
+          <div class="tl-label done">플래그 감지</div>
+        </div><div class="pc-tl-item">
+          <div class="tl-dot cur"></div>
+          <div class="tl-date">현재</div>
+          <div class="tl-label cur">인터벌+30s</div>
+        </div></div>
+            </div>
+
+          <!-- 연결 화면 -->
+          <div class="pc-section">
+            <div class="pc-sec-title">연결 화면</div>
+            <a href="v2_Lines.html" class="pc-link">👥 Lines에서 이 선수 라인 위치 <span>→</span></a>
+            <a href="v2_Planner.html" class="pc-link">📅 오늘 훈련 계획 <span>→</span></a>
+            <a href="v2_Risk.html" class="pc-link">⚠ Risk & Return — 장기 운용 원칙 <span>→</span></a>
+            <a href="v2_Measurement.html" class="pc-link">🔬 이 지표의 측정 기준 <span>→</span></a>
+          </div>
+
+        </div><div class="pc-card" id="pc-17" style="display:none">
+
+          <!-- TODAY 블록 -->
+          <div 
+          <!-- 선수 카드 헤더 -->
+          <div style="display:flex;align-items:center;gap:16px;padding:18px 20px 14px;
+            border-bottom:1px solid rgba(0,0,0,.07);background:#fff;border-radius:12px 12px 0 0;
+            margin-bottom:12px;border:1px solid rgba(0,0,0,.08);box-shadow:0 1px 6px rgba(0,0,0,.05)">
+            <div style="font-family:'Orbitron';font-size:28px;font-weight:900;
+              color:var(--today);line-height:1">#8</div>
+            <div style="flex:1">
+              <div style="font-size:20px;font-weight:900;color:#0f1a2e;margin-bottom:3px">이지안</div>
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                <span style="font-size:11px;color:rgba(15,26,46,.55)">레프트수비 · 수비조 2</span>
+                <span style="font-size:10px;color:rgba(15,26,46,.35)">·</span>
+                <span style="font-size:11px;color:rgba(15,26,46,.55)">경기고</span>
+                <span style="font-size:9px;font-weight:700;padding:2px 7px;border-radius:4px;
+                  background:rgba(122,69,0,.1);
+                  color:#7a4500">Mid-PHV</span>
+              </div>
+            </div>
+            <div style="text-align:right">
+              <div style="display:inline-flex;padding:4px 10px;border-radius:6px;
+                background:rgba(52,199,89,.08);border:1px solid rgba(52,199,89,.2);
+                font-size:11px;font-weight:700;color:#0d5c29">정상</div>
+              <div style="font-size:8.5px;color:rgba(15,26,46,.35);margin-top:4px">정밀 측정 기록 (최근 측정: 2026.04.14)</div>
+            </div>
+          </div>
+          <div class="pc-today-block">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+              <span class="badge-today"><span class="dot"></span>K-Grip 컨디션 모니터링 (최근 측정: 26.04.17)</span>
+              <span style="font-size:9px;color:var(--today-t);font-weight:600">Mid-PHV</span>
+            </div>
+            <div class="pc-today-grip" id="grip-17">-4%</div>
+            <div style="font-size:9px;color:var(--t3);margin-bottom:8px">K-Grip 전날 대비 · 개인 베이스라인 기준</div>
+            <div class="pc-today-decision">Full Go — 정상 참여</div>
+            <div class="pc-today-sub">Mid-PHV 보정</div>
+          <div style="margin-top:10px;padding:7px 10px;border-radius:7px;background:rgba(8,145,178,.08);border:1px solid rgba(8,145,178,.2);font-size:9.5px;color:var(--today-t);line-height:1.6">
+  <strong>ℹ 참고사항</strong> — 오늘 K-Grip 측정 기반 권고입니다. 당일 상태에 따라 변동될 수 있으며,
+  최종 출전·훈련 결정은 <strong>담당 AT·의료진 소견과 감독 판단을 종합</strong>하십시오.
+</div>
+</div>
+
+          <!-- BASELINE 블록 -->
+          <div class="pc-base-block">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+              <span class="badge-base"><span class="dot"></span>정밀 측정 기록 (최근 측정: 2026.04.14)</span>
+            </div>
+            <div class="pc-metrics"><div class="pc-metric">
+          <div class="pcm-label">Add/Abd</div>
+          <div class="pcm-val ok">0.90</div>
+        </div><div class="pc-metric">
+          <div class="pcm-label">Nordic</div>
+          <div class="pcm-val ok">88%</div>
+        </div><div class="pc-metric">
+          <div class="pcm-label">RSA</div>
+          <div class="pcm-val ok">+2.5%</div>
+        </div><div class="pc-metric">
+          <div class="pcm-label">5m Split</div>
+          <div class="pcm-val ok">-3.0%</div>
+        </div></div>
+            <div class="pc-principle" data-has-disc="1">Mid-PHV 보정. 전 지표 정상.</div>
+          </div>
+
+          
+          
+
+          <!-- 연결 화면 -->
+          <div class="pc-section">
+            <div class="pc-sec-title">연결 화면</div>
+            <a href="v2_Lines.html" class="pc-link">👥 Lines에서 이 선수 라인 위치 <span>→</span></a>
+            <a href="v2_Planner.html" class="pc-link">📅 오늘 훈련 계획 <span>→</span></a>
+            <a href="v2_Risk.html" class="pc-link">⚠ Risk & Return — 장기 운용 원칙 <span>→</span></a>
+            <a href="v2_Measurement.html" class="pc-link">🔬 이 지표의 측정 기준 <span>→</span></a>
+          </div>
+
+        </div><div class="pc-card" id="pc-18" style="display:none">
+
+          <!-- TODAY 블록 -->
+          <div 
+          <!-- 선수 카드 헤더 -->
+          <div style="display:flex;align-items:center;gap:16px;padding:18px 20px 14px;
+            border-bottom:1px solid rgba(0,0,0,.07);background:#fff;border-radius:12px 12px 0 0;
+            margin-bottom:12px;border:1px solid rgba(0,0,0,.08);box-shadow:0 1px 6px rgba(0,0,0,.05)">
+            <div style="font-family:'Orbitron';font-size:28px;font-weight:900;
+              color:var(--today);line-height:1">#21</div>
+            <div style="flex:1">
+              <div style="font-size:20px;font-weight:900;color:#0f1a2e;margin-bottom:3px">이형진</div>
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                <span style="font-size:11px;color:rgba(15,26,46,.55)">라이트수비 · 수비조 2</span>
+                <span style="font-size:10px;color:rgba(15,26,46,.35)">·</span>
+                <span style="font-size:11px;color:rgba(15,26,46,.55)">경기고</span>
+                <span style="font-size:9px;font-weight:700;padding:2px 7px;border-radius:4px;
+                  background:rgba(13,92,41,.1);
+                  color:#0d5c29">Post-PHV</span>
+              </div>
+            </div>
+            <div style="text-align:right">
+              <div style="display:inline-flex;padding:4px 10px;border-radius:6px;
+                background:rgba(52,199,89,.08);border:1px solid rgba(52,199,89,.2);
+                font-size:11px;font-weight:700;color:#0d5c29">정상</div>
+              <div style="font-size:8.5px;color:rgba(15,26,46,.35);margin-top:4px">정밀 측정 기록 (최근 측정: 2026.04.14)</div>
+            </div>
+          </div>
+          <div class="pc-today-block">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+              <span class="badge-today"><span class="dot"></span>K-Grip 컨디션 모니터링 (최근 측정: 26.04.17)</span>
+              <span style="font-size:9px;color:var(--today-t);font-weight:600">Post-PHV</span>
+            </div>
+            <div class="pc-today-grip" id="grip-18">-3%</div>
+            <div style="font-size:9px;color:var(--t3);margin-bottom:8px">K-Grip 전날 대비 · 개인 베이스라인 기준</div>
+            <div class="pc-today-decision">Full Go — 정상 참여</div>
+            <div class="pc-today-sub">정상 범위</div>
+          <div style="margin-top:10px;padding:7px 10px;border-radius:7px;background:rgba(8,145,178,.08);border:1px solid rgba(8,145,178,.2);font-size:9.5px;color:var(--today-t);line-height:1.6">
+  <strong>ℹ 참고사항</strong> — 오늘 K-Grip 측정 기반 권고입니다. 당일 상태에 따라 변동될 수 있으며,
+  최종 출전·훈련 결정은 <strong>담당 AT·의료진 소견과 감독 판단을 종합</strong>하십시오.
+</div>
+</div>
+
+          <!-- BASELINE 블록 -->
+          <div class="pc-base-block">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+              <span class="badge-base"><span class="dot"></span>정밀 측정 기록 (최근 측정: 2026.04.14)</span>
+            </div>
+            <div class="pc-metrics"><div class="pc-metric">
+          <div class="pcm-label">Add/Abd</div>
+          <div class="pcm-val ok">0.91</div>
+        </div><div class="pc-metric">
+          <div class="pcm-label">Nordic</div>
+          <div class="pcm-val ok">89%</div>
+        </div><div class="pc-metric">
+          <div class="pcm-label">RSA</div>
+          <div class="pcm-val ok">+2.7%</div>
+        </div><div class="pc-metric">
+          <div class="pcm-label">5m Split</div>
+          <div class="pcm-val ok">-2.6%</div>
+        </div></div>
+            <div class="pc-principle" data-has-disc="1">전 지표 정상.</div>
+          </div>
+
+          
+          
+
+          <!-- 연결 화면 -->
+          <div class="pc-section">
+            <div class="pc-sec-title">연결 화면</div>
+            <a href="v2_Lines.html" class="pc-link">👥 Lines에서 이 선수 라인 위치 <span>→</span></a>
+            <a href="v2_Planner.html" class="pc-link">📅 오늘 훈련 계획 <span>→</span></a>
+            <a href="v2_Risk.html" class="pc-link">⚠ Risk & Return — 장기 운용 원칙 <span>→</span></a>
+            <a href="v2_Measurement.html" class="pc-link">🔬 이 지표의 측정 기준 <span>→</span></a>
+          </div>
+
+        </div><div class="pc-card" id="pc-19" style="display:none">
+
+          <!-- TODAY 블록 -->
+          <div 
+          <!-- 선수 카드 헤더 -->
+          <div style="display:flex;align-items:center;gap:16px;padding:18px 20px 14px;
+            border-bottom:1px solid rgba(0,0,0,.07);background:#fff;border-radius:12px 12px 0 0;
+            margin-bottom:12px;border:1px solid rgba(0,0,0,.08);box-shadow:0 1px 6px rgba(0,0,0,.05)">
+            <div style="font-family:'Orbitron';font-size:28px;font-weight:900;
+              color:var(--today);line-height:1">#14</div>
+            <div style="flex:1">
+              <div style="font-size:20px;font-weight:900;color:#0f1a2e;margin-bottom:3px">박무진</div>
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                <span style="font-size:11px;color:rgba(15,26,46,.55)">레프트수비 · 수비조 3</span>
+                <span style="font-size:10px;color:rgba(15,26,46,.35)">·</span>
+                <span style="font-size:11px;color:rgba(15,26,46,.55)">경기고</span>
+                <span style="font-size:9px;font-weight:700;padding:2px 7px;border-radius:4px;
+                  background:rgba(13,92,41,.1);
+                  color:#0d5c29">Post-PHV</span>
+              </div>
+            </div>
+            <div style="text-align:right">
+              <div style="display:inline-flex;padding:4px 10px;border-radius:6px;
+                background:rgba(52,199,89,.08);border:1px solid rgba(52,199,89,.2);
+                font-size:11px;font-weight:700;color:#0d5c29">정상</div>
+              <div style="font-size:8.5px;color:rgba(15,26,46,.35);margin-top:4px">정밀 측정 기록 (최근 측정: 2026.04.14)</div>
+            </div>
+          </div>
+          <div class="pc-today-block">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+              <span class="badge-today"><span class="dot"></span>K-Grip 컨디션 모니터링 (최근 측정: 26.04.17)</span>
+              <span style="font-size:9px;color:var(--today-t);font-weight:600">Post-PHV</span>
+            </div>
+            <div class="pc-today-grip" id="grip-19">-4%</div>
+            <div style="font-size:9px;color:var(--t3);margin-bottom:8px">K-Grip 전날 대비 · 개인 베이스라인 기준</div>
+            <div class="pc-today-decision">Full Go — 정상 참여</div>
+            <div class="pc-today-sub">정상 범위</div>
+          <div style="margin-top:10px;padding:7px 10px;border-radius:7px;background:rgba(8,145,178,.08);border:1px solid rgba(8,145,178,.2);font-size:9.5px;color:var(--today-t);line-height:1.6">
+  <strong>ℹ 참고사항</strong> — 오늘 K-Grip 측정 기반 권고입니다. 당일 상태에 따라 변동될 수 있으며,
+  최종 출전·훈련 결정은 <strong>담당 AT·의료진 소견과 감독 판단을 종합</strong>하십시오.
+</div>
+</div>
+
+          <!-- BASELINE 블록 -->
+          <div class="pc-base-block">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+              <span class="badge-base"><span class="dot"></span>정밀 측정 기록 (최근 측정: 2026.04.14)</span>
+            </div>
+            <div class="pc-metrics"><div class="pc-metric">
+          <div class="pcm-label">Add/Abd</div>
+          <div class="pcm-val ok">0.89</div>
+        </div><div class="pc-metric">
+          <div class="pcm-label">Nordic</div>
+          <div class="pcm-val ok">90%</div>
+        </div><div class="pc-metric">
+          <div class="pcm-label">RSA</div>
+          <div class="pcm-val ok">+2.3%</div>
+        </div><div class="pc-metric">
+          <div class="pcm-label">5m Split</div>
+          <div class="pcm-val ok">-2.9%</div>
+        </div></div>
+            <div class="pc-principle" data-has-disc="1">전 지표 정상.</div>
+          </div>
+
+          
+          
+
+          <!-- 연결 화면 -->
+          <div class="pc-section">
+            <div class="pc-sec-title">연결 화면</div>
+            <a href="v2_Lines.html" class="pc-link">👥 Lines에서 이 선수 라인 위치 <span>→</span></a>
+            <a href="v2_Planner.html" class="pc-link">📅 오늘 훈련 계획 <span>→</span></a>
+            <a href="v2_Risk.html" class="pc-link">⚠ Risk & Return — 장기 운용 원칙 <span>→</span></a>
+            <a href="v2_Measurement.html" class="pc-link">🔬 이 지표의 측정 기준 <span>→</span></a>
+          </div>
+
+        </div><div class="pc-card" id="pc-20" style="display:none">
+
+          <!-- TODAY 블록 -->
+          <div 
+          <!-- 선수 카드 헤더 -->
+          <div style="display:flex;align-items:center;gap:16px;padding:18px 20px 14px;
+            border-bottom:1px solid rgba(0,0,0,.07);background:#fff;border-radius:12px 12px 0 0;
+            margin-bottom:12px;border:1px solid rgba(0,0,0,.08);box-shadow:0 1px 6px rgba(0,0,0,.05)">
+            <div style="font-family:'Orbitron';font-size:28px;font-weight:900;
+              color:var(--today);line-height:1">#12</div>
+            <div style="flex:1">
+              <div style="font-size:20px;font-weight:900;color:#0f1a2e;margin-bottom:3px">김산</div>
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                <span style="font-size:11px;color:rgba(15,26,46,.55)">라이트수비 · 수비조 3</span>
+                <span style="font-size:10px;color:rgba(15,26,46,.35)">·</span>
+                <span style="font-size:11px;color:rgba(15,26,46,.55)">경기고</span>
+                <span style="font-size:9px;font-weight:700;padding:2px 7px;border-radius:4px;
+                  background:rgba(13,92,41,.1);
+                  color:#0d5c29">Post-PHV</span>
+              </div>
+            </div>
+            <div style="text-align:right">
+              <div style="display:inline-flex;padding:4px 10px;border-radius:6px;
+                background:rgba(52,199,89,.08);border:1px solid rgba(52,199,89,.2);
+                font-size:11px;font-weight:700;color:#0d5c29">정상</div>
+              <div style="font-size:8.5px;color:rgba(15,26,46,.35);margin-top:4px">정밀 측정 기록 (최근 측정: 2026.04.14)</div>
+            </div>
+          </div>
+          <div class="pc-today-block">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+              <span class="badge-today"><span class="dot"></span>K-Grip 컨디션 모니터링 (최근 측정: 26.04.17)</span>
+              <span style="font-size:9px;color:var(--today-t);font-weight:600">Post-PHV</span>
+            </div>
+            <div class="pc-today-grip" id="grip-20">-3%</div>
+            <div style="font-size:9px;color:var(--t3);margin-bottom:8px">K-Grip 전날 대비 · 개인 베이스라인 기준</div>
+            <div class="pc-today-decision">Full Go — 정상 참여</div>
+            <div class="pc-today-sub">정상 범위</div>
+          <div style="margin-top:10px;padding:7px 10px;border-radius:7px;background:rgba(8,145,178,.08);border:1px solid rgba(8,145,178,.2);font-size:9.5px;color:var(--today-t);line-height:1.6">
+  <strong>ℹ 참고사항</strong> — 오늘 K-Grip 측정 기반 권고입니다. 당일 상태에 따라 변동될 수 있으며,
+  최종 출전·훈련 결정은 <strong>담당 AT·의료진 소견과 감독 판단을 종합</strong>하십시오.
+</div>
+</div>
+
+          <!-- BASELINE 블록 -->
+          <div class="pc-base-block">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+              <span class="badge-base"><span class="dot"></span>정밀 측정 기록 (최근 측정: 2026.04.14)</span>
+            </div>
+            <div class="pc-metrics"><div class="pc-metric">
+          <div class="pcm-label">Add/Abd</div>
+          <div class="pcm-val ok">0.92</div>
+        </div><div class="pc-metric">
+          <div class="pcm-label">Nordic</div>
+          <div class="pcm-val ok">91%</div>
+        </div><div class="pc-metric">
+          <div class="pcm-label">RSA</div>
+          <div class="pcm-val ok">+2.1%</div>
+        </div><div class="pc-metric">
+          <div class="pcm-label">5m Split</div>
+          <div class="pcm-val ok">-2.4%</div>
+        </div></div>
+            <div class="pc-principle" data-has-disc="1">전 지표 정상.</div>
+          </div>
+
+          
+          
+
+          <!-- 연결 화면 -->
+          <div class="pc-section">
+            <div class="pc-sec-title">연결 화면</div>
+            <a href="v2_Lines.html" class="pc-link">👥 Lines에서 이 선수 라인 위치 <span>→</span></a>
+            <a href="v2_Planner.html" class="pc-link">📅 오늘 훈련 계획 <span>→</span></a>
+            <a href="v2_Risk.html" class="pc-link">⚠ Risk & Return — 장기 운용 원칙 <span>→</span></a>
+            <a href="v2_Measurement.html" class="pc-link">🔬 이 지표의 측정 기준 <span>→</span></a>
+          </div>
+
+        </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const GRIPS = {'0':'-12%','1':'-3%','2':'—','3':'-4%','4':'-11%','5':'-3%','6':'-4%','7':'-5%','8':'-6%','9':'-3%','10':'-4%','11':'-2%','12':'-5%','13':'-4%','14':'—','15':'-2%','16':'-5%','17':'-4%','18':'-3%','19':'-4%','20':'-3%'};
+
+function selPlayer(idx) {
+  // 목록 선택 표시
+  document.querySelectorAll('.pl-item').forEach(el => el.classList.remove('selected'));
+  const items = document.querySelectorAll('.pl-item');
+  if(items[idx]) items[idx].classList.add('selected');
+
+  // 카드 표시
+  document.querySelectorAll('.pc-card').forEach(c => c.style.display = 'none');
+  const card = document.getElementById('pc-' + idx);
+  if(card) {
+    card.style.display = 'block';
+    // K-Grip 값 표시
+    const gripEl = document.getElementById('grip-' + idx);
+    if(gripEl) gripEl.textContent = GRIPS[idx] || '—';
+  }
+}
+
+// 초기 선택 (첫 번째 선수)
+document.addEventListener('DOMContentLoaded', () => {
+  const firstItem = document.querySelector('.pl-item');
+  if(firstItem) firstItem.classList.add('selected');
+  const firstGrip = document.getElementById('grip-0');
+  if(firstGrip) firstGrip.textContent = GRIPS[0] || '—';
+});
+
+// 날짜
+
+
+</script>
+<script>/* DATE_JS_INSERTED */
+
+(function(){
+  const _d = new Date(), _days = ['일','월','화','수','목','금','토'];
+  const _str = _d.getFullYear()+'.'+String(_d.getMonth()+1).padStart(2,'0')+'.'+String(_d.getDate()).padStart(2,'0')+' ('+_days[_d.getDay()]+')';
+  document.querySelectorAll('.tb-date').forEach(el => el.textContent = _str);
+})();
+
+</script>
+</body>
+</html><!-- DISCLAIMER_ADDED -->
